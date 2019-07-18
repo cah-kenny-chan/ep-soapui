@@ -15,6 +15,8 @@
 	<property name="portnumber" value="${portnumber}" />
 	<property name="soapUI.dir" value="${soapUI.dir}" />
 	<property name="soapUI.report.dir" location="${soapUI.report.dir}" />
+	<!--This endpoint is injected via ant call, i.e. 'ant functionalTest -D-->
+	<property name="endpoint" value="${endpoint}" />
 	<property name="soapUI.project" location="${basedir}/CARESOrderProcessing-SoapUIProject.xml" />
 
 	<tstamp>
@@ -42,6 +44,8 @@
 			<java classname="com.eviware.soapui.tools.SoapUITestCaseRunner" resultproperty="errorCode" fork="true" dir="${soapUI.report.dir}">
 
 				<arg line="-j -M -r -a -f${soapUI.report.dir}/xml" />
+				<!-- Endpoint is injected and overrides any existing endpoint -->
+				<arg line="-e${endpoint}" />
 				<arg value="${soapUI.project}" />
 				<classpath refid="ant.classpath" />
 				<classpath refid="soapUI.classpath" />
