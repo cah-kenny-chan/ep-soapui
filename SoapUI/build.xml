@@ -17,7 +17,7 @@
 	<property name="soapUI.report.dir" location="${soapUI.report.dir}" />
 	<!--This endpoint is injected via ant call, i.e. 'ant functionalTest -D-->
 	<property name="endpoint" value="${endpoint}" />
-	<property name="soapUI.project" location="${basedir}/CARESOrderProcessing-SoapUIProject.xml" />
+	<property name="soapUI.project" location="${basedir}/CARES_ODM-soapui-project.xml" />
 
 	<tstamp>
 	<format property="timeStampWithDay.pattern" pattern="yyyy_MM_dd"/>
