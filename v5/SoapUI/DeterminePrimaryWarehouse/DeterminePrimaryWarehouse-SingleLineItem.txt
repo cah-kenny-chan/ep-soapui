@@ -1,0 +1,339 @@
+import jxl.*;
+import jxl.write.*
+import java.io.*
+import java.io.file.*
+import java.util.*
+import java.lang.*
+import jxl.read.biff.BiffException;
+import net.sf.*
+import net.sf.json.*
+import net.sf.json.groovy.*
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+import groovy.json.JsonBuilder
+import com.eviware.soapui.model.testsuite.TestStepResult.TestStepStatus
+import com.eviware.soapui.impl.wsdl.teststeps.RestTestRequestStep
+
+def groovyUtils = new com.eviware.soapui.support.GroovyUtils(context)
+def projectDir = groovyUtils.projectPath
+
+def inputfile =  projectDir + "/DeterminePrimaryWarehouse/DeterminePrimaryWarehouse-Input.xls"
+def outputfile = projectDir + "/DeterminePrimaryWarehouse/DeterminePrimaryWarehouse-SingleLineItem-Output.xls"
+
+
+//Creating workbook for reading value from Excel Sheet
+
+Workbook wb = Workbook.getWorkbook(new File(inputfile))
+Sheet sh = wb.getSheet("ExpectedResults_SingleLineItem")
+Sheet jsonInput = wb.getSheet("JSON_SingleLineItem")
+
+//reading data from input Excel sheet
+rc = sh.getRows();
+cc = sh.getColumns();
+Cell jreq = jsonInput.getCell(0,0)
+
+//Creating Workbook for writing value in Excel Sheet
+WritableWorkbook wb1= Workbook.createWorkbook(new File(outputfile));
+WritableSheet sheet1 = wb1.createSheet("ActualResults",0);
+
+//Header declaration for output file
+addCell(0,0,"lineItemID",sheet1);
+addCell(1,0,"itemNumber",sheet1);
+addCell(2,0,"requiresPharmacyDispensing", sheet1);
+addCell(3,0,"warehouseLocationCd",sheet1);
+addCell(4,0,"priority",sheet1);
+addCell(5,0,"warehouseLocationCd",sheet1);
+addCell(6,0,"priority",sheet1);
+addCell(7,0,"warehouseLocationCd",sheet1);
+addCell(8,0,"priority",sheet1);
+addCell(9,0,"warehouseLocationCd",sheet1);
+addCell(10,0,"priority",sheet1);
+addCell(11,0,"warehouseLocationCd",sheet1);
+addCell(12,0,"priority",sheet1);
+addCell(13,0,"warehouseLocationCd",sheet1);
+addCell(14,0,"priority",sheet1);
+addCell(15,0,"warehouseLocationCd",sheet1);
+addCell(16,0,"priority",sheet1);
+addCell(17,0,"warehouseLocationCd",sheet1);
+addCell(18,0,"priority",sheet1);
+addCell(19,0,"warehouseLocationCd",sheet1);
+addCell(20,0,"priority",sheet1);
+addCell(21,0,"warehouseLocationCd",sheet1);
+addCell(22,0,"priority",sheet1);
+addCell(23,0,"warehouseLocationCd",sheet1);
+addCell(24,0,"priority",sheet1);
+addCell(25,0,"warehouseLocationCd",sheet1);
+addCell(26,0,"priority",sheet1);
+addCell(27,0,"warehouseLocationCd",sheet1);
+addCell(28,0,"priority",sheet1);
+addCell(29,0,"warehouseLocationCd",sheet1);
+addCell(30,0,"priority",sheet1);
+addCell(31,0,"warehouseLocationCd",sheet1);
+addCell(32,0,"priority",sheet1);
+addCell(33,0,"warehouseLocationCd",sheet1);
+addCell(34,0,"priority",sheet1);
+addCell(35,0,"warehouseLocationCd",sheet1);
+addCell(36,0,"priority",sheet1);
+addCell(37,0,"warehouseLocationCd",sheet1);
+addCell(38,0,"priority",sheet1);
+addCell(39,0,"warehouseLocationCd",sheet1);
+addCell(40,0,"priority",sheet1);
+addCell(41,0,"warehouseLocationCd",sheet1);
+addCell(42,0,"priority",sheet1);
+addCell(43,0,"recommendedCarrier",sheet1);
+addCell(44,0,"recommendedShippingMethod",sheet1);
+addCell(45,0,"primaryWarehouse",sheet1);
+addCell(45,0,"warehouseLocationCd",sheet1);
+addCell(46,0,"priority",sheet1);
+addCell(47,0,"PASS/FAIL",sheet1);
+addCell(48,0,"FAILED DUE TO",sheet1);
+ 
+//new testStepName
+def newTestStep=null
+
+//try {
+
+   
+               def req = jreq.getContents()
+               //Assigning request value dynamically
+               //request
+               def slurper = new JsonSlurper().parseText(req);
+               def requestTemplet = new JsonBuilder(slurper);
+
+         
+               for (i=4;i<rc;i++){
+
+                           // Input for TestCaseName
+                         Cell varTestCaseName = sh.getCell(0,i)
+                        def TestCaseName = varTestCaseName.getContents()
+
+                        
+                
+                                 //Input for recommendedCarrier                               
+                                requestTemplet.content.order.recommendedCarrier = sh.getCell(1,i).getContents()                                                              
+                                requestTemplet.content.order.recommendedShippingMethod = sh.getCell(2,i).getContents()  
+                                requestTemplet.content.order.lineItems[0].lineItemID = sh.getCell(3,i).getContents()
+                                requestTemplet.content.order.lineItems[0].itemNumber = sh.getCell(4,i).getContents()
+                                requestTemplet.content.order.lineItems[0].requiresPharmacyDispensing = sh.getCell(5,i).getContents()
+                                
+                                //Input for acceptableShipFromWarehouses                                
+                                requestTemplet.content.order.lineItems[0].acceptableShipFromWarehouses[0].warehouseLocationCd = sh.getCell(6,i).getContents()
+                                requestTemplet.content.order.lineItems[0].acceptableShipFromWarehouses[0].priority = sh.getCell(7,i).getContents() 
+                                requestTemplet.content.order.lineItems[0].acceptableShipFromWarehouses[1].warehouseLocationCd = sh.getCell(8,i).getContents()
+                                requestTemplet.content.order.lineItems[0].acceptableShipFromWarehouses[1].priority = sh.getCell(9,i).getContents()
+                                requestTemplet.content.order.lineItems[0].acceptableShipFromWarehouses[2].warehouseLocationCd = sh.getCell(10,i).getContents()
+                                requestTemplet.content.order.lineItems[0].acceptableShipFromWarehouses[2].priority = sh.getCell(11,i).getContents()                                                                                     
+                                requestTemplet.content.order.lineItems[0].acceptableShipFromWarehouses[3].warehouseLocationCd = sh.getCell(12,i).getContents()
+                                requestTemplet.content.order.lineItems[0].acceptableShipFromWarehouses[3].priority = sh.getCell(13,i).getContents()                                                                                     
+                                requestTemplet.content.order.lineItems[0].acceptableShipFromWarehouses[4].warehouseLocationCd = sh.getCell(14,i).getContents()
+                                requestTemplet.content.order.lineItems[0].acceptableShipFromWarehouses[4].priority = sh.getCell(15,i).getContents()                                                                                     
+                                requestTemplet.content.order.lineItems[0].acceptableShipFromWarehouses[5].warehouseLocationCd = sh.getCell(16,i).getContents()
+                                requestTemplet.content.order.lineItems[0].acceptableShipFromWarehouses[5].priority = sh.getCell(17,i).getContents()                                                                                     
+                                requestTemplet.content.order.lineItems[0].acceptableShipFromWarehouses[6].warehouseLocationCd = sh.getCell(18,i).getContents()
+                                requestTemplet.content.order.lineItems[0].acceptableShipFromWarehouses[6].priority = sh.getCell(19,i).getContents()                                                                                     
+                                requestTemplet.content.order.lineItems[0].acceptableShipFromWarehouses[7].warehouseLocationCd = sh.getCell(20,i).getContents()
+                                requestTemplet.content.order.lineItems[0].acceptableShipFromWarehouses[7].priority = sh.getCell(21,i).getContents()                                                                                     
+                                requestTemplet.content.order.lineItems[0].acceptableShipFromWarehouses[8].warehouseLocationCd = sh.getCell(22,i).getContents()
+                                requestTemplet.content.order.lineItems[0].acceptableShipFromWarehouses[8].priority = sh.getCell(23,i).getContents()                                                                                     
+                                requestTemplet.content.order.lineItems[0].acceptableShipFromWarehouses[9].warehouseLocationCd = sh.getCell(24,i).getContents()
+                                requestTemplet.content.order.lineItems[0].acceptableShipFromWarehouses[9].priority = sh.getCell(25,i).getContents()                                                    
+                                
+                              //Assign json request to variable
+                       def jsonReqAsString = requestTemplet.toPrettyString()
+                       def restRequest = testRunner.testCase.getTestStepByName('JSON Request');
+                       restRequest.setPropertyValue('Request',jsonReqAsString);
+
+                                //teststep cloned: Start
+                        def getTestCase = testRunner.testCase;
+                        def testst = testRunner.testCase.getTestStepByName("JSON Request");                 
+                            newTestStep = TestCaseName
+                            cleanUp(newTestStep)
+                            getTestCase.cloneStep(restRequest,newTestStep)
+                             
+                         //teststep cloned: End
+                         //Executing the testcase
+                        testRunner.runTestStepByName(newTestStep)
+ 
+                         //retrive response         
+                       def ResponseMessage = testRunner.testCase.testSteps[newTestStep].testRequest.response.contentAsString
+                    
+                         //new JsonSlurper to parse and get the response in Json format
+                        def slurper1 = new JsonSlurper()
+                        def json = slurper1.parseText(ResponseMessage)
+                    
+                                  
+                           // get values from response json                          
+                                           
+                         	  int celNumForLineItems=0; celNumForShipWarehouses=3;                          
+	                           for(int arrForLineItems=0; arrForLineItems<json.order.lineItems.size(); arrForLineItems++)
+	                           {           
+	                      	     addCell(celNumForLineItems,i,json.order.lineItems[arrForLineItems].lineItemID.toString(),sheet1);
+	                              celNumForLineItems = celNumForLineItems +1;
+	                              addCell(celNumForLineItems,i,json.order.lineItems[arrForLineItems].itemNumber.toString(),sheet1); 
+	                              celNumForLineItems = celNumForLineItems +1;                                      
+	                              addCell(celNumForLineItems,i,json.order.lineItems[arrForLineItems].requiresPharmacyDispensing.toString(),sheet1);                                                             
+	                                  
+	                                  for(int arrForShipWarehouses=0; arrForShipWarehouses<json.order.lineItems[arrForLineItems].acceptableShipFromWarehouses.size(); arrForShipWarehouses++)
+	                                  {                    
+	                                  addCell(celNumForShipWarehouses,i,json.order.lineItems[arrForLineItems].acceptableShipFromWarehouses[arrForShipWarehouses].warehouseLocationCd.toString(),sheet1);
+	                                  celNumForShipWarehouses = celNumForShipWarehouses+1;                                       
+	                                  addCell(celNumForShipWarehouses,i,json.order.lineItems[arrForLineItems].acceptableShipFromWarehouses[arrForShipWarehouses].priority.toString(),sheet1);
+	                                  celNumForShipWarehouses = celNumForShipWarehouses+1;
+	                                  }
+	                             }                        
+                     
+		                   int celNumForwarehouseAndPriority=23;
+		                   for(int arrForwarehouseAndPriority=0; arrForwarehouseAndPriority<json.order.acceptableShipFromWarehouses.size(); arrForwarehouseAndPriority++)
+		                    { 	                                     
+		                      addCell(celNumForwarehouseAndPriority,i,json.order.acceptableShipFromWarehouses[arrForwarehouseAndPriority].warehouseLocationCd.toString(),sheet1);
+		                      celNumForwarehouseAndPriority = celNumForwarehouseAndPriority+1;                                       
+		                      addCell(celNumForwarehouseAndPriority,i,json.order.acceptableShipFromWarehouses[arrForwarehouseAndPriority].priority.toString(),sheet1);
+		                      celNumForwarehouseAndPriority = celNumForwarehouseAndPriority+1;
+		                    }
+                   
+                        addCell(43,i,json.order.recommendedCarrier.toString(),sheet1);                                                                      
+                        addCell(44,i,json.order.recommendedShippingMethod.toString(),sheet1);
+                        addCell(45,i,json.order.primaryWarehouse.warehouseLocationCd.toString(),sheet1); 
+                        addCell(46,i,json.order.primaryWarehouse.priority.toString(),sheet1);                  
+           
+                                                    
+                      //dynamic asserstion :Start
+                   def testStepForAssertion = testRunner.testCase.getTestStepByName(newTestStep);
+                     //ValidHTTPStatusCodes 200 Assertion
+                   addAssertionValidHTTPStatusCodes(testStepForAssertion,"Valid HTTP Status Codes_"+i)
+            
+                 //get the expected values                	
+                         int celForLItem=26; celForacceptableWH=29;
+                   		for(int arrForLItem=0; arrForLItem<json.order.lineItems.size(); arrForLItem++)
+                     	{     
+                            lineItemID = sh.getCell(celForLItem,i).getContents()
+	                       addAssertionJsonPathMatch(testStepForAssertion,lineItemID,"order.lineItems["+arrForLItem+"].lineItemID","lineItemID")
+	                       celForLItem = celForLItem+1
+
+                            itemNumber = sh.getCell(celForLItem,i).getContents().toString()
+	                       addAssertionJsonPathMatch(testStepForAssertion,itemNumber,"order.lineItems["+arrForLItem+"].itemNumber","itemNumber")
+	                       celForLItem = celForLItem+1
+
+                            requiresPharmacyDispensing = sh.getCell(celForLItem,i).getContents().toString()
+                       	   addAssertionJsonPathMatch(testStepForAssertion,requiresPharmacyDispensing,"order.lineItems["+arrForLItem+"].requiresPharmacyDispensing","requiresPharmacyDispensing")
+                       
+                      			for(int arrForacceptableWH=0; arrForacceptableWH<json.order.lineItems[arrForLItem].acceptableShipFromWarehouses.size(); arrForacceptableWH++)
+                      			{                      	
+			                       warehouseLocationCd = sh.getCell(celForacceptableWH,i).getContents().toString()
+			                       addAssertionJsonPathMatch(testStepForAssertion,warehouseLocationCd,"order.lineItems["+arrForLItem+"].acceptableShipFromWarehouses["+arrForacceptableWH+"].warehouseLocationCd","warehouseLocationCd")
+			                       celForacceptableWH = celForacceptableWH+1;
+
+			                       priority = sh.getCell(celForacceptableWH,i).getContents().toString()
+			                       addAssertionJsonPathMatch(testStepForAssertion,priority,"order.lineItems["+arrForLItem+"].acceptableShipFromWarehouses["+arrForacceptableWH+"].priority","priority")
+			                 	   celForacceptableWH = celForacceptableWH+1; 
+                  				 }
+                     	      }                     	                  
+                            
+	                 		int celNumForAWH =49              
+	                         for(int arrmtcd=0; arrmtcd<json.order.acceptableShipFromWarehouses.size(); arrmtcd++)
+                           	{                     
+                                    warehouseLocationCd = sh.getCell(celNumForAWH,i).getContents().toString()
+		                      	 addAssertionJsonPathMatch(testStepForAssertion,warehouseLocationCd,"order.acceptableShipFromWarehouses["+arrmtcd+"].warehouseLocationCd","warehouseLocationCd")
+		                          celNumForAWH = celNumForAWH +1;
+		                          
+			                       priority = sh.getCell(celNumForAWH,i).getContents().toString()
+			                       addAssertionJsonPathMatch(testStepForAssertion,priority,"order.acceptableShipFromWarehouses["+arrmtcd+"].priority","priority")
+			                       celNumForAWH = celNumForAWH +1;
+                               }
+         				         
+            
+                       recommendedCarrier = sh.getCell(69,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,recommendedCarrier,"order.recommendedCarrier","recommendedCarrier")
+
+                       recommendedShippingMethod = sh.getCell(70,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,recommendedShippingMethod,"order.recommendedShippingMethod","recommendedShippingMethod")
+
+                       warehouseLocationCd_P = sh.getCell(71,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,warehouseLocationCd_P,"order.primaryWarehouse.warehouseLocationCd","warehouseLocationCd")
+
+                       priority_P = sh.getCell(72,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,priority_P,"order.primaryWarehouse.priority","priority")
+                
+                            //dynamic asserstion :End
+                            assertionResult = testStepForAssertion.getAssertionStatus()
+        			if(assertionResult.toString().equals("FAILED")){
+
+                                       addCell(47,i,"Fail",sheet1);
+                                   for( assertion in testStepForAssertion.assertionList ){
+                                  for( e in assertion.errors ){
+
+                                                     addCell(48,i,e.message,sheet1);
+                                                }
+                                   }
+
+                                }
+
+                                else{
+                                   addCell(47,i,"PASS",sheet1);
+                                }
+       }
+
+      wb1.write();
+            log.info "TestCase Execution Completed successfull"
+
+               // }             
+     
+/*catch(Exception e)
+{
+
+                 log.info(e)                         
+}
+
+finally
+{*/
+
+    //close workbook
+     wb.close();
+     wb1.close();     
+
+//} 
+  
+//Method code
+def addAssertionJsonPathMatch(RestTestRequestStep testStepForAssertion,String expectedContent,String xPath,String assertionName) {
+          def assertionType = testStepForAssertion.addAssertion("JsonPath Match")
+                                assertionType.name = assertionName
+                                assertionType.setPath(xPath)
+                                assertionType.setExpectedContent(expectedContent)
+                                assertionType.setAllowWildcards(true) 
+
+}
+
+//Method code
+def addAssertionValidHTTPStatusCodes(RestTestRequestStep testStepForAssertion,String assertionName) {
+
+         def StatusCodeAssertionxpath = testStepForAssertion.addAssertion("Valid HTTP Status Codes")
+             StatusCodeAssertionxpath.name = assertionName
+             StatusCodeAssertionxpath.codes=200
+
+}
+
+//method to delete
+def cleanUp(String requestName){
+
+                //remove the teststep::Start
+                def testCase = testRunner.testCase
+                def testStep = testCase.getTestStepByName(requestName)
+
+                if (testStep!=null){
+
+ 
+                                    testCase.removeTestStep(testStep)
+                }
+    
+            //remove the teststep::End
+}
+
+
+//method to add Cell to sheet1
+
+def addCell(int colmNum,int rowNum,String lblName,WritableSheet sheet1 ){
+
+                 Label header = new Label(colmNum,rowNum,lblName);
+                sheet1.addCell(header);               
+
+}
