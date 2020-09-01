@@ -1,0 +1,1484 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<con:testCase id="b9ce9536-16c1-430f-8c8f-45d547685fe8" failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="DetermineGracePeriodForLimits" searchProperties="true" xmlns:con="http://eviware.com/soapui/config">
+  <con:settings>
+    <con:setting id="b9ce9536-16c1-430f-8c8f-45d547685fe8fileName">DetermineGracePeriodForLimits</con:setting>
+  </con:settings>
+  <con:testStep type="groovy" name="DetermineGracePeriodForLimits-SingleLineItem" id="f8449519-435b-4ec0-a182-905b183ab343">
+    <con:settings/>
+    <con:config>
+      <script>import jxl.*;
+import jxl.write.*
+import java.io.*
+import java.io.file.*
+import java.util.*
+import java.lang.*
+import jxl.read.biff.BiffException;
+import net.sf.*
+import net.sf.json.*
+import net.sf.json.groovy.*
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+import groovy.json.JsonBuilder
+import com.eviware.soapui.model.testsuite.TestStepResult.TestStepStatus
+import com.eviware.soapui.impl.wsdl.teststeps.RestTestRequestStep
+
+def groovyUtils = new com.eviware.soapui.support.GroovyUtils(context)
+def projectDir = groovyUtils.projectPath
+
+def inputfile =  projectDir + "/DetermineGracePeriodForLimits/DetermineGracePeriodforLimits-Input.xls"
+def outputfile = projectDir + "/DetermineGracePeriodForLimits/DetermineGracePeriodforLimits-SingleLineItem-Output.xls"
+
+//Creating workbook for reading value from Excel Sheet
+
+Workbook wb = Workbook.getWorkbook(new File(inputfile))
+Sheet sh = wb.getSheet("ExpectedResults_SingleLineItem")
+Sheet jsonInput = wb.getSheet("JSON_singleLineItem")
+
+//reading data from input Excel sheet
+rc = sh.getRows();
+cc = sh.getColumns();
+Cell jreq = jsonInput.getCell(0,0)
+
+//Creating Workbook for writing value in Excel Sheet
+WritableWorkbook wb1= Workbook.createWorkbook(new File(outputfile));
+WritableSheet sheet1 = wb1.createSheet("ActualResults",0);
+
+//Header declaration for output file
+addCell(0,0,"lineItemID",sheet1);
+addCell(1,0,"gracePeriodDays",sheet1);
+addCell(2,0,"limitsValid",sheet1);
+addCell(3,0,"PASS/FAIL",sheet1);
+addCell(4,0,"FAILED DUE TO",sheet1);
+ 
+//new testStepName
+def newTestStep=null
+
+//try {
+
+   
+               def req = jreq.getContents()
+               //Assigning request value dynamically
+               //request
+               def slurper = new JsonSlurper().parseText(req);
+               def requestTemplet = new JsonBuilder(slurper);
+
+         
+               for (i=2;i&lt;rc;i++){
+
+                           // Input for TestCaseName
+                         Cell varTestCaseName = sh.getCell(0,i)
+                        def TestCaseName = varTestCaseName.getContents()
+                        
+                                 //Input for Line Item ID
+                                requestTemplet.content.lineItems[0].lineItemID = sh.getCell(1,i).getContents()
+                                 //Input for hcpcsCode                                  
+                                requestTemplet.content.lineItems[0].hcpcsCode = sh.getCell(2,i).getContents()
+                                //Input for limitsPlanName                               
+                                requestTemplet.content.lineItems[0].plans[0].planCode = sh.getCell(3,i).getContents()                                                                                     
+                                 //Input for id                               
+                                requestTemplet.content.lineItems[0].plans[0].id = sh.getCell(4,i).getContents()  
+
+                              //Assign json request to variable
+                       def jsonReqAsString = requestTemplet.toPrettyString()
+                       def restRequest = testRunner.testCase.getTestStepByName('JSON Request');
+                       restRequest.setPropertyValue('Request',jsonReqAsString);
+
+                                //teststep cloned: Start
+                        def getTestCase = testRunner.testCase;
+                        def testst = testRunner.testCase.getTestStepByName("JSON Request");                 
+                            newTestStep = TestCaseName
+                            cleanUp(newTestStep)
+                            getTestCase.cloneStep(restRequest,newTestStep)
+                             
+                         //teststep cloned: End
+                         //Executing the testcase
+                        testRunner.runTestStepByName(newTestStep)
+ 
+                         //retrive response         
+                       def ResponseMessage = testRunner.testCase.testSteps[newTestStep].testRequest.response.contentAsString
+                    
+                         //new JsonSlurper to parse and get the response in Json format
+                        def slurper1 = new JsonSlurper()
+                        def json = slurper1.parseText(ResponseMessage)
+                    
+                                  
+                           // get lineItemID from response json                                 
+                        addCell(0,i,json.limitsResponse[0].lineItemID,sheet1);                                   
+                          // get gracePeriodDays from response json                                   
+                        addCell(1,i,json.limitsResponse[0].gracePeriodDays.toString(),sheet1);  
+                         // get limitsValid from response json                                   
+                        addCell(2,i,json.limitsResponse[0].limitsValid.toString(),sheet1); 
+                                                                            
+                                                           
+                      //dynamic asserstion :Start
+                   def testStepForAssertion = testRunner.testCase.getTestStepByName(newTestStep);
+                                //ValidHTTPStatusCodes 200 Assertion
+                  addAssertionValidHTTPStatusCodes(testStepForAssertion,"Valid HTTP Status Codes_"+i)
+            
+                             //get the expected values
+                          lineItemID = sh.getCell(5,i).getContents()
+                       addAssertionJsonPathMatch(testStepForAssertion,lineItemID,"limitsResponse[0].lineItemID","lineItemID")
+
+                          gracePeriodDays = sh.getCell(6,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,gracePeriodDays,"limitsResponse[0].gracePeriodDays","gracePeriodDays")
+
+                          limitsValid = sh.getCell(7,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,limitsValid,"limitsResponse[0].limitsValid","limitsValid")                     
+                                               
+                   
+                            //dynamic asserstion :End
+                            assertionResult = testStepForAssertion.getAssertionStatus()
+             if(assertionResult.toString().equals("FAILED")){
+
+                                       addCell(3,i,"Fail",sheet1);
+                                   for( assertion in testStepForAssertion.assertionList ){
+                                  for( e in assertion.errors ){
+
+                                                     addCell(4,i,e.message,sheet1);
+
+                                                } 
+
+                                   }
+
+                                }
+
+
+                                else{
+
+                                   addCell(3,i,"PASS",sheet1);
+
+                                }
+
+ 
+       }
+
+      wb1.write();
+            log.info "TestCase Execution Completed successfull"
+
+ 
+
+               /* }             
+     
+catch(Exception e)
+{
+
+                 log.info(e)                         
+}
+
+finally
+{*/
+
+    //close workbook
+     wb.close();
+     wb1.close();     
+
+//}
+
+//Method code
+def addAssertionJsonPathMatch(RestTestRequestStep testStepForAssertion,String expectedContent,String xPath,String assertionName) {
+          def assertionType = testStepForAssertion.addAssertion("JsonPath Match")
+                                assertionType.name = assertionName
+                                assertionType.setPath(xPath)
+                                assertionType.setExpectedContent(expectedContent)
+                                assertionType.setAllowWildcards(true) 
+
+}
+
+//Method code
+def addAssertionValidHTTPStatusCodes(RestTestRequestStep testStepForAssertion,String assertionName) {
+
+         def StatusCodeAssertionxpath = testStepForAssertion.addAssertion("Valid HTTP Status Codes")
+             StatusCodeAssertionxpath.name = assertionName
+             StatusCodeAssertionxpath.codes=200
+
+}
+
+//method to delete
+def cleanUp(String requestName){
+
+                //remove the teststep::Start
+                def testCase = testRunner.testCase
+                def testStep = testCase.getTestStepByName(requestName)
+
+                if (testStep!=null){
+
+ 
+                                    testCase.removeTestStep(testStep)
+                }
+
+    
+            //remove the teststep::End
+
+}
+
+ 
+
+//method to add Cell to sheet1
+
+def addCell(int colmNum,int rowNum,String lblName,WritableSheet sheet1 ){
+
+                 Label header = new Label(colmNum,rowNum,lblName);
+                sheet1.addCell(header);               
+
+}</script>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="groovy" name="DetermineGracePeriodForLimits-MultiLineItem" id="74ebbacb-3865-4d74-800b-d6da315791b2">
+    <con:settings/>
+    <con:config>
+      <script>import jxl.*;
+import jxl.write.*
+import java.io.*
+import java.io.file.*
+import java.util.*
+import java.lang.*
+import jxl.read.biff.BiffException;
+import net.sf.*
+import net.sf.json.*
+import net.sf.json.groovy.*
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+import groovy.json.JsonBuilder
+import com.eviware.soapui.model.testsuite.TestStepResult.TestStepStatus
+import com.eviware.soapui.impl.wsdl.teststeps.RestTestRequestStep
+
+def groovyUtils = new com.eviware.soapui.support.GroovyUtils(context)
+def projectDir = groovyUtils.projectPath
+
+def inputfile =  projectDir + "/DetermineGracePeriodForLimits/DetermineGracePeriodforLimits-Input.xls"
+def outputfile = projectDir + "/DetermineGracePeriodForLimits/DetermineGracePeriodForLimits-MultiLineItem-Output.xls"
+
+//Creating workbook for reading value from Excel Sheet
+
+Workbook wb = Workbook.getWorkbook(new File(inputfile))
+Sheet sh = wb.getSheet("ExpectedResults_MultiLineItem")
+Sheet jsonInput = wb.getSheet("JSON_MultiLineItem")
+
+//reading data from input Excel sheet
+rc = sh.getRows();
+cc = sh.getColumns();
+Cell jreq = jsonInput.getCell(0,0)
+
+//Creating Workbook for writing value in Excel Sheet
+WritableWorkbook wb1= Workbook.createWorkbook(new File(outputfile));
+WritableSheet sheet1 = wb1.createSheet("ActualResults",0);
+
+//Header declaration for output file
+addCell(0,0,"lineItemID",sheet1);
+addCell(1,0,"gracePeriodDays",sheet1);
+addCell(2,0,"limitsValid",sheet1);
+addCell(3,0,"lineItemID1",sheet1);
+addCell(4,0,"gracePeriodDays1",sheet1);
+addCell(5,0,"limitsValid1",sheet1);
+addCell(6,0,"PASS/FAIL",sheet1);
+addCell(7,0,"FAILED DUE TO",sheet1);
+ 
+//new testStepName
+def newTestStep=null
+
+//try {
+
+   
+               def req = jreq.getContents()
+               //Assigning request value dynamically
+               //request
+               def slurper = new JsonSlurper().parseText(req);
+               def requestTemplet = new JsonBuilder(slurper);
+
+         
+               for (i=2;i&lt;rc;i++){
+
+                           // Input for TestCaseName
+                         Cell varTestCaseName = sh.getCell(0,i)
+                        def TestCaseName = varTestCaseName.getContents()
+                        
+                                  //Input For LineItem1
+                                 //Input for Line Item ID                               
+                                requestTemplet.content.lineItems[0].lineItemID = sh.getCell(1,i).getContents()
+                                 //Input for hcpcsCode  
+                                requestTemplet.content.lineItems[0].hcpcsCode = sh.getCell(2,i).getContents()
+                                //Input for limitsPlanName  
+                                requestTemplet.content.lineItems[0].plans[0].planCode = sh.getCell(3,i).getContents() 
+                                //Input for id  
+                                requestTemplet.content.lineItems[0].plans[0].id = sh.getCell(4,i).getContents() 
+
+                                  //Input For LineItem2                                                                                  
+                                 //Input for Line Item ID                               
+                                requestTemplet.content.lineItems[1].lineItemID = sh.getCell(5,i).getContents()
+                                 //Input for hcpcsCode  
+                                requestTemplet.content.lineItems[1].hcpcsCode = sh.getCell(6,i).getContents()
+                                //Input for limitsPlanName  
+                                requestTemplet.content.lineItems[1].plans[0].planCode = sh.getCell(7,i).getContents()                                                                                  
+                                 //Input for id  
+                                requestTemplet.content.lineItems[1].plans[0].id = sh.getCell(8,i).getContents() 
+                      
+
+                              //Assign json request to variable
+                       def jsonReqAsString = requestTemplet.toPrettyString()
+                       def restRequest = testRunner.testCase.getTestStepByName('JSON Request');
+                       restRequest.setPropertyValue('Request',jsonReqAsString);
+
+                                //teststep cloned: Start
+                        def getTestCase = testRunner.testCase;
+                        def testst = testRunner.testCase.getTestStepByName("JSON Request");                 
+                            newTestStep = TestCaseName
+                            cleanUp(newTestStep)
+                            getTestCase.cloneStep(restRequest,newTestStep)
+                             
+                         //teststep cloned: End
+                         //Executing the testcase
+                        testRunner.runTestStepByName(newTestStep)
+ 
+                         //retrive response         
+                       def ResponseMessage = testRunner.testCase.testSteps[newTestStep].testRequest.response.contentAsString
+                    
+                         //new JsonSlurper to parse and get the response in Json format
+                        def slurper1 = new JsonSlurper()
+                        def json = slurper1.parseText(ResponseMessage)
+                    
+                                  
+                           // get lineItemID from response json                                 
+                        addCell(0,i,json.limitsResponse[0].lineItemID,sheet1);                                   
+                          // get gracePeriodDays from response json                                   
+                        addCell(1,i,json.limitsResponse[0].gracePeriodDays.toString(),sheet1);  
+                         // get limitsValid from response json                                   
+                        addCell(2,i,json.limitsResponse[0].limitsValid.toString(),sheet1);                               
+                           // get lineItemID from response json                                 
+                        addCell(3,i,json.limitsResponse[1].lineItemID,sheet1);                                   
+                          // get gracePeriodDays from response json                                   
+                        addCell(4,i,json.limitsResponse[1].gracePeriodDays.toString(),sheet1);  
+                         // get limitsValid from response json                                   
+                        addCell(5,i,json.limitsResponse[1].limitsValid.toString(),sheet1); 
+                                         
+                                                                            
+                                                           
+                      //dynamic asserstion :Start
+                   def testStepForAssertion = testRunner.testCase.getTestStepByName(newTestStep);
+                                //ValidHTTPStatusCodes 200 Assertion
+                  addAssertionValidHTTPStatusCodes(testStepForAssertion,"Valid HTTP Status Codes_"+i)
+            
+                             //get the expected values
+                          lineItemID = sh.getCell(9,i).getContents()
+                       addAssertionJsonPathMatch(testStepForAssertion,lineItemID,"limitsResponse[0].lineItemID","lineItemID")
+
+                          gracePeriodDays = sh.getCell(10,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,gracePeriodDays,"limitsResponse[0].gracePeriodDays","gracePeriodDays")
+
+                          limitsValid = sh.getCell(11,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,limitsValid,"limitsResponse[0].limitsValid","limitsValid")  
+
+                         lineItemID1 = sh.getCell(12,i).getContents()
+                       addAssertionJsonPathMatch(testStepForAssertion,lineItemID1,"limitsResponse[1].lineItemID","lineItemID")
+
+                          gracePeriodDays1 = sh.getCell(13,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,gracePeriodDays1,"limitsResponse[1].gracePeriodDays","gracePeriodDays")
+
+                          limitsValid1 = sh.getCell(14,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,limitsValid1,"limitsResponse[1].limitsValid","limitsValid")                  
+                                                      
+                                           
+                
+                            //dynamic asserstion :End
+                            assertionResult = testStepForAssertion.getAssertionStatus()
+             if(assertionResult.toString().equals("FAILED")){
+
+                                       addCell(6,i,"Fail",sheet1);
+                                   for( assertion in testStepForAssertion.assertionList ){
+                                  for( e in assertion.errors ){
+
+                                                     addCell(7,i,e.message,sheet1);
+
+                                                } 
+
+                                   }
+
+                                }
+
+
+                                else{
+
+                                   addCell(6,i,"PASS",sheet1);
+
+                                }
+
+ 
+       }
+
+      wb1.write();
+            log.info "TestCase Execution Completed successfull"
+
+ 
+
+              /*  }             
+     
+catch(Exception e)
+{
+
+                 log.info(e)                         
+}
+
+finally
+{*/
+
+    //close workbook
+     wb.close();
+     wb1.close();     
+
+//}
+
+//Method code
+def addAssertionJsonPathMatch(RestTestRequestStep testStepForAssertion,String expectedContent,String xPath,String assertionName) {
+          def assertionType = testStepForAssertion.addAssertion("JsonPath Match")
+                                assertionType.name = assertionName
+                                assertionType.setPath(xPath)
+                                assertionType.setExpectedContent(expectedContent)
+                                assertionType.setAllowWildcards(true) 
+
+}
+
+//Method code
+def addAssertionValidHTTPStatusCodes(RestTestRequestStep testStepForAssertion,String assertionName) {
+
+         def StatusCodeAssertionxpath = testStepForAssertion.addAssertion("Valid HTTP Status Codes")
+             StatusCodeAssertionxpath.name = assertionName
+             StatusCodeAssertionxpath.codes=200
+
+}
+
+//method to delete
+def cleanUp(String requestName){
+
+                //remove the teststep::Start
+                def testCase = testRunner.testCase
+                def testStep = testCase.getTestStepByName(requestName)
+
+                if (testStep!=null){
+
+ 
+                                    testCase.removeTestStep(testStep)
+                }
+
+    
+            //remove the teststep::End
+
+}
+
+ 
+
+//method to add Cell to sheet1
+
+def addCell(int colmNum,int rowNum,String lblName,WritableSheet sheet1 ){
+
+                 Label header = new Label(colmNum,rowNum,lblName);
+                sheet1.addCell(header);               
+
+}</script>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="JSON Request" id="208a5e4a-05ae-4694-aefb-4d78aa179f84">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineGracePeriodForLimits/DetermineGracePeriodForLimits/WADL" methodName="DetermineGracePeriodForLimits" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="JSON Request" id="0c2d6fd7-c0d9-4994-a5ed-f34ac43bd6dd" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "",
+            "itemNumber": "string",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA001",
+                    "planCode": "4240"
+                }
+            ]
+        },
+        {
+            "hcpcsCode": "A9278",
+            "itemNumber": "string",
+            "lineItemID": "L002",
+            "plans": [
+                {
+                    "id": "PA002",
+                    "planCode": "6581"
+                }
+            ]
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineGracePeriodForLimits/DetermineGracePeriodForLimits/WADL</con:originalUri>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-63620" id="dce95d1a-1494-4af8-8c94-5a127088f57a">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineGracePeriodForLimits/DetermineGracePeriodForLimits/WADL" methodName="DetermineGracePeriodForLimits" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-63620" id="0c2d6fd7-c0d9-4994-a5ed-f34ac43bd6dd" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "K0553",
+            "itemNumber": "string",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA001",
+                    "planCode": "9713"
+                }
+            ]
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineGracePeriodForLimits/DetermineGracePeriodForLimits/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="215966c4-4ae3-4357-9aa8-987580f26464" name="Valid HTTP Status Codes_2">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="60b93fe8-843a-40cc-9821-b4148f32363b" name="lineItemID">
+          <con:configuration>
+            <path>limitsResponse[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="f6ee1015-7225-4786-bab3-1a22b1948142" name="gracePeriodDays">
+          <con:configuration>
+            <path>limitsResponse[0].gracePeriodDays</path>
+            <content>6</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="393e58d6-f528-4ce4-a31d-3dba2231d10b" name="limitsValid">
+          <con:configuration>
+            <path>limitsResponse[0].limitsValid</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-63621" id="ad55ec8e-7b85-44da-8db4-0e38f39fb827">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineGracePeriodForLimits/DetermineGracePeriodForLimits/WADL" methodName="DetermineGracePeriodForLimits" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-63621" id="0c2d6fd7-c0d9-4994-a5ed-f34ac43bd6dd" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "",
+            "itemNumber": "string",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA001",
+                    "planCode": "9703"
+                }
+            ]
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineGracePeriodForLimits/DetermineGracePeriodForLimits/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="f6cd3b3c-d11a-43fb-a9ba-9709786a0360" name="Valid HTTP Status Codes_3">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="b0ab7523-f386-4bdb-905d-d6afe1cff4cf" name="lineItemID">
+          <con:configuration>
+            <path>limitsResponse[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="aaa130ea-610a-4f23-ada8-a122173ada7f" name="gracePeriodDays">
+          <con:configuration>
+            <path>limitsResponse[0].gracePeriodDays</path>
+            <content>5</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="63a27bb4-c6d8-40f5-8c15-2e70c4dcf671" name="limitsValid">
+          <con:configuration>
+            <path>limitsResponse[0].limitsValid</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-63622" id="93f108f8-c353-4e16-8045-cae0a2eb592e">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineGracePeriodForLimits/DetermineGracePeriodForLimits/WADL" methodName="DetermineGracePeriodForLimits" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-63622" id="0c2d6fd7-c0d9-4994-a5ed-f34ac43bd6dd" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "KK879",
+            "itemNumber": "string",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA001",
+                    "planCode": "9717"
+                }
+            ]
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineGracePeriodForLimits/DetermineGracePeriodForLimits/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="f0855d14-4f47-44dc-8814-7e3c4b58429a" name="Valid HTTP Status Codes_4">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="98f0b062-c465-4806-922b-4eb0fdc42441" name="lineItemID">
+          <con:configuration>
+            <path>limitsResponse[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="ff09324e-6d51-410d-a92e-0306e7e098b4" name="gracePeriodDays">
+          <con:configuration>
+            <path>limitsResponse[0].gracePeriodDays</path>
+            <content>5</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="ef467ca6-6aad-439e-a872-dc23be26f55c" name="limitsValid">
+          <con:configuration>
+            <path>limitsResponse[0].limitsValid</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-63623" id="df6fe1d1-a3ad-45ea-be98-96892260c093">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineGracePeriodForLimits/DetermineGracePeriodForLimits/WADL" methodName="DetermineGracePeriodForLimits" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-63623" id="0c2d6fd7-c0d9-4994-a5ed-f34ac43bd6dd" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "A9276",
+            "itemNumber": "string",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA001",
+                    "planCode": "7038"
+                }
+            ]
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineGracePeriodForLimits/DetermineGracePeriodForLimits/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="9000829b-850f-478e-a577-42843416ca5c" name="Valid HTTP Status Codes_5">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="005d362b-fb6d-41dd-8bfd-06a337a29376" name="lineItemID">
+          <con:configuration>
+            <path>limitsResponse[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="72434a49-2fc9-4053-ab25-f5bd1f8ed4be" name="gracePeriodDays">
+          <con:configuration>
+            <path>limitsResponse[0].gracePeriodDays</path>
+            <content>22</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="f66dda7a-002f-4ec2-ad9f-aa60ac5be1a0" name="limitsValid">
+          <con:configuration>
+            <path>limitsResponse[0].limitsValid</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-63624" id="6e458c8a-118e-42d1-8b08-6867938366b7">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineGracePeriodForLimits/DetermineGracePeriodForLimits/WADL" methodName="DetermineGracePeriodForLimits" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-63624" id="0c2d6fd7-c0d9-4994-a5ed-f34ac43bd6dd" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "null",
+            "itemNumber": "string",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA001",
+                    "planCode": "0011"
+                }
+            ]
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineGracePeriodForLimits/DetermineGracePeriodForLimits/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="3ad17d77-fd19-46b0-8800-867a5839e76b" name="Valid HTTP Status Codes_6">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="fad0d1e3-7ca1-4a96-82a7-4ab0a785fb3e" name="lineItemID">
+          <con:configuration>
+            <path>limitsResponse[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="6294f8f2-7c74-4577-bffc-6768a308758f" name="gracePeriodDays">
+          <con:configuration>
+            <path>limitsResponse[0].gracePeriodDays</path>
+            <content>5</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="2477cc27-af3a-4230-937e-f9c2d946631b" name="limitsValid">
+          <con:configuration>
+            <path>limitsResponse[0].limitsValid</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-63625" id="a6cbc662-25f9-4161-b9f2-34115b09dd3b">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineGracePeriodForLimits/DetermineGracePeriodForLimits/WADL" methodName="DetermineGracePeriodForLimits" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-63625" id="0c2d6fd7-c0d9-4994-a5ed-f34ac43bd6dd" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "K0553",
+            "itemNumber": "string",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA001",
+                    "planCode": "6186"
+                }
+            ]
+        },
+        {
+            "hcpcsCode": "KK879",
+            "itemNumber": "string",
+            "lineItemID": "L002",
+            "plans": [
+                {
+                    "id": "PA002",
+                    "planCode": "7090"
+                }
+            ]
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineGracePeriodForLimits/DetermineGracePeriodForLimits/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="66cba58c-6465-4fa0-b595-09d7b3c1f696" name="Valid HTTP Status Codes_2">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="4570e19b-2a06-4ecd-8a33-517b6220369a" name="lineItemID">
+          <con:configuration>
+            <path>limitsResponse[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="4ea3e58f-955f-44eb-b3b1-fa2df9d96fb0" name="gracePeriodDays">
+          <con:configuration>
+            <path>limitsResponse[0].gracePeriodDays</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="2e2b34d7-6f7b-4f3a-8cf0-d254b0ddf270" name="limitsValid">
+          <con:configuration>
+            <path>limitsResponse[0].limitsValid</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="5976c29f-1ffb-4b89-9159-f055eee16e22" name="lineItemID">
+          <con:configuration>
+            <path>limitsResponse[1].lineItemID</path>
+            <content>L002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="0c8d46ea-5c68-4fd6-8d8e-f2a08b278b3c" name="gracePeriodDays">
+          <con:configuration>
+            <path>limitsResponse[1].gracePeriodDays</path>
+            <content>2</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="268e25be-7366-4197-b429-43ce4c311aa3" name="limitsValid">
+          <con:configuration>
+            <path>limitsResponse[1].limitsValid</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-63626" id="7a3ac9d6-9140-46ac-a0cd-22e832949283">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineGracePeriodForLimits/DetermineGracePeriodForLimits/WADL" methodName="DetermineGracePeriodForLimits" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-63626" id="0c2d6fd7-c0d9-4994-a5ed-f34ac43bd6dd" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "A9276",
+            "itemNumber": "string",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA001",
+                    "planCode": "9719"
+                }
+            ]
+        },
+        {
+            "hcpcsCode": "",
+            "itemNumber": "string",
+            "lineItemID": "L002",
+            "plans": [
+                {
+                    "id": "PA002",
+                    "planCode": "6383"
+                }
+            ]
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineGracePeriodForLimits/DetermineGracePeriodForLimits/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="66204586-4928-480c-8ad8-c5c8b874038d" name="Valid HTTP Status Codes_3">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="a82bf76a-3165-4dea-a961-c1023afdaf1d" name="lineItemID">
+          <con:configuration>
+            <path>limitsResponse[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="1adb67af-644d-4367-9ddf-d36017cea6ab" name="gracePeriodDays">
+          <con:configuration>
+            <path>limitsResponse[0].gracePeriodDays</path>
+            <content>10</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="df6d0d99-b303-477f-aa9f-35bfb7cef0d7" name="limitsValid">
+          <con:configuration>
+            <path>limitsResponse[0].limitsValid</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="d447e965-c02a-4806-b312-d718bb8e9054" name="lineItemID">
+          <con:configuration>
+            <path>limitsResponse[1].lineItemID</path>
+            <content>L002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="3f47c72c-0215-48ea-8a67-9c9bd9c96072" name="gracePeriodDays">
+          <con:configuration>
+            <path>limitsResponse[1].gracePeriodDays</path>
+            <content>5</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="54736398-f328-4c22-8429-dc913690d087" name="limitsValid">
+          <con:configuration>
+            <path>limitsResponse[1].limitsValid</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-63627" id="17b00d7c-1ac5-4dc4-9baf-ef3be2952785">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineGracePeriodForLimits/DetermineGracePeriodForLimits/WADL" methodName="DetermineGracePeriodForLimits" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-63627" id="0c2d6fd7-c0d9-4994-a5ed-f34ac43bd6dd" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "",
+            "itemNumber": "string",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA001",
+                    "planCode": "9652"
+                }
+            ]
+        },
+        {
+            "hcpcsCode": "KK879",
+            "itemNumber": "string",
+            "lineItemID": "L002",
+            "plans": [
+                {
+                    "id": "PA002",
+                    "planCode": "6050"
+                }
+            ]
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineGracePeriodForLimits/DetermineGracePeriodForLimits/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="fe894762-1c40-4e91-93e7-b0b6e97b4fd3" name="Valid HTTP Status Codes_4">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="d9425fe1-9ba4-4ad2-8a25-d910e76fbe9b" name="lineItemID">
+          <con:configuration>
+            <path>limitsResponse[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="af547d52-a9da-496e-90e4-9a0141ea1186" name="gracePeriodDays">
+          <con:configuration>
+            <path>limitsResponse[0].gracePeriodDays</path>
+            <content>5</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="abd2269f-0970-4580-83e0-e01a75d15234" name="limitsValid">
+          <con:configuration>
+            <path>limitsResponse[0].limitsValid</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="bd73055f-694e-4d9e-803a-ca56cb187aed" name="lineItemID">
+          <con:configuration>
+            <path>limitsResponse[1].lineItemID</path>
+            <content>L002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="8782deae-39b9-4f21-b217-af2ebaca42e9" name="gracePeriodDays">
+          <con:configuration>
+            <path>limitsResponse[1].gracePeriodDays</path>
+            <content>6</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="239e0c81-6e71-4cee-b5a9-23286fa709c9" name="limitsValid">
+          <con:configuration>
+            <path>limitsResponse[1].limitsValid</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-63628" id="f5ca6224-9a4f-43d5-836d-17fa4c0162bb">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineGracePeriodForLimits/DetermineGracePeriodForLimits/WADL" methodName="DetermineGracePeriodForLimits" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-63628" id="0c2d6fd7-c0d9-4994-a5ed-f34ac43bd6dd" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "KK879",
+            "itemNumber": "string",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA001",
+                    "planCode": "1111"
+                }
+            ]
+        },
+        {
+            "hcpcsCode": "A9278",
+            "itemNumber": "string",
+            "lineItemID": "L002",
+            "plans": [
+                {
+                    "id": "PA002",
+                    "planCode": "9126"
+                }
+            ]
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineGracePeriodForLimits/DetermineGracePeriodForLimits/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="66f33fb6-1523-4064-8d33-c6819742f6e2" name="Valid HTTP Status Codes_5">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="433d264e-9e36-4e46-a4ef-07d59c64e654" name="lineItemID">
+          <con:configuration>
+            <path>limitsResponse[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="879a30c4-8131-406d-b05e-a38d7f6fd257" name="gracePeriodDays">
+          <con:configuration>
+            <path>limitsResponse[0].gracePeriodDays</path>
+            <content>5</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="2870b6b4-8154-42d6-ac00-3a4f4f0f6313" name="limitsValid">
+          <con:configuration>
+            <path>limitsResponse[0].limitsValid</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="09306aae-cfcf-4695-8162-adccc346e444" name="lineItemID">
+          <con:configuration>
+            <path>limitsResponse[1].lineItemID</path>
+            <content>L002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="4dd24a2a-8d9a-4286-8dd1-0f5c9664446a" name="gracePeriodDays">
+          <con:configuration>
+            <path>limitsResponse[1].gracePeriodDays</path>
+            <content>7</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="40ae5ef3-d485-49ba-8355-59ea7342a5c0" name="limitsValid">
+          <con:configuration>
+            <path>limitsResponse[1].limitsValid</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-63629" id="6256e613-bcd3-42a7-b902-f5c175f9c40f">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineGracePeriodForLimits/DetermineGracePeriodForLimits/WADL" methodName="DetermineGracePeriodForLimits" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-63629" id="0c2d6fd7-c0d9-4994-a5ed-f34ac43bd6dd" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "",
+            "itemNumber": "string",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA001",
+                    "planCode": "4240"
+                }
+            ]
+        },
+        {
+            "hcpcsCode": "A9278",
+            "itemNumber": "string",
+            "lineItemID": "L002",
+            "plans": [
+                {
+                    "id": "PA002",
+                    "planCode": "6581"
+                }
+            ]
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineGracePeriodForLimits/DetermineGracePeriodForLimits/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="a5eb532c-6dd7-4d42-ac82-a3ea83cc7b88" name="Valid HTTP Status Codes_6">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="b67afc79-35fc-4f6f-aff2-d148605b1911" name="lineItemID">
+          <con:configuration>
+            <path>limitsResponse[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="2f307d56-2e53-4060-999f-d8cbfd543a26" name="gracePeriodDays">
+          <con:configuration>
+            <path>limitsResponse[0].gracePeriodDays</path>
+            <content>5</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="8dddd84d-c714-479d-828e-e656bdead3d1" name="limitsValid">
+          <con:configuration>
+            <path>limitsResponse[0].limitsValid</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="e8007691-7613-4799-9814-67b6a21a2df1" name="lineItemID">
+          <con:configuration>
+            <path>limitsResponse[1].lineItemID</path>
+            <content>L002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="e1c27529-ef22-454b-898a-18a1fa564869" name="gracePeriodDays">
+          <con:configuration>
+            <path>limitsResponse[1].gracePeriodDays</path>
+            <content>30</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="1ab203ed-39fd-4ad3-a440-f5b0c82898cd" name="limitsValid">
+          <con:configuration>
+            <path>limitsResponse[1].limitsValid</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:properties/>
+  <con:reportParameters/>
+</con:testCase>

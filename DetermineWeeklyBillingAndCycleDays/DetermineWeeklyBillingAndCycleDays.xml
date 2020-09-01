@@ -1,0 +1,867 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<con:testCase id="666ec0d3-e00a-45c5-a987-431404e23cf3" failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="DetermineWeeklyBillingAndCycleDays" searchProperties="true" xmlns:con="http://eviware.com/soapui/config">
+  <con:settings>
+    <con:setting id="666ec0d3-e00a-45c5-a987-431404e23cf3fileName">DetermineWeeklyBillingAndCycleDays</con:setting>
+  </con:settings>
+  <con:testStep type="groovy" name="DetermineWeeklyBillingAndCycleDays_SingleLineItem" id="f23bac83-defb-41c4-af62-91418c8580bc">
+    <con:settings/>
+    <con:config>
+      <script>import jxl.*;
+import jxl.write.*
+import java.io.*
+import java.io.file.*
+import java.util.*
+import java.lang.*
+import jxl.read.biff.BiffException;
+import net.sf.*
+import net.sf.json.*
+import net.sf.json.groovy.*
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+import groovy.json.JsonBuilder
+import com.eviware.soapui.model.testsuite.TestStepResult.TestStepStatus
+import com.eviware.soapui.impl.wsdl.teststeps.RestTestRequestStep
+
+def groovyUtils = new com.eviware.soapui.support.GroovyUtils(context)
+def projectDir = groovyUtils.projectPath
+
+def inputfile =  projectDir + "/DetermineWeeklyBillingAndCycleDays/DetermineWeeklyBillingAndCycleDays_input.xls"
+def outputfile = projectDir + "/DetermineWeeklyBillingAndCycleDays/DetermineWeeklyBillingAndCycleDays_SingleLineItem_Output.xls"
+
+//Creating workbook for reading value from Excel Sheet 
+Workbook wb = Workbook.getWorkbook(new File(inputfile))
+Sheet sh = wb.getSheet("ExpectedResults-SingleLineItem")
+Sheet jsonInput = wb.getSheet("JSON-SingleLineItem")
+
+//reading data from input Excel sheet
+rc = sh.getRows();
+cc = sh.getColumns();
+
+Cell jreq = jsonInput.getCell(0,0)
+
+//Creating Workbook for writing value in Excel Sheet
+WritableWorkbook wb1= Workbook.createWorkbook(new File(outputfile));
+WritableSheet sheet1 = wb1.createSheet("ActualResults",0);
+
+//Header declaration for output file 
+addCell(0,0,"isWeeklyBillingCode",sheet1);
+addCell(1,0,"numberOfDaysInBillingCycle",sheet1);
+addCell(2,0,"PASS/FAIL",sheet1);
+addCell(3,0,"FAILED DUE TO",sheet1);
+
+//new testStepName
+def newTestStep=null
+try {    
+                def req = jreq.getContents()
+              
+                //Assigning request value dynamically
+                //request
+                def slurper = new JsonSlurper().parseText(req);
+                def requestTemplete = new JsonBuilder(slurper);
+                for (i=2;i&lt;rc;i++){
+                	
+						// Input for TestCaseName
+					     Cell varTestCaseName = sh.getCell(1,i)
+					     def TestCaseName = varTestCaseName.getContents()
+                             
+				          //Input for lineItemID
+				          requestTemplete.content.lineItems[0].lineItemID =  sh.getCell(2,i).getContents().toString()
+						  
+				          //Input for hcpcsCode
+				          requestTemplete.content.lineItems[0].hcpcsCode =  sh.getCell(3,i).getContents()
+
+				                                  
+                                //Assign json request to variable
+                                def jsonReqAsString = requestTemplete.toPrettyString()
+                                def restRequest = testRunner.testCase.getTestStepByName('JSON Request-SingleLineItem');
+                                restRequest.setPropertyValue('Request',jsonReqAsString);
+
+                                //teststep cloned: Start
+                                def getTestCase = testRunner.testCase;
+                                def testst = testRunner.testCase.getTestStepByName("JSON Request - SingleLineItem");                  
+                                newTestStep = TestCaseName
+                                cleanUp(newTestStep)
+                                getTestCase.cloneStep(restRequest,newTestStep)
+                               
+                     		   //teststep cloned: End
+                                //Executing the testcase
+                                testRunner.runTestStepByName(newTestStep)
+ 
+                                //retrive response
+                                //def response = context.expand( '${TestRequest#Response}' ).toString()
+                                def ResponseMessage = testRunner.testCase.testSteps[newTestStep].testRequest.response.contentAsString
+                                     
+				  
+                                //new JsonSlurper to parse and get the response in Json format
+                                def slurper1 = new JsonSlurper()
+                                def json = slurper1.parseText(ResponseMessage)
+
+                                // extract the value of required elements fron the json response 		
+                      		       // get isWeeklyBillingCode from response json           
+                                addCell(0,i,json.weeklyBillingCycleDaysListResponses.weeklyBillingNeeded.toString(),sheet1);    
+							// get numberOfDaysInBillingCycle from response json           
+                                addCell(1,i,json.weeklyBillingCycleDaysListResponses.numberOfDaysInBillingCycle.toString(),sheet1);    
+					       //dynamic asserstion :Start
+                                def testStepForAssertion = testRunner.testCase.getTestStepByName(newTestStep);
+                                //ValidHTTPStatusCodes 200 Assertion
+						  addAssertionValidHTTPStatusCodes(testStepForAssertion,"Valid HTTP Status Codes_"+i)
+							
+								//get the expected values
+								
+  						  isWeeklyBillingCode = sh.getCell(4,i).getContents().toString()
+  						  WeeklyBillingCode=json.weeklyBillingCycleDaysListResponses.weeklyBillingNeeded.toString()
+                               addAssertionJsonPathMatch(testStepForAssertion,isWeeklyBillingCode,"weeklyBillingCycleDaysListResponses[0].weeklyBillingNeeded","isWeeklyBillingCode")
+
+						  numberOfDaysInBillingCycle = sh.getCell(5,i).getContents().toString()
+                                addAssertionJsonPathMatch(testStepForAssertion,numberOfDaysInBillingCycle,"weeklyBillingCycleDaysListResponses[0].numberOfDaysInBillingCycle","numberOfDaysInBillingCycle")
+                              
+                                //dynamic asserstion :End
+                                assertionResult = testStepForAssertion.getAssertionStatus()
+                                if(assertionResult.toString().equals("FAILED")){
+                                  
+                                   addCell(2,i,"Fail",sheet1);
+             				for( assertion in testStepForAssertion.assertionList ){
+                                                for( e in assertion.errors ){
+                                                    addCell(3,i,e.message,sheet1);
+                                                }  
+                                   }
+                                }
+                                else{
+                                	
+                                  addCell(2,i,"PASS",sheet1); 
+                                }
+								}
+								 wb1.write();
+                log.info "TestCase Execution Completed successfull"
+                }              
+               
+             
+catch(Exception e)
+{
+                log.info(e)                           
+}
+finally
+{
+     //close workbook
+     wb.close();
+     wb1.close();       
+     
+}
+  //Method code 
+def addAssertionJsonPathMatch(RestTestRequestStep testStepForAssertion,String expectedContent,String xPath,String assertionName) { 
+          def assertionType = testStepForAssertion.addAssertion("JsonPath Match")
+                                assertionType.name = assertionName
+                                assertionType.setPath(xPath)
+                                assertionType.setExpectedContent(expectedContent)
+                                assertionType.setAllowWildcards(true)  
+}
+   //Method code 
+def addAssertionValidHTTPStatusCodes(RestTestRequestStep testStepForAssertion,String assertionName) { 
+         def StatusCodeAssertionxpath = testStepForAssertion.addAssertion("Valid HTTP Status Codes")
+                    StatusCodeAssertionxpath.name = assertionName
+                    StatusCodeAssertionxpath.codes=200
+}
+//method to delete
+def cleanUp(String requestName){
+                //remove the teststep::Start
+                def testCase = testRunner.testCase
+                def testStep = testCase.getTestStepByName(requestName)
+                if (testStep!=null){
+                                                testCase.removeTestStep(testStep)
+                }
+                
+                //remove the teststep::End
+}
+//method to add Cell to sheet1
+def addCell(int colmNum,int rowNum,String lblName,WritableSheet sheet1 ){
+                Label header = new Label(colmNum,rowNum,lblName);
+                sheet1.addCell(header);                
+}</script>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="groovy" name="DetermineWeeklyBillingAndCycleDays_MultiLineItem" id="e3f83def-6391-4344-a96c-a512b274fa14">
+    <con:settings/>
+    <con:config>
+      <script>import jxl.*;
+import jxl.write.*
+import java.io.*
+import java.io.file.*
+import java.util.*
+import java.lang.*
+import jxl.read.biff.BiffException;
+import net.sf.*
+import net.sf.json.*
+import net.sf.json.groovy.*
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+import groovy.json.JsonBuilder
+import com.eviware.soapui.model.testsuite.TestStepResult.TestStepStatus
+import com.eviware.soapui.impl.wsdl.teststeps.RestTestRequestStep
+
+def groovyUtils = new com.eviware.soapui.support.GroovyUtils(context)
+def projectDir = groovyUtils.projectPath
+
+def inputfile =  projectDir + "/DetermineWeeklyBillingAndCycleDays/DetermineWeeklyBillingAndCycleDays_input.xls"
+def outputfile = projectDir + "/DetermineWeeklyBillingAndCycleDays/DetermineWeeklyBillingAndCycleDays_MultiLineItem_Output.xls"
+
+//Creating workbook for reading value from Excel Sheet 
+Workbook wb = Workbook.getWorkbook(new File(inputfile))
+Sheet sh = wb.getSheet("ExpectedResults-MultiLineItem")
+Sheet jsonInput = wb.getSheet("JSON-MultiLineItem")
+
+//reading data from input Excel sheet
+rc = sh.getRows();
+cc = sh.getColumns();
+
+Cell jreq = jsonInput.getCell(0,0)
+
+//Creating Workbook for writing value in Excel Sheet
+WritableWorkbook wb1= Workbook.createWorkbook(new File(outputfile));
+WritableSheet sheet1 = wb1.createSheet("ActualResults",0);
+
+//Header declaration for output file 
+addCell(0,0,"isWeeklyBillingCode",sheet1);
+addCell(1,0,"numberOfDaysInBillingCycle",sheet1);
+addCell(2,0,"isWeeklyBillingCode",sheet1);
+addCell(3,0,"numberOfDaysInBillingCycle",sheet1);
+addCell(4,0,"PASS/FAIL",sheet1);
+addCell(5,0,"FAILED DUE TO",sheet1);
+
+//new testStepName
+def newTestStep=null
+try {    
+                def req = jreq.getContents()
+              
+                //Assigning request value dynamically
+                //request
+                def slurper = new JsonSlurper().parseText(req);
+                def requestTemplete = new JsonBuilder(slurper);
+                for (i=2;i&lt;rc;i++){
+                	
+						// Input for TestCaseName
+					     Cell varTestCaseName = sh.getCell(1,i)
+					     def TestCaseName = varTestCaseName.getContents()
+                             
+				          //Input for lineItemID
+				          requestTemplete.content.lineItems[0].lineItemID =  sh.getCell(2,i).getContents().toString()
+						  
+				          //Input for hcpcsCode
+				          requestTemplete.content.lineItems[0].hcpcsCode =  sh.getCell(3,i).getContents()
+
+				          //Input for lineItemID
+				          requestTemplete.content.lineItems[1].lineItemID =  sh.getCell(4,i).getContents().toString()
+						  
+				          //Input for hcpcsCode
+				          requestTemplete.content.lineItems[1].hcpcsCode =  sh.getCell(5,i).getContents()
+
+				                                  
+                                //Assign json request to variable
+                                def jsonReqAsString = requestTemplete.toPrettyString()
+                                def restRequest = testRunner.testCase.getTestStepByName('JSON Request-MultiLineItem');
+                                restRequest.setPropertyValue('Request',jsonReqAsString);
+
+                                //teststep cloned: Start
+                                def getTestCase = testRunner.testCase;
+                                def testst = testRunner.testCase.getTestStepByName("JSON Request-MultiLineItem");                  
+                                newTestStep = TestCaseName
+                                cleanUp(newTestStep)
+                                getTestCase.cloneStep(restRequest,newTestStep)
+                               
+                     		   //teststep cloned: End
+                                //Executing the testcase
+                                testRunner.runTestStepByName(newTestStep)
+ 
+                                //retrive response
+                                //def response = context.expand( '${TestRequest#Response}' ).toString()
+                                def ResponseMessage = testRunner.testCase.testSteps[newTestStep].testRequest.response.contentAsString
+                                       log.info("testing started");
+				  
+                                //new JsonSlurper to parse and get the response in Json format
+                                def slurper1 = new JsonSlurper()
+                                def json = slurper1.parseText(ResponseMessage)
+
+                                // extract the value of required elements fron the json response 		
+                      		       // get isWeeklyBillingCode from response json           
+                                addCell(0,i,json.weeklyBillingCycleDaysListResponses[0].weeklyBillingNeeded.toString(),sheet1);    
+						  addCell(2,i,json.weeklyBillingCycleDaysListResponses[1].weeklyBillingNeeded.toString(),sheet1);    
+						
+							// get numberOfDaysInBillingCycle from response json           
+                                addCell(1,i,json.weeklyBillingCycleDaysListResponses[0].numberOfDaysInBillingCycle.toString(),sheet1);    
+					       addCell(3,i,json.weeklyBillingCycleDaysListResponses[1].numberOfDaysInBillingCycle.toString(),sheet1);    
+					      
+					       //dynamic asserstion :Start
+                                def testStepForAssertion = testRunner.testCase.getTestStepByName(newTestStep);
+                                //ValidHTTPStatusCodes 200 Assertion
+						  addAssertionValidHTTPStatusCodes(testStepForAssertion,"Valid HTTP Status Codes_"+i)
+							
+								//get the expected values
+								
+  						  isWeeklyBillingCode = sh.getCell(6,i).getContents().toString()
+  						   isWeeklyBillingCode1 = sh.getCell(8,i).getContents().toString()
+                               addAssertionJsonPathMatch(testStepForAssertion,isWeeklyBillingCode,"weeklyBillingCycleDaysListResponses[0].weeklyBillingNeeded","isWeeklyBillingCode")
+                               addAssertionJsonPathMatch(testStepForAssertion,isWeeklyBillingCode1,"weeklyBillingCycleDaysListResponses[1].weeklyBillingNeeded","isWeeklyBillingCode")
+
+						  numberOfDaysInBillingCycle = sh.getCell(7,i).getContents().toString()
+						  numberOfDaysInBillingCycle1 = sh.getCell(9,i).getContents().toString()
+                                addAssertionJsonPathMatch(testStepForAssertion,numberOfDaysInBillingCycle,"weeklyBillingCycleDaysListResponses[0].numberOfDaysInBillingCycle","numberOfDaysInBillingCycle")
+                               addAssertionJsonPathMatch(testStepForAssertion,numberOfDaysInBillingCycle1,"weeklyBillingCycleDaysListResponses[1].numberOfDaysInBillingCycle","numberOfDaysInBillingCycle")
+                              
+                                //dynamic asserstion :End
+                                assertionResult = testStepForAssertion.getAssertionStatus()
+                                if(assertionResult.toString().equals("FAILED")){
+                                  
+                                   addCell(2,i,"Fail",sheet1);
+             				for( assertion in testStepForAssertion.assertionList ){
+                                                for( e in assertion.errors ){
+                                                    addCell(3,i,e.message,sheet1);
+                                                }  
+                                   }
+                                }
+                                else{
+                                	
+                                  addCell(2,i,"PASS",sheet1); 
+                                }
+								}
+								 wb1.write();
+                log.info "TestCase Execution Completed successfull"
+                }              
+               
+             
+catch(Exception e)
+{
+                log.info(e)                           
+}
+finally
+{
+     //close workbook
+     wb.close();
+     wb1.close();       
+     
+}
+  //Method code 
+def addAssertionJsonPathMatch(RestTestRequestStep testStepForAssertion,String expectedContent,String xPath,String assertionName) { 
+          def assertionType = testStepForAssertion.addAssertion("JsonPath Match")
+                                assertionType.name = assertionName
+                                assertionType.setPath(xPath)
+                                assertionType.setExpectedContent(expectedContent)
+                                assertionType.setAllowWildcards(true)  
+}
+   //Method code 
+def addAssertionValidHTTPStatusCodes(RestTestRequestStep testStepForAssertion,String assertionName) { 
+         def StatusCodeAssertionxpath = testStepForAssertion.addAssertion("Valid HTTP Status Codes")
+                    StatusCodeAssertionxpath.name = assertionName
+                    StatusCodeAssertionxpath.codes=200
+}
+//method to delete
+def cleanUp(String requestName){
+                //remove the teststep::Start
+                def testCase = testRunner.testCase
+                def testStep = testCase.getTestStepByName(requestName)
+                if (testStep!=null){
+                                                testCase.removeTestStep(testStep)
+                }
+                
+                //remove the teststep::End
+}
+//method to add Cell to sheet1
+def addCell(int colmNum,int rowNum,String lblName,WritableSheet sheet1 ){
+                Label header = new Label(colmNum,rowNum,lblName);
+                sheet1.addCell(header);                
+}</script>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="JSON Request-SingleLineItem" id="c5678ab5-d9ce-44c9-83ae-9b9749e69504">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineWeeklyBillingAndCycleDays/DetermineWeeklyBillingAndCycleDays/WADL" methodName="DetermineWeeklyBillingAndCycleDays" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="JSON Request-SingleLineItem" id="c59f134d-a8dc-4e36-8056-e04400f8413f" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "invalid",
+            "lineItemID": "L001"
+        }
+    ]
+}</con:request>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="JSON Request-MultiLineItem" id="094a2c49-0ee9-47c1-9ff9-ba32e6100824">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineWeeklyBillingAndCycleDays/DetermineWeeklyBillingAndCycleDays/WADL" methodName="DetermineWeeklyBillingAndCycleDays" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="JSON Request-MultiLineItem" id="c59f134d-a8dc-4e36-8056-e04400f8413f" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "A4224",
+            "lineItemID": "L001"
+        },
+        {
+            "hcpcsCode": "invalid",
+            "lineItemID": "L002"
+        }
+    ]
+}</con:request>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-34709" id="ebfc9e36-3c65-4c53-ad52-4468c03ae31c">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineWeeklyBillingAndCycleDays/DetermineWeeklyBillingAndCycleDays/WADL" methodName="DetermineWeeklyBillingAndCycleDays" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-34709" id="c59f134d-a8dc-4e36-8056-e04400f8413f" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "A4224",
+            "lineItemID": "L001"
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineWeeklyBillingAndCycleDays/DetermineWeeklyBillingAndCycleDays/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="a690c9d6-4a81-4e21-b254-7f51233e34ea" name="Valid HTTP Status Codes_2">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="62b84fbe-ed09-4443-a136-1359e52ff958" name="isWeeklyBillingCode">
+          <con:configuration>
+            <path>weeklyBillingCycleDaysListResponses[0].weeklyBillingNeeded</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="c5df32dc-d678-4752-b407-741cf2c48f68" name="numberOfDaysInBillingCycle">
+          <con:configuration>
+            <path>weeklyBillingCycleDaysListResponses[0].numberOfDaysInBillingCycle</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-34710" id="8a9d4ca3-0046-43cf-b780-9dfb59e4a078">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineWeeklyBillingAndCycleDays/DetermineWeeklyBillingAndCycleDays/WADL" methodName="DetermineWeeklyBillingAndCycleDays" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-34710" id="c59f134d-a8dc-4e36-8056-e04400f8413f" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "K0553",
+            "lineItemID": "L001"
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineWeeklyBillingAndCycleDays/DetermineWeeklyBillingAndCycleDays/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="450bb114-129b-4953-8219-505fa032a51e" name="Valid HTTP Status Codes_3">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="b3dd4289-143b-4b18-9eec-f1709b868764" name="isWeeklyBillingCode">
+          <con:configuration>
+            <path>weeklyBillingCycleDaysListResponses[0].weeklyBillingNeeded</path>
+            <content>false</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="f774f76f-4e3c-4c46-ba5d-61ad1a45af8a" name="numberOfDaysInBillingCycle">
+          <con:configuration>
+            <path>weeklyBillingCycleDaysListResponses[0].numberOfDaysInBillingCycle</path>
+            <content>30</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-34711" id="4187e803-b09d-44d8-a812-7e0e316c9f26">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineWeeklyBillingAndCycleDays/DetermineWeeklyBillingAndCycleDays/WADL" methodName="DetermineWeeklyBillingAndCycleDays" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-34711" id="c59f134d-a8dc-4e36-8056-e04400f8413f" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "invalid",
+            "lineItemID": "L001"
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineWeeklyBillingAndCycleDays/DetermineWeeklyBillingAndCycleDays/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="4eb84f53-736a-4a92-8b1b-fed26c6a8978" name="Valid HTTP Status Codes_4">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="382cabea-60a1-46ee-887f-db4d667bb5d1" name="isWeeklyBillingCode">
+          <con:configuration>
+            <path>weeklyBillingCycleDaysListResponses[0].weeklyBillingNeeded</path>
+            <content>false</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="927c6598-1c84-4a57-b493-583fae286eab" name="numberOfDaysInBillingCycle">
+          <con:configuration>
+            <path>weeklyBillingCycleDaysListResponses[0].numberOfDaysInBillingCycle</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-34712" id="2d95c90d-1cb0-4abd-b6b3-73bbda7f9671">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineWeeklyBillingAndCycleDays/DetermineWeeklyBillingAndCycleDays/WADL" methodName="DetermineWeeklyBillingAndCycleDays" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-34712" id="c59f134d-a8dc-4e36-8056-e04400f8413f" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "A4224",
+            "lineItemID": "L001"
+        },
+        {
+            "hcpcsCode": "K0553",
+            "lineItemID": "L002"
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineWeeklyBillingAndCycleDays/DetermineWeeklyBillingAndCycleDays/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="055f5314-6a3a-4807-89b7-17740585a660" name="Valid HTTP Status Codes_2">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="0e031363-e350-4ddd-b0db-7cccdd98ba68" name="isWeeklyBillingCode">
+          <con:configuration>
+            <path>weeklyBillingCycleDaysListResponses[0].weeklyBillingNeeded</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="1715096d-55d4-4b8e-a224-5f2af147596b" name="isWeeklyBillingCode">
+          <con:configuration>
+            <path>weeklyBillingCycleDaysListResponses[1].weeklyBillingNeeded</path>
+            <content>false</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="0bbc34bb-3de8-4824-b22e-64a03ecfaf4e" name="numberOfDaysInBillingCycle">
+          <con:configuration>
+            <path>weeklyBillingCycleDaysListResponses[0].numberOfDaysInBillingCycle</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="c76ab0d3-ad6c-441a-9be2-d6436aa371c8" name="numberOfDaysInBillingCycle">
+          <con:configuration>
+            <path>weeklyBillingCycleDaysListResponses[1].numberOfDaysInBillingCycle</path>
+            <content>30</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-34713" id="96542088-3c61-497c-8701-d7819231baa1">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineWeeklyBillingAndCycleDays/DetermineWeeklyBillingAndCycleDays/WADL" methodName="DetermineWeeklyBillingAndCycleDays" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-34713" id="c59f134d-a8dc-4e36-8056-e04400f8413f" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "invalid",
+            "lineItemID": "L001"
+        },
+        {
+            "hcpcsCode": "K0553",
+            "lineItemID": "L002"
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineWeeklyBillingAndCycleDays/DetermineWeeklyBillingAndCycleDays/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="8692ce21-7da6-4355-a261-a0e3b4d25608" name="Valid HTTP Status Codes_3">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="40d58199-6133-4b59-8844-228878131086" name="isWeeklyBillingCode">
+          <con:configuration>
+            <path>weeklyBillingCycleDaysListResponses[0].weeklyBillingNeeded</path>
+            <content>false</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="c17267f8-9726-404e-b6d8-9632c7c2a270" name="isWeeklyBillingCode">
+          <con:configuration>
+            <path>weeklyBillingCycleDaysListResponses[1].weeklyBillingNeeded</path>
+            <content>false</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="cacc0bd8-13c0-4dcf-ab9c-9b5db603e735" name="numberOfDaysInBillingCycle">
+          <con:configuration>
+            <path>weeklyBillingCycleDaysListResponses[0].numberOfDaysInBillingCycle</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="126d7d54-6a1b-4906-9d40-0fdbae23215f" name="numberOfDaysInBillingCycle">
+          <con:configuration>
+            <path>weeklyBillingCycleDaysListResponses[1].numberOfDaysInBillingCycle</path>
+            <content>30</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-34714" id="c3c90b6b-4b12-42bb-b11c-ef53c6402b6e">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineWeeklyBillingAndCycleDays/DetermineWeeklyBillingAndCycleDays/WADL" methodName="DetermineWeeklyBillingAndCycleDays" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-34714" id="c59f134d-a8dc-4e36-8056-e04400f8413f" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "A4224",
+            "lineItemID": "L001"
+        },
+        {
+            "hcpcsCode": "invalid",
+            "lineItemID": "L002"
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineWeeklyBillingAndCycleDays/DetermineWeeklyBillingAndCycleDays/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="67965159-45c3-4936-b129-344e763a5612" name="Valid HTTP Status Codes_4">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="faab5216-a460-4148-9eb1-4393da4a66a9" name="isWeeklyBillingCode">
+          <con:configuration>
+            <path>weeklyBillingCycleDaysListResponses[0].weeklyBillingNeeded</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="86559c9e-53e8-4409-8cfb-56acdf939a15" name="isWeeklyBillingCode">
+          <con:configuration>
+            <path>weeklyBillingCycleDaysListResponses[1].weeklyBillingNeeded</path>
+            <content>false</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="6410d770-863d-40cd-a028-aae1b27e86d9" name="numberOfDaysInBillingCycle">
+          <con:configuration>
+            <path>weeklyBillingCycleDaysListResponses[0].numberOfDaysInBillingCycle</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="1c76bbc7-9335-45c8-acfc-3f73a2116562" name="numberOfDaysInBillingCycle">
+          <con:configuration>
+            <path>weeklyBillingCycleDaysListResponses[1].numberOfDaysInBillingCycle</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:properties/>
+  <con:reportParameters/>
+</con:testCase>

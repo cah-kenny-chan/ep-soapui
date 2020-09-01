@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<con:testSuite id="bc47215b-d76e-42e8-80d3-98c1b7f91ae9" name="DetermineDateSpanRequiredAndCalculation" xmlns:con="http://eviware.com/soapui/config">
+  <con:settings>
+    <con:setting id="bc47215b-d76e-42e8-80d3-98c1b7f91ae9fileName">DetermineDateSpanRequiredAndCalculation</con:setting>
+  </con:settings>
+  <con:runType>SEQUENTIAL</con:runType>
+  <con:properties/>
+  <con:reportParameters/>
+</con:testSuite>

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<con:resource name="DetermineDefaultBenefitMapping" path="/DecisionService/rest/v1/DetermineDefaultBenefitMapping/DetermineDefaultBenefitMapping/WADL" id="4a2006f0-e84f-4bf3-9619-cc5c558affd9" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:con="http://eviware.com/soapui/config">
+  <con:settings>
+    <con:setting id="4a2006f0-e84f-4bf3-9619-cc5c558affd9fileName">DetermineDefaultBenefitMapping</con:setting>
+  </con:settings>
+  <con:parameters/>
+  <con:method name="DetermineDefaultBenefitMapping" id="1115c9c4-4683-44d1-bd57-164366b7c86b" method="POST">
+    <con:settings/>
+    <con:parameters/>
+    <con:request name="DetermineDefaultBenefitMapping" id="90a5f7de-610a-4b1d-acf7-afe7d4d1d7bf" mediaType="application/json" postQueryString="false">
+      <con:settings>
+        <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+      </con:settings>
+      <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+      <con:request>{
+    "lineItems": [
+        {
+            "lineItemID": "0001",
+            "hcpcsCode": "A1234",
+            "productCategory": "string",
+            "productSubCategory1": "string",
+            "productSubCategory2": "string",
+            "productSubCategory3": "string",
+            "plans": [
+                {
+                    "id": "1F586843484E1E0BE0532C97F4A12089",
+                    "planCode": "B189",
+                    "groupID": "string",
+                    "name": "2402",
+                    "type": "1",
+                    "prefix": "string"
+                }
+            ],
+            "diagnosis":[
+                {
+                    "codeICD10": "E11.1"
+                }
+            ]          
+        }
+    ],
+  "e2eMetadata": {
+    "serviceAddressing": {
+      "from": "string",
+      "callingFunction": "string",
+      "correlationID": "string",
+      "timestamp": "2019-08-26T00:00:00.000+0000"
+    }
+  },
+  "__DecisionID__": "string"
+}</con:request>
+      <con:credentials>
+        <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+        <con:authType>No Authorization</con:authType>
+      </con:credentials>
+      <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+      <con:jmsPropertyConfig/>
+      <con:parameters/>
+    </con:request>
+  </con:method>
+</con:resource>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<con:testSuite id="2cf2f162-5076-4d75-b735-534e98137d2a" name="DetermineInsuranceVerificationExpirationDate" xmlns:con="http://eviware.com/soapui/config">
+  <con:settings>
+    <con:setting id="2cf2f162-5076-4d75-b735-534e98137d2afileName">DetermineInsuranceVerificationExpirationDate</con:setting>
+  </con:settings>
+  <con:runType>SEQUENTIAL</con:runType>
+  <con:properties/>
+  <con:reportParameters/>
+</con:testSuite>

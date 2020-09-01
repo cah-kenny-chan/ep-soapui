@@ -1,0 +1,1851 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<con:testCase id="261fa8ba-7196-4b4d-84b8-3c8b5a010510" failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="DeterminePricingModifiers" searchProperties="true" xmlns:con="http://eviware.com/soapui/config">
+  <con:settings>
+    <con:setting id="261fa8ba-7196-4b4d-84b8-3c8b5a010510fileName">DeterminePricingModifiers</con:setting>
+  </con:settings>
+  <con:testStep type="restrequest" name="JSON Request_SingleLineItem" id="c87f6dae-d882-4430-978b-7ead26486352">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DeterminePricingModifiers/DeterminePricingModifiers/WADL" methodName="DeterminePricingModifiers" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="JSON Request_SingleLineItem" id="33305737-ae27-4eec-a824-479acf5066a9" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "C1234",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "A4211",
+            "itemNumber": "",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA001",
+                    "planCode": "2494"
+                }
+            ]
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DeterminePricingModifiers/DeterminePricingModifiers/WADL</con:originalUri>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="JSON Request_MultiLineItem" id="90af2306-6e22-474e-bdfb-c218ac05db0b">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DeterminePricingModifiers/DeterminePricingModifiers/WADL" methodName="DeterminePricingModifiers" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="JSON Request_MultiLineItem" id="9cb69abc-717e-42de-b6d1-edba96a381c4" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "C1234",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "INVALID",
+            "itemNumber": "",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA012",
+                    "planCode": "INVALID"
+                }
+            ]
+        },
+        {
+            "hcpcsCode": "null",
+            "itemNumber": "null",
+            "lineItemID": "L002",
+            "plans": [
+                {
+                    "id": "PA013",
+                    "planCode": "null"
+                }
+            ]
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DeterminePricingModifiers/DeterminePricingModifiers/WADL</con:originalUri>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="JSON Request_MultiPayers" id="0b3af81f-b18b-4de7-9a0d-19a9104f546f">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DeterminePricingModifiers/DeterminePricingModifiers/WADL" methodName="DeterminePricingModifiers" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="JSON Request_MultiPayers" id="cfb879b9-22d7-4a84-bb71-5338a4fefd24" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "C1234",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "K0554",
+            "itemNumber": "EDSTKOM001",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA008",
+                    "planCode": "INVALID"
+                },
+                {
+                    "id": "PA009",
+                    "planCode": "5003"
+                }
+            ]
+        }
+    ]
+}</con:request>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="groovy" name="DeterminePricingModifiers_SingleLineItem" id="25880ce0-25ac-486f-8e56-95d59513ca82">
+    <con:settings/>
+    <con:config>
+      <script>import jxl.*;
+import jxl.write.*
+import java.io.*
+import java.io.file.*
+import java.util.*
+import java.lang.*
+import jxl.read.biff.BiffException;
+import net.sf.*
+import net.sf.json.*
+import net.sf.json.groovy.*
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+import groovy.json.JsonBuilder
+import com.eviware.soapui.model.testsuite.TestStepResult.TestStepStatus
+import com.eviware.soapui.impl.wsdl.teststeps.RestTestRequestStep
+
+def groovyUtils = new com.eviware.soapui.support.GroovyUtils(context)
+def projectDir = groovyUtils.projectPath
+
+def inputfile =  projectDir + "/DeterminePricingModifiers/DeterminePricingModifiers-SingleLineItem-Input.xls"
+def outputfile = projectDir + "/DeterminePricingModifiers/DeterminePricingModifiers-SingleLineItem-Output.xls"
+
+//Creating workbook for reading value from Excel Sheet
+
+Workbook wb = Workbook.getWorkbook(new File(inputfile))
+Sheet sh = wb.getSheet("ExpectedResults")
+Sheet jsonInput = wb.getSheet("JSON")
+
+//reading data from input Excel sheet
+rc = sh.getRows();
+cc = sh.getColumns();
+Cell jreq = jsonInput.getCell(0,0)
+
+//Creating Workbook for writing value in Excel Sheet
+WritableWorkbook wb1= Workbook.createWorkbook(new File(outputfile));
+WritableSheet sheet1 = wb1.createSheet("ActualResults",0);
+
+//Header declaration for output file
+addCell(0,0,"lineItemID",sheet1);
+addCell(1,0,"payerID",sheet1);
+addCell(2,0,"priceModifierNames",sheet1);
+addCell(3,0,"PASS/FAIL",sheet1);
+addCell(4,0,"FAILED DUE TO",sheet1);
+ 
+//new testStepName
+def newTestStep=null
+
+try {
+
+   
+               def req = jreq.getContents()
+               //Assigning request value dynamically
+               //request
+               def slurper = new JsonSlurper().parseText(req);
+               def requestTemplet = new JsonBuilder(slurper);
+
+         
+               for (i=2;i&lt;rc;i++){
+
+                           // Input for TestCaseName
+                         Cell varTestCaseName = sh.getCell(0,i)
+                        def TestCaseName = varTestCaseName.getContents()
+                        
+                                 //Input for Line Item ID                               
+                                requestTemplet.content.lineItems[0].lineItemID = sh.getCell(1,i).getContents()
+                                 //Input for hcpcsCode  
+                                requestTemplet.content.lineItems[0].hcpcsCode = sh.getCell(2,i).getContents() 
+                                //Input for itemNumber
+                                 requestTemplet.content.lineItems[0].itemNumber = sh.getCell(3,i).getContents()                                                          
+                                                                                       
+                                 // Input for Plan
+                                requestTemplet.content.lineItems[0].plans[0].planCode = sh.getCell(4,i).getContents()
+                                 // Input for ID
+                                requestTemplet.content.lineItems[0].plans[0].id = sh.getCell(5,i).getContents()
+
+                              //Assign json request to variable
+                       def jsonReqAsString = requestTemplet.toPrettyString()
+                       def restRequest = testRunner.testCase.getTestStepByName('JSON Request_SingleLineItem');
+                       restRequest.setPropertyValue('Request',jsonReqAsString);
+
+                                //teststep cloned: Start
+                        def getTestCase = testRunner.testCase;
+                        def testst = testRunner.testCase.getTestStepByName("JSON Request_SingleLineItem");                 
+                            newTestStep = TestCaseName
+                            cleanUp(newTestStep)
+                            getTestCase.cloneStep(restRequest,newTestStep)
+                             
+                         //teststep cloned: End
+                         //Executing the testcase
+                        testRunner.runTestStepByName(newTestStep)
+ 
+                         //retrive response         
+                       def ResponseMessage = testRunner.testCase.testSteps[newTestStep].testRequest.response.contentAsString
+                    
+                         //new JsonSlurper to parse and get the response in Json format
+                        def slurper1 = new JsonSlurper()
+                        def json = slurper1.parseText(ResponseMessage)
+                    
+                                  
+                           // get lineItemID from response json                                 
+                        addCell(0,i,json.pricingModifiers[0].lineItemID,sheet1);                                   
+                          // get PayerID from response json                                   
+                        addCell(1,i,json.pricingModifiers[0].planID,sheet1);   
+                          // get priceModifierNames from response json                           
+                        addCell(2,i,json.pricingModifiers[0].priceModifierNames.toString(),sheet1);  
+                                                    
+                                                           
+                      //dynamic asserstion :Start
+                   def testStepForAssertion = testRunner.testCase.getTestStepByName(newTestStep);
+                                //ValidHTTPStatusCodes 200 Assertion
+                  addAssertionValidHTTPStatusCodes(testStepForAssertion,"Valid HTTP Status Codes_"+i)
+            
+                             //get the expected values
+                          lineItemID = sh.getCell(6,i).getContents()
+                       addAssertionJsonPathMatch(testStepForAssertion,lineItemID,"pricingModifiers[0].lineItemID","lineItemID")
+
+                          planID = sh.getCell(7,i).getContents()
+                       addAssertionJsonPathMatch(testStepForAssertion,planID,"pricingModifiers[0].planID","planID")
+
+                         priceModifierNames = sh.getCell(8,i).getContents()
+                        addAssertionJsonPathMatch(testStepForAssertion,priceModifierNames,"pricingModifiers[0].priceModifierNames","priceModifierNames")
+                                                  
+                     
+                            //dynamic asserstion :End
+                            assertionResult = testStepForAssertion.getAssertionStatus()
+             if(assertionResult.toString().equals("FAILED")){
+
+                                       addCell(3,i,"Fail",sheet1);
+                                   for( assertion in testStepForAssertion.assertionList ){
+                                  for( e in assertion.errors ){
+
+                                                     addCell(4,i,e.message,sheet1);
+
+                                                } 
+
+                                   }
+
+                                }
+
+
+                                else{
+
+                                   addCell(3,i,"PASS",sheet1);
+
+                                }
+
+ 
+       }
+
+      wb1.write();
+            log.info "TestCase Execution Completed successfull"
+
+ 
+
+                }             
+     
+catch(Exception e)
+{
+
+                 log.info(e)                         
+}
+
+finally
+{
+
+    //close workbook
+     wb.close();
+     wb1.close();     
+
+}
+
+//Method code
+def addAssertionJsonPathMatch(RestTestRequestStep testStepForAssertion,String expectedContent,String xPath,String assertionName) {
+          def assertionType = testStepForAssertion.addAssertion("JsonPath Match")
+                                assertionType.name = assertionName
+                                assertionType.setPath(xPath)
+                                assertionType.setExpectedContent(expectedContent)
+                                assertionType.setAllowWildcards(true) 
+
+}
+
+//Method code
+def addAssertionValidHTTPStatusCodes(RestTestRequestStep testStepForAssertion,String assertionName) {
+
+         def StatusCodeAssertionxpath = testStepForAssertion.addAssertion("Valid HTTP Status Codes")
+             StatusCodeAssertionxpath.name = assertionName
+             StatusCodeAssertionxpath.codes=200
+
+}
+
+//method to delete
+def cleanUp(String requestName){
+
+                //remove the teststep::Start
+                def testCase = testRunner.testCase
+                def testStep = testCase.getTestStepByName(requestName)
+
+                if (testStep!=null){
+
+ 
+                                    testCase.removeTestStep(testStep)
+                }
+
+    
+            //remove the teststep::End
+
+}
+
+ 
+
+//method to add Cell to sheet1
+
+def addCell(int colmNum,int rowNum,String lblName,WritableSheet sheet1 ){
+
+                 Label header = new Label(colmNum,rowNum,lblName);
+                sheet1.addCell(header);               
+
+}</script>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="groovy" name="DeterminePricingModifiers_MultiLineItem" id="0015604e-e509-4fca-971a-725cfddc3a19">
+    <con:settings/>
+    <con:config>
+      <script>import jxl.*;
+import jxl.write.*
+import java.io.*
+import java.io.file.*
+import java.util.*
+import java.lang.*
+import jxl.read.biff.BiffException;
+import net.sf.*
+import net.sf.json.*
+import net.sf.json.groovy.*
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+import groovy.json.JsonBuilder
+import com.eviware.soapui.model.testsuite.TestStepResult.TestStepStatus
+import com.eviware.soapui.impl.wsdl.teststeps.RestTestRequestStep
+
+def groovyUtils = new com.eviware.soapui.support.GroovyUtils(context)
+def projectDir = groovyUtils.projectPath
+
+def inputfile =  projectDir + "/DeterminePricingModifiers/DeterminePricingModifiers-MultiLineItem-Input.xls"
+def outputfile = projectDir + "/DeterminePricingModifiers/DeterminePricingModifiers-MultiLineItem-Output.xls"
+
+//Creating workbook for reading value from Excel Sheet
+
+Workbook wb = Workbook.getWorkbook(new File(inputfile))
+Sheet sh = wb.getSheet("ExpectedResults")
+Sheet jsonInput = wb.getSheet("JSON")
+
+//reading data from input Excel sheet
+rc = sh.getRows();
+cc = sh.getColumns();
+Cell jreq = jsonInput.getCell(0,0)
+
+//Creating Workbook for writing value in Excel Sheet
+WritableWorkbook wb1= Workbook.createWorkbook(new File(outputfile));
+WritableSheet sheet1 = wb1.createSheet("ActualResults",0);
+
+//Header declaration for output file
+addCell(0,0,"lineItemID",sheet1);
+addCell(1,0,"payerID",sheet1);
+addCell(2,0,"priceModifierNames",sheet1);
+addCell(3,0,"lineItemID1",sheet1);
+addCell(4,0,"payerID1",sheet1);
+addCell(5,0,"priceModifierNames1",sheet1);
+addCell(6,0,"PASS/FAIL",sheet1);
+addCell(7,0,"FAILED DUE TO",sheet1);
+ 
+//new testStepName
+def newTestStep=null
+
+try {
+
+   
+               def req = jreq.getContents()
+               //Assigning request value dynamically
+               //request
+               def slurper = new JsonSlurper().parseText(req);
+               def requestTemplet = new JsonBuilder(slurper);
+
+         
+               for (i=2;i&lt;rc;i++){
+
+                           // Input for TestCaseName
+                         Cell varTestCaseName = sh.getCell(0,i)
+                        def TestCaseName = varTestCaseName.getContents()
+                        
+                                 //Input for Line ItemID1                              
+                                requestTemplet.content.lineItems[0].lineItemID = sh.getCell(1,i).getContents()
+                                 //Input for hcpcsCode1
+                                requestTemplet.content.lineItems[0].hcpcsCode = sh.getCell(2,i).getContents() 
+                                //Input for itemNumber1
+                                 requestTemplet.content.lineItems[0].itemNumber = sh.getCell(3,i).getContents()  
+                                                                                         
+                                 //Input for payer1                                                      
+                                 // Input for Plan
+                                requestTemplet.content.lineItems[0].plans[0].planCode = sh.getCell(4,i).getContents()
+                                 // Input for ID
+                                requestTemplet.content.lineItems[0].plans[0].id =sh.getCell(5,i).getContents()
+
+                                //Input for Line ItemID2                             
+                                requestTemplet.content.lineItems[1].lineItemID = sh.getCell(6,i).getContents()
+                                 //Input for hcpcsCode2  
+                                requestTemplet.content.lineItems[1].hcpcsCode = sh.getCell(7,i).getContents() 
+                                //Input for itemNumber2
+                                 requestTemplet.content.lineItems[1].itemNumber = sh.getCell(8,i).getContents()
+
+                                 //Input for payer1
+                                   // Input for Plan
+                                requestTemplet.content.lineItems[1].plans[0].planCode = sh.getCell(9,i).getContents()
+                                 // Input for ID
+                                requestTemplet.content.lineItems[1].plans[0].id =sh.getCell(10,i).getContents()
+
+
+                              //Assign json request to variable
+                       def jsonReqAsString = requestTemplet.toPrettyString()
+                       def restRequest = testRunner.testCase.getTestStepByName('JSON Request_MultiLineItem');
+                       restRequest.setPropertyValue('Request',jsonReqAsString);
+
+                                //teststep cloned: Start
+                        def getTestCase = testRunner.testCase;
+                        def testst = testRunner.testCase.getTestStepByName("JSON Request_MultiLineItem");                 
+                            newTestStep = TestCaseName
+                            cleanUp(newTestStep)
+                            getTestCase.cloneStep(restRequest,newTestStep)
+                             
+                         //teststep cloned: End
+                         //Executing the testcase
+                        testRunner.runTestStepByName(newTestStep)
+ 
+                         //retrive response         
+                       def ResponseMessage = testRunner.testCase.testSteps[newTestStep].testRequest.response.contentAsString
+                    
+                         //new JsonSlurper to parse and get the response in Json format
+                        def slurper1 = new JsonSlurper()
+                        def json = slurper1.parseText(ResponseMessage)
+                    
+                                  
+                           // get lineItemID from response json                                 
+                        addCell(0,i,json.pricingModifiers[0].lineItemID,sheet1);                                   
+                          // get PayerID from response json                                   
+                        addCell(1,i,json.pricingModifiers[0].planID,sheet1);   
+                          // get priceModifierNames from response json                           
+                        addCell(2,i,json.pricingModifiers[0].priceModifierNames.toString(),sheet1);
+                        // get lineItemID from response json 
+                        addCell(3,i,json.pricingModifiers[1].lineItemID,sheet1);                                   
+                          // get PayerID from response json                                   
+                        addCell(4,i,json.pricingModifiers[1].planID,sheet1);   
+                          // get priceModifierNames from response json                           
+                        addCell(5,i,json.pricingModifiers[1].priceModifierNames.toString(),sheet1);  
+                                                    
+                                                           
+                      //dynamic asserstion :Start
+                   def testStepForAssertion = testRunner.testCase.getTestStepByName(newTestStep);
+                                //ValidHTTPStatusCodes 200 Assertion
+                  addAssertionValidHTTPStatusCodes(testStepForAssertion,"Valid HTTP Status Codes_"+i)
+            
+                             //get the expected values
+                          lineItemID = sh.getCell(11,i).getContents()
+                       addAssertionJsonPathMatch(testStepForAssertion,lineItemID,"pricingModifiers[0].lineItemID","lineItemID")
+
+                          planID = sh.getCell(12,i).getContents()
+                       addAssertionJsonPathMatch(testStepForAssertion,planID,"pricingModifiers[0].planID","planID")
+
+                         priceModifierNames = sh.getCell(13,i).getContents()
+                        addAssertionJsonPathMatch(testStepForAssertion,priceModifierNames,"pricingModifiers[0].priceModifierNames","priceModifierNames")
+                                                  
+                        lineItemID1 = sh.getCell(14,i).getContents()
+                       addAssertionJsonPathMatch(testStepForAssertion,lineItemID1,"pricingModifiers[1].lineItemID","lineItemID")
+
+                          planID1 = sh.getCell(15,i).getContents()
+                       addAssertionJsonPathMatch(testStepForAssertion,planID1,"pricingModifiers[1].planID","planID1")
+
+                         priceModifierNames1 = sh.getCell(16,i).getContents()
+                        addAssertionJsonPathMatch(testStepForAssertion,priceModifierNames1,"pricingModifiers[1].priceModifierNames","priceModifierNames")
+                                                  
+                            //dynamic asserstion :End
+                            assertionResult = testStepForAssertion.getAssertionStatus()
+             if(assertionResult.toString().equals("FAILED")){
+
+                                       addCell(6,i,"Fail",sheet1);
+                                   for( assertion in testStepForAssertion.assertionList ){
+                                  for( e in assertion.errors ){
+
+                                                     addCell(7,i,e.message,sheet1);
+
+                                                } 
+
+                                   }
+
+                                }
+
+
+                                else{
+
+                                   addCell(6,i,"PASS",sheet1);
+
+                                }
+
+ 
+       }
+
+      wb1.write();
+            log.info "TestCase Execution Completed successfull"
+
+ 
+
+                }             
+     
+catch(Exception e)
+{
+
+                 log.info(e)                         
+}
+
+finally
+{
+
+    //close workbook
+     wb.close();
+     wb1.close();     
+
+}
+
+//Method code
+def addAssertionJsonPathMatch(RestTestRequestStep testStepForAssertion,String expectedContent,String xPath,String assertionName) {
+          def assertionType = testStepForAssertion.addAssertion("JsonPath Match")
+                                assertionType.name = assertionName
+                                assertionType.setPath(xPath)
+                                assertionType.setExpectedContent(expectedContent)
+                                assertionType.setAllowWildcards(true) 
+
+}
+
+//Method code
+def addAssertionValidHTTPStatusCodes(RestTestRequestStep testStepForAssertion,String assertionName) {
+
+         def StatusCodeAssertionxpath = testStepForAssertion.addAssertion("Valid HTTP Status Codes")
+             StatusCodeAssertionxpath.name = assertionName
+             StatusCodeAssertionxpath.codes=200
+
+}
+
+//method to delete
+def cleanUp(String requestName){
+
+                //remove the teststep::Start
+                def testCase = testRunner.testCase
+                def testStep = testCase.getTestStepByName(requestName)
+
+                if (testStep!=null){
+
+ 
+                                    testCase.removeTestStep(testStep)
+                }
+
+    
+            //remove the teststep::End
+
+}
+
+ 
+
+//method to add Cell to sheet1
+
+def addCell(int colmNum,int rowNum,String lblName,WritableSheet sheet1 ){
+
+                 Label header = new Label(colmNum,rowNum,lblName);
+                sheet1.addCell(header);               
+
+}</script>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="groovy" name="DeterminePricingModifiers_MultiPayers" id="38fb8199-2bf5-47b7-a261-bdebce4668b7">
+    <con:settings/>
+    <con:config>
+      <script>import jxl.*;
+import jxl.write.*
+import java.io.*
+import java.io.file.*
+import java.util.*
+import java.lang.*
+import jxl.read.biff.BiffException;
+import net.sf.*
+import net.sf.json.*
+import net.sf.json.groovy.*
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+import groovy.json.JsonBuilder
+import com.eviware.soapui.model.testsuite.TestStepResult.TestStepStatus
+import com.eviware.soapui.impl.wsdl.teststeps.RestTestRequestStep
+
+def groovyUtils = new com.eviware.soapui.support.GroovyUtils(context)
+def projectDir = groovyUtils.projectPath
+
+def inputfile =  projectDir + "/DeterminePricingModifiers/DeterminePricingModifiers-MultiPayers-Input.xls"
+def outputfile = projectDir + "/DeterminePricingModifiers/DeterminePricingModifiers-MultiPayers-Output.xls"
+
+//Creating workbook for reading value from Excel Sheet
+
+Workbook wb = Workbook.getWorkbook(new File(inputfile))
+Sheet sh = wb.getSheet("ExpectedResults")
+Sheet jsonInput = wb.getSheet("JSON")
+
+//reading data from input Excel sheet
+rc = sh.getRows();
+cc = sh.getColumns();
+Cell jreq = jsonInput.getCell(0,0)
+
+//Creating Workbook for writing value in Excel Sheet
+WritableWorkbook wb1= Workbook.createWorkbook(new File(outputfile));
+WritableSheet sheet1 = wb1.createSheet("ActualResults",0);
+
+//Header declaration for output file
+addCell(0,0,"lineItemID",sheet1);
+addCell(1,0,"payerID",sheet1);
+addCell(2,0,"priceModifierNames",sheet1);
+addCell(3,0,"lineItemID1",sheet1);
+addCell(4,0,"payerID1",sheet1);
+addCell(5,0,"priceModifierNames1",sheet1);
+addCell(6,0,"PASS/FAIL",sheet1);
+addCell(7,0,"FAILED DUE TO",sheet1);
+ 
+//new testStepName
+def newTestStep=null
+
+try {
+
+   
+               def req = jreq.getContents()
+               //Assigning request value dynamically
+               //request
+               def slurper = new JsonSlurper().parseText(req);
+               def requestTemplet = new JsonBuilder(slurper);
+
+         
+               for (i=2;i&lt;rc;i++){
+
+                           // Input for TestCaseName
+                         Cell varTestCaseName = sh.getCell(0,i)
+                        def TestCaseName = varTestCaseName.getContents()
+                        
+                                 //Input for Line Item ID                               
+                                requestTemplet.content.lineItems[0].lineItemID = sh.getCell(1,i).getContents()
+                                 //Input for hcpcsCode  
+                                requestTemplet.content.lineItems[0].hcpcsCode = sh.getCell(2,i).getContents() 
+                                //Input for itemNumber
+                                 requestTemplet.content.lineItems[0].itemNumber = sh.getCell(3,i).getContents()
+                                                                                           
+                                 //Input for payer1                                                      
+                                 // Input for Plan
+                                requestTemplet.content.lineItems[0].plans[0].planCode = sh.getCell(4,i).getContents()
+                                 // Input for ID
+                                requestTemplet.content.lineItems[0].plans[0].id =sh.getCell(5,i).getContents()
+
+                                 //Input for payer2
+                                  // Input for Plan
+                                requestTemplet.content.lineItems[0].plans[1].planCode = sh.getCell(6,i).getContents()
+                                 // Input for ID
+                                requestTemplet.content.lineItems[0].plans[1].id =sh.getCell(7,i).getContents()
+
+
+                              //Assign json request to variable
+                       def jsonReqAsString = requestTemplet.toPrettyString()
+                       def restRequest = testRunner.testCase.getTestStepByName('JSON Request_MultiPayers');
+                       restRequest.setPropertyValue('Request',jsonReqAsString);
+
+                                //teststep cloned: Start
+                        def getTestCase = testRunner.testCase;
+                        def testst = testRunner.testCase.getTestStepByName("JSON Request_MultiPayers");                 
+                            newTestStep = TestCaseName
+                            cleanUp(newTestStep)
+                            getTestCase.cloneStep(restRequest,newTestStep)
+                             
+                         //teststep cloned: End
+                         //Executing the testcase
+                        testRunner.runTestStepByName(newTestStep)
+ 
+                         //retrive response         
+                       def ResponseMessage = testRunner.testCase.testSteps[newTestStep].testRequest.response.contentAsString
+                    
+                         //new JsonSlurper to parse and get the response in Json format
+                        def slurper1 = new JsonSlurper()
+                        def json = slurper1.parseText(ResponseMessage)
+                    
+                                  
+                           // get lineItemID from response json                                 
+                        addCell(0,i,json.pricingModifiers[0].lineItemID,sheet1);                                   
+                          // get PayerID from response json                                   
+                        addCell(1,i,json.pricingModifiers[0].planID,sheet1);   
+                          // get priceModifierNames from response json                           
+                        addCell(2,i,json.pricingModifiers[0].priceModifierNames.toString(),sheet1);
+                        // get lineItemID from response json 
+                        addCell(3,i,json.pricingModifiers[1].lineItemID,sheet1);                                   
+                          // get PayerID from response json                                   
+                        addCell(4,i,json.pricingModifiers[1].planID,sheet1);   
+                          // get priceModifierNames from response json                           
+                        addCell(5,i,json.pricingModifiers[1].priceModifierNames.toString(),sheet1);  
+                                                    
+                                                           
+                      //dynamic asserstion :Start
+                   def testStepForAssertion = testRunner.testCase.getTestStepByName(newTestStep);
+                                //ValidHTTPStatusCodes 200 Assertion
+                  addAssertionValidHTTPStatusCodes(testStepForAssertion,"Valid HTTP Status Codes_"+i)
+            
+                             //get the expected values
+                          lineItemID = sh.getCell(8,i).getContents()
+                       addAssertionJsonPathMatch(testStepForAssertion,lineItemID,"pricingModifiers[0].lineItemID","lineItemID")
+
+                          planID = sh.getCell(9,i).getContents()
+                       addAssertionJsonPathMatch(testStepForAssertion,planID,"pricingModifiers[0].planID","planID")
+
+                         priceModifierNames = sh.getCell(10,i).getContents()
+                        addAssertionJsonPathMatch(testStepForAssertion,priceModifierNames,"pricingModifiers[0].priceModifierNames","priceModifierNames")
+                                                  
+                        lineItemID1 = sh.getCell(11,i).getContents()
+                       addAssertionJsonPathMatch(testStepForAssertion,lineItemID1,"pricingModifiers[1].lineItemID","lineItemID")
+
+                          planID1 = sh.getCell(12,i).getContents()
+                       addAssertionJsonPathMatch(testStepForAssertion,planID1,"pricingModifiers[1].planID","planID1")
+
+                         priceModifierNames1 = sh.getCell(13,i).getContents()
+                        addAssertionJsonPathMatch(testStepForAssertion,priceModifierNames1,"pricingModifiers[1].priceModifierNames","priceModifierNames")
+                                                  
+                            //dynamic asserstion :End
+                            assertionResult = testStepForAssertion.getAssertionStatus()
+             if(assertionResult.toString().equals("FAILED")){
+
+                                       addCell(6,i,"Fail",sheet1);
+                                   for( assertion in testStepForAssertion.assertionList ){
+                                  for( e in assertion.errors ){
+
+                                                     addCell(7,i,e.message,sheet1);
+
+                                                } 
+
+                                   }
+
+                                }
+
+
+                                else{
+
+                                   addCell(6,i,"PASS",sheet1);
+
+                                }
+
+ 
+       }
+
+      wb1.write();
+            log.info "TestCase Execution Completed successfull"
+
+ 
+
+                }             
+     
+catch(Exception e)
+{
+
+                 log.info(e)                         
+}
+
+finally
+{
+
+    //close workbook
+     wb.close();
+     wb1.close();     
+
+}
+
+//Method code
+def addAssertionJsonPathMatch(RestTestRequestStep testStepForAssertion,String expectedContent,String xPath,String assertionName) {
+          def assertionType = testStepForAssertion.addAssertion("JsonPath Match")
+                                assertionType.name = assertionName
+                                assertionType.setPath(xPath)
+                                assertionType.setExpectedContent(expectedContent)
+                                assertionType.setAllowWildcards(true) 
+
+}
+
+//Method code
+def addAssertionValidHTTPStatusCodes(RestTestRequestStep testStepForAssertion,String assertionName) {
+
+         def StatusCodeAssertionxpath = testStepForAssertion.addAssertion("Valid HTTP Status Codes")
+             StatusCodeAssertionxpath.name = assertionName
+             StatusCodeAssertionxpath.codes=200
+
+}
+
+//method to delete
+def cleanUp(String requestName){
+
+                //remove the teststep::Start
+                def testCase = testRunner.testCase
+                def testStep = testCase.getTestStepByName(requestName)
+
+                if (testStep!=null){
+
+ 
+                                    testCase.removeTestStep(testStep)
+                }
+
+    
+            //remove the teststep::End
+
+}
+
+ 
+
+//method to add Cell to sheet1
+
+def addCell(int colmNum,int rowNum,String lblName,WritableSheet sheet1 ){
+
+                 Label header = new Label(colmNum,rowNum,lblName);
+                sheet1.addCell(header);               
+
+}</script>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-42979" id="79028b46-ddb1-4488-a368-842cafb76574">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DeterminePricingModifiers/DeterminePricingModifiers/WADL" methodName="DeterminePricingModifiers" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-42979" id="33305737-ae27-4eec-a824-479acf5066a9" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "C1234",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "A4221",
+            "itemNumber": "",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA001",
+                    "planCode": "2460"
+                }
+            ]
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DeterminePricingModifiers/DeterminePricingModifiers/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="8dff7a38-5164-4a3f-ae09-a75e46d90aa1" name="Valid HTTP Status Codes_2">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="8070a1b2-699f-44e5-87b3-7a7c718940f8" name="lineItemID">
+          <con:configuration>
+            <path>pricingModifiers[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="ccfb35e9-739f-41ef-92ea-915aa9f03390" name="planID">
+          <con:configuration>
+            <path>pricingModifiers[0].planID</path>
+            <content>PA001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="30b5f018-78fe-4298-9c25-f46d3bc62d6e" name="priceModifierNames">
+          <con:configuration>
+            <path>pricingModifiers[0].priceModifierNames</path>
+            <content>["NU"]</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-42980" id="a7c1211d-c770-4fad-84a9-a8b34b0494fb">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DeterminePricingModifiers/DeterminePricingModifiers/WADL" methodName="DeterminePricingModifiers" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-42980" id="33305737-ae27-4eec-a824-479acf5066a9" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "C1234",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "K0554",
+            "itemNumber": "EDSTKOM001",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA001",
+                    "planCode": "5002"
+                }
+            ]
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DeterminePricingModifiers/DeterminePricingModifiers/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="4b1024c1-3ae7-4894-a33b-5fcec28aaa39" name="Valid HTTP Status Codes_3">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="3ebb2b15-4a26-43d1-b90f-436eff1c6899" name="lineItemID">
+          <con:configuration>
+            <path>pricingModifiers[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="88e615c7-e09f-4a7d-8624-f0dda9167908" name="planID">
+          <con:configuration>
+            <path>pricingModifiers[0].planID</path>
+            <content>PA001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="e7ec12d1-2013-409c-9a75-e8a1dd347954" name="priceModifierNames">
+          <con:configuration>
+            <path>pricingModifiers[0].priceModifierNames</path>
+            <content>["NU"]</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-42981" id="7a16a19f-b8c2-4093-bbe5-a6bc6be85ab0">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DeterminePricingModifiers/DeterminePricingModifiers/WADL" methodName="DeterminePricingModifiers" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-42981" id="33305737-ae27-4eec-a824-479acf5066a9" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "C1234",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "K0554",
+            "itemNumber": "INVALID",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA001",
+                    "planCode": "5003"
+                }
+            ]
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DeterminePricingModifiers/DeterminePricingModifiers/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="6907b63f-3327-4f40-bcc7-e5f1d0abf502" name="Valid HTTP Status Codes_4">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="4b5f9db1-c994-4053-94e8-7c7a62f46a1e" name="lineItemID">
+          <con:configuration>
+            <path>pricingModifiers[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="cc7c32be-d9e0-445a-8c66-b17e6968e111" name="planID">
+          <con:configuration>
+            <path>pricingModifiers[0].planID</path>
+            <content>PA001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="39241a3d-ea58-4bad-8554-bf86e6d13b6c" name="priceModifierNames">
+          <con:configuration>
+            <path>pricingModifiers[0].priceModifierNames</path>
+            <content>["NU","KF"]</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-42982" id="4eab88c1-fc39-452a-aeb1-e2946563379d">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DeterminePricingModifiers/DeterminePricingModifiers/WADL" methodName="DeterminePricingModifiers" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-42982" id="33305737-ae27-4eec-a824-479acf5066a9" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "C1234",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "INVALID",
+            "itemNumber": "",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA001",
+                    "planCode": "2460"
+                }
+            ]
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DeterminePricingModifiers/DeterminePricingModifiers/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="ddda61ba-3c8f-4499-814e-7f4c35541f5b" name="Valid HTTP Status Codes_5">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="abe7570a-cf3d-46e7-bd76-b518b931ddae" name="lineItemID">
+          <con:configuration>
+            <path>pricingModifiers[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="eea9a7ed-82a4-46ac-ac9a-392d65ef9fff" name="planID">
+          <con:configuration>
+            <path>pricingModifiers[0].planID</path>
+            <content>PA001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="b8f44936-3fb9-4dd1-8cad-4ae2baf4b71f" name="priceModifierNames">
+          <con:configuration>
+            <path>pricingModifiers[0].priceModifierNames</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-42983" id="1bac9bc6-6b86-447e-91d9-e5e6768c27af">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DeterminePricingModifiers/DeterminePricingModifiers/WADL" methodName="DeterminePricingModifiers" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-42983" id="33305737-ae27-4eec-a824-479acf5066a9" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "C1234",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "INVALID",
+            "itemNumber": "INVALID",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA001",
+                    "planCode": "INVALID"
+                }
+            ]
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DeterminePricingModifiers/DeterminePricingModifiers/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="40e4eb5f-95da-44ec-bb52-0cba4624ca75" name="Valid HTTP Status Codes_6">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="22bcbdd2-68ad-414f-8263-495448eded53" name="lineItemID">
+          <con:configuration>
+            <path>pricingModifiers[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="6c51d68f-d77e-49a0-8d72-535c2a4245a5" name="planID">
+          <con:configuration>
+            <path>pricingModifiers[0].planID</path>
+            <content>PA001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="30ea6cb3-5148-45c9-8fa6-055cf85696ae" name="priceModifierNames">
+          <con:configuration>
+            <path>pricingModifiers[0].priceModifierNames</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-42984" id="d6f1970d-9844-4592-99c6-24d851eb6117">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DeterminePricingModifiers/DeterminePricingModifiers/WADL" methodName="DeterminePricingModifiers" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-42984" id="33305737-ae27-4eec-a824-479acf5066a9" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "C1234",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "E0747",
+            "itemNumber": "",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA001",
+                    "planCode": "5001"
+                }
+            ]
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DeterminePricingModifiers/DeterminePricingModifiers/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="32e5feff-f5b0-45cc-863b-b0b5799a2d10" name="Valid HTTP Status Codes_7">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="f77b8afa-38b5-414b-804a-42d5c594411f" name="lineItemID">
+          <con:configuration>
+            <path>pricingModifiers[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="4370d2fd-f782-47b8-b91c-727bb829e860" name="planID">
+          <con:configuration>
+            <path>pricingModifiers[0].planID</path>
+            <content>PA001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="89342ca7-ada4-4b5b-b5eb-d824fbd4d7eb" name="priceModifierNames">
+          <con:configuration>
+            <path>pricingModifiers[0].priceModifierNames</path>
+            <content>["NU","KF"]</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-42985" id="0d24154e-b27c-422c-bee5-83387c4e0429">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DeterminePricingModifiers/DeterminePricingModifiers/WADL" methodName="DeterminePricingModifiers" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-42985" id="33305737-ae27-4eec-a824-479acf5066a9" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "C1234",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "A4211",
+            "itemNumber": "",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA001",
+                    "planCode": "2494"
+                }
+            ]
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DeterminePricingModifiers/DeterminePricingModifiers/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="7700c190-f6ea-4754-9817-f19a98b2367c" name="Valid HTTP Status Codes_8">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="ac0ac79a-8309-4a12-8ac5-edeb864c5945" name="lineItemID">
+          <con:configuration>
+            <path>pricingModifiers[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="34d681b0-1e0c-4c08-8da5-8e46f053e1b1" name="planID">
+          <con:configuration>
+            <path>pricingModifiers[0].planID</path>
+            <content>PA001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="fefa32ab-73a0-48be-ac10-55304be32ed1" name="priceModifierNames">
+          <con:configuration>
+            <path>pricingModifiers[0].priceModifierNames</path>
+            <content>["U4"]</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-42988" id="7fa7935e-e423-413a-9b47-b61b158884e2">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DeterminePricingModifiers/DeterminePricingModifiers/WADL" methodName="DeterminePricingModifiers" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-42988" id="9cb69abc-717e-42de-b6d1-edba96a381c4" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "C1234",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "K0554",
+            "itemNumber": "",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA010",
+                    "planCode": "5001"
+                }
+            ]
+        },
+        {
+            "hcpcsCode": "K0554",
+            "itemNumber": "EDSTKOM001",
+            "lineItemID": "L002",
+            "plans": [
+                {
+                    "id": "PA011",
+                    "planCode": "5004"
+                }
+            ]
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DeterminePricingModifiers/DeterminePricingModifiers/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="65604004-f6dc-4259-97d7-5db774f8768d" name="Valid HTTP Status Codes_2">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="8728fdf6-c113-4d6a-81b5-f2d51ac1491c" name="lineItemID">
+          <con:configuration>
+            <path>pricingModifiers[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="1d87dd8d-66ff-4262-8a1f-4c627a1e2ebb" name="planID">
+          <con:configuration>
+            <path>pricingModifiers[0].planID</path>
+            <content>PA010</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="6fc8862c-cd0b-4c67-bcf1-f9129f2003a4" name="priceModifierNames">
+          <con:configuration>
+            <path>pricingModifiers[0].priceModifierNames</path>
+            <content>["NU","KF"]</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="0e45679a-5fbb-4324-bd4f-0add2309d955" name="lineItemID">
+          <con:configuration>
+            <path>pricingModifiers[1].lineItemID</path>
+            <content>L002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="c95d822e-bb4a-4f90-a634-dac503fdfcd9" name="planID1">
+          <con:configuration>
+            <path>pricingModifiers[1].planID</path>
+            <content>PA011</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="59e9fbcc-365d-46ce-b5ca-804f589b97e0" name="priceModifierNames">
+          <con:configuration>
+            <path>pricingModifiers[1].priceModifierNames</path>
+            <content>["NU"]</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-42989" id="78633fdf-f10b-43f4-8ba8-f845442cff44">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DeterminePricingModifiers/DeterminePricingModifiers/WADL" methodName="DeterminePricingModifiers" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-42989" id="9cb69abc-717e-42de-b6d1-edba96a381c4" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "C1234",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "INVALID",
+            "itemNumber": "",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA012",
+                    "planCode": "INVALID"
+                }
+            ]
+        },
+        {
+            "hcpcsCode": "null",
+            "itemNumber": "null",
+            "lineItemID": "L002",
+            "plans": [
+                {
+                    "id": "PA013",
+                    "planCode": "null"
+                }
+            ]
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DeterminePricingModifiers/DeterminePricingModifiers/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="bc49942f-2308-4fc0-bb5d-f567798b7d58" name="Valid HTTP Status Codes_3">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="e3627ac1-7df8-4112-8526-5fa59ff7e661" name="lineItemID">
+          <con:configuration>
+            <path>pricingModifiers[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="73c5bbad-dfb8-47f7-8887-90c397dabb45" name="planID">
+          <con:configuration>
+            <path>pricingModifiers[0].planID</path>
+            <content>PA012</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="1c63141d-f9dc-46d5-bd03-ac8c34b114bd" name="priceModifierNames">
+          <con:configuration>
+            <path>pricingModifiers[0].priceModifierNames</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="674cd247-f2b8-4819-89f8-b909f3b96cf1" name="lineItemID">
+          <con:configuration>
+            <path>pricingModifiers[1].lineItemID</path>
+            <content>L002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="40d8a0ce-343d-42ae-aa47-298b96bc798c" name="planID1">
+          <con:configuration>
+            <path>pricingModifiers[1].planID</path>
+            <content>PA013</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="976f3bb5-4ea2-4300-a074-506ab89e5afe" name="priceModifierNames">
+          <con:configuration>
+            <path>pricingModifiers[1].priceModifierNames</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-42986" id="ca75ce6c-a71c-4809-8fb9-5e78a9af194a">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DeterminePricingModifiers/DeterminePricingModifiers/WADL" methodName="DeterminePricingModifiers" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-42986" id="cfb879b9-22d7-4a84-bb71-5338a4fefd24" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "C1234",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "E0760",
+            "itemNumber": "",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA006",
+                    "planCode": "5001"
+                },
+                {
+                    "id": "PA007",
+                    "planCode": "INVALID"
+                }
+            ]
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DeterminePricingModifiers/DeterminePricingModifiers/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="c7e84084-d044-4c35-9022-553ebc16e263" name="Valid HTTP Status Codes_2">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="9296cd05-a7d3-40d1-8c24-da8da1949c2d" name="lineItemID">
+          <con:configuration>
+            <path>pricingModifiers[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="da5dd6d4-e94e-4aac-8983-537931b0666d" name="planID">
+          <con:configuration>
+            <path>pricingModifiers[0].planID</path>
+            <content>PA006</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="83b49e36-fdc3-4334-8653-ca1106f6db08" name="priceModifierNames">
+          <con:configuration>
+            <path>pricingModifiers[0].priceModifierNames</path>
+            <content>["NU","KF"]</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="4c4fab14-a6e8-463c-813b-b7b862d18310" name="lineItemID">
+          <con:configuration>
+            <path>pricingModifiers[1].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="996fcefa-9b33-448c-91d2-4e45669865a0" name="planID1">
+          <con:configuration>
+            <path>pricingModifiers[1].planID</path>
+            <content>PA007</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="c794ef9d-8191-4cc1-96fe-16f8493121ab" name="priceModifierNames">
+          <con:configuration>
+            <path>pricingModifiers[1].priceModifierNames</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-42987" id="c2cfc9e6-eb24-4b0e-a523-813bbb440924">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DeterminePricingModifiers/DeterminePricingModifiers/WADL" methodName="DeterminePricingModifiers" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-42987" id="cfb879b9-22d7-4a84-bb71-5338a4fefd24" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "C1234",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "K0554",
+            "itemNumber": "EDSTKOM001",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA008",
+                    "planCode": "INVALID"
+                },
+                {
+                    "id": "PA009",
+                    "planCode": "5003"
+                }
+            ]
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DeterminePricingModifiers/DeterminePricingModifiers/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="18bdc5c2-7dc3-48a3-81f5-edb02d365847" name="Valid HTTP Status Codes_3">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="625d093d-f2d0-4ece-b504-dd255347d0f7" name="lineItemID">
+          <con:configuration>
+            <path>pricingModifiers[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="d7adb807-fe3b-4fe2-b081-5b38f7954fbb" name="planID">
+          <con:configuration>
+            <path>pricingModifiers[0].planID</path>
+            <content>PA008</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="115fc350-a3bd-4fe1-84ca-2d4270f7cc27" name="priceModifierNames">
+          <con:configuration>
+            <path>pricingModifiers[0].priceModifierNames</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="3fee7a6c-b443-4db4-9d00-dca118e3f2d3" name="lineItemID">
+          <con:configuration>
+            <path>pricingModifiers[1].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="15eae316-53f9-4afe-8730-5fe1671aec93" name="planID1">
+          <con:configuration>
+            <path>pricingModifiers[1].planID</path>
+            <content>PA009</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="c8bde3ee-a911-4c1a-8340-1864c678e2ee" name="priceModifierNames">
+          <con:configuration>
+            <path>pricingModifiers[1].priceModifierNames</path>
+            <content>["NU"]</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:properties/>
+  <con:reportParameters/>
+</con:testCase>

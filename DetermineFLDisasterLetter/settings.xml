@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<con:testSuite id="21eada67-a8e0-4d72-b097-ce1b7291d6f4" name="DetermineFLDisasterLetter" xmlns:con="http://eviware.com/soapui/config">
+  <con:settings>
+    <con:setting id="21eada67-a8e0-4d72-b097-ce1b7291d6f4fileName">DetermineFLDisasterLetter</con:setting>
+  </con:settings>
+  <con:runType>SEQUENTIAL</con:runType>
+  <con:properties/>
+  <con:reportParameters/>
+</con:testSuite>

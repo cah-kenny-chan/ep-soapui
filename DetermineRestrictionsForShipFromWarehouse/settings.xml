@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<con:testSuite id="a4adab96-eb4f-43f6-8526-adebd0d62043" name="DetermineRestrictionsForShipFromWarehouse" xmlns:con="http://eviware.com/soapui/config">
+  <con:settings>
+    <con:setting id="a4adab96-eb4f-43f6-8526-adebd0d62043fileName">DetermineRestrictionsForShipFromWarehouse</con:setting>
+  </con:settings>
+  <con:runType>SEQUENTIAL</con:runType>
+  <con:properties/>
+  <con:reportParameters/>
+</con:testSuite>

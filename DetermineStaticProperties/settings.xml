@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<con:testSuite id="6739e659-3f95-4581-b6e3-290ba9d5e0d1" name="DetermineStaticProperties" xmlns:con="http://eviware.com/soapui/config">
+  <con:settings>
+    <con:setting id="6739e659-3f95-4581-b6e3-290ba9d5e0d1fileName">DetermineStaticProperties</con:setting>
+  </con:settings>
+  <con:runType>SEQUENTIAL</con:runType>
+  <con:properties/>
+  <con:reportParameters/>
+</con:testSuite>

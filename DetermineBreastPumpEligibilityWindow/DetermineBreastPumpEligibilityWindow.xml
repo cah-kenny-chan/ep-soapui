@@ -1,0 +1,2398 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<con:testCase id="d5d96177-b6d6-4c24-9217-820beabd81e0" failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="DetermineBreastPumpEligibilityWindow" searchProperties="true" xmlns:con="http://eviware.com/soapui/config">
+  <con:settings>
+    <con:setting id="d5d96177-b6d6-4c24-9217-820beabd81e0fileName">DetermineBreastPumpEligibilityWindow</con:setting>
+  </con:settings>
+  <con:testStep type="groovy" name="DetermineBreastPumpEligibilityWindow" id="c0b4b141-ab37-4940-9d19-972c9f6d9900">
+    <con:settings/>
+    <con:config>
+      <script>import jxl.*;
+import jxl.write.*
+import java.io.*
+import java.io.file.*
+import java.util.*
+import java.lang.*
+import jxl.read.biff.BiffException;
+import net.sf.*
+import net.sf.json.*
+import net.sf.json.groovy.*
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+import groovy.json.JsonBuilder
+import com.eviware.soapui.model.testsuite.TestStepResult.TestStepStatus
+import com.eviware.soapui.impl.wsdl.teststeps.RestTestRequestStep
+
+def groovyUtils = new com.eviware.soapui.support.GroovyUtils(context)
+def projectDir = groovyUtils.projectPath
+
+def inputfile =  projectDir + "/DetermineBreastPumpEligibilityWindow/DetermineBreastPumpEligibilityWindow_Input.xls"
+def outputfile = projectDir + "/DetermineBreastPumpEligibilityWindow/DetermineBreastPumpEligibilityWindow_Output.xls"
+
+
+//Creating workbook for reading value from Excel Sheet
+
+Workbook wb = Workbook.getWorkbook(new File(inputfile))
+Sheet sh = wb.getSheet("LineItem")
+Sheet jsonInput = wb.getSheet("JSON")
+
+//reading data from input Excel sheet
+rc = sh.getRows();
+cc = sh.getColumns();
+Cell jreq = jsonInput.getCell(0,0)
+
+//Creating Workbook for writing value in Excel Sheet
+WritableWorkbook wb1= Workbook.createWorkbook(new File(outputfile));
+WritableSheet sheet1 = wb1.createSheet("ActualResults",0);
+
+//Header declaration for output file
+addCell(0,0,"lineItemID",sheet1);
+addCell(1,0,"eligibilityWindowDays",sheet1);
+addCell(2,0,"eligibleToProcessDate",sheet1);
+addCell(3,0,"eligibilityWindowGracePeriodDays",sheet1);
+addCell(4,0,"eligibleToProcess",sheet1);
+addCell(5,0,"lineItemID",sheet1);
+addCell(6,0,"eligibilityWindowDays",sheet1);
+addCell(7,0,"eligibleToProcessDate",sheet1);
+addCell(8,0,"eligibilityWindowGracePeriodDays",sheet1);
+addCell(9,0,"eligibleToProcess",sheet1);
+
+addCell(10,0,"PASS/FAIL",sheet1);
+addCell(11,0,"FAILED DUE TO",sheet1);
+ 
+//new testStepName
+def newTestStep=null
+
+//try {
+
+   
+               def req = jreq.getContents()
+               //Assigning request value dynamically
+               //request
+               def slurper = new JsonSlurper().parseText(req);
+               def requestTemplet = new JsonBuilder(slurper);
+
+         
+               for (i=3;i&lt;rc;i++){
+
+                           // Input for TestCaseName
+                         Cell varTestCaseName = sh.getCell(0,i)
+                        def TestCaseName = varTestCaseName.getContents()
+
+                                                        
+                                //Input for LineItem 1                                                                                            
+                                requestTemplet.content.lineItems[0].productCategory = sh.getCell(1,i).getContents().toString()                                 
+                                requestTemplet.content.lineItems[0].lineItemID = sh.getCell(2,i).getContents().toString()                                
+                                requestTemplet.content.lineItems[0].plans[0].id = sh.getCell(3,i).getContents().toString()
+                                requestTemplet.content.lineItems[0].plans[0].planCode = sh.getCell(4,i).getContents().toString()
+                                                             
+
+                                 //Input for LineItem 2                           
+                                requestTemplet.content.lineItems[1].productCategory = sh.getCell(5,i).getContents().toString()                                 
+                                requestTemplet.content.lineItems[1].lineItemID = sh.getCell(6,i).getContents().toString()                                
+                                requestTemplet.content.lineItems[1].plans[0].id = sh.getCell(7,i).getContents().toString()
+                                requestTemplet.content.lineItems[1].plans[0].planCode = sh.getCell(8,i).getContents().toString()
+
+                               requestTemplet.content.infantDeliveryDate = sh.getCell(9,i).getContents().toString() 
+                                               
+	                             //Assign json request to variable
+                       def jsonReqAsString = requestTemplet.toPrettyString()
+                       def restRequest = testRunner.testCase.getTestStepByName('JSON Request');
+                       restRequest.setPropertyValue('Request',jsonReqAsString);
+
+                                //teststep cloned: Start
+                        def getTestCase = testRunner.testCase;
+                        def testst = testRunner.testCase.getTestStepByName("JSON Request");                 
+                            newTestStep = TestCaseName
+                            cleanUp(newTestStep)
+                            getTestCase.cloneStep(restRequest,newTestStep)                             
+                         //teststep cloned: End
+                         
+                         //Executing the testcase
+                        testRunner.runTestStepByName(newTestStep)
+ 
+                         //retrive response         
+                       def ResponseMessage = testRunner.testCase.testSteps[newTestStep].testRequest.response.contentAsString
+                    
+                         //new JsonSlurper to parse and get the response in Json format
+                        def slurper1 = new JsonSlurper()
+                        def json = slurper1.parseText(ResponseMessage)
+                    
+                                  
+                          // get response for message
+                          //initialize the cel postion for breastPumpEligibilityWindowResponse array
+                          int celWindowResponse=0; 
+		                        
+                          //Get the array size for lineItems
+                          if (json.breastPumpEligibilityWindowResponse!=null)
+                          {
+                        for(int arrlineItems=0; arrlineItems&lt;json.breastPumpEligibilityWindowResponse.size(); arrlineItems++)
+                        {
+                        		addCell(celWindowResponse,i,json.breastPumpEligibilityWindowResponse[arrlineItems].lineItemID.toString(),sheet1); 
+                        		celWindowResponse=celWindowResponse+1;
+                        		addCell(celWindowResponse,i,json.breastPumpEligibilityWindowResponse[arrlineItems].eligibilityWindowDays.toString(),sheet1); 
+                        		celWindowResponse=celWindowResponse+1;
+                        		addCell(celWindowResponse,i,json.breastPumpEligibilityWindowResponse[arrlineItems].eligibleToProcessDate.toString(),sheet1); 
+                        		celWindowResponse=celWindowResponse+1;
+                        		addCell(celWindowResponse,i,json.breastPumpEligibilityWindowResponse[arrlineItems].eligibilityWindowGracePeriodDays.toString(),sheet1); 
+                        		celWindowResponse=celWindowResponse+1;
+                        		addCell(celWindowResponse,i,json.breastPumpEligibilityWindowResponse[arrlineItems].eligibleToProcess.toString(),sheet1); 
+                        		celWindowResponse=celWindowResponse+1;
+                        	 }
+               }                   
+                                            
+                      //dynamic asserstion :Start
+                   def testStepForAssertion = testRunner.testCase.getTestStepByName(newTestStep);
+                                //ValidHTTPStatusCodes 200 Assertion
+                  addAssertionValidHTTPStatusCodes(testStepForAssertion,"Valid HTTP Status Codes_"+i)
+                                        
+						
+						  //get the expected values
+            		if(json.breastPumpEligibilityWindowResponse.toString()!= null)
+            		{              
+            			//initialize the cel postion for breastPumpEligibilityWindowResponse array for assertion                      
+                                int AssWindowResponse=11;  
+                                for(int arrResponse=0; arrResponse&lt;json.breastPumpEligibilityWindowResponse.size(); arrResponse++)
+		                        {                  		
+		                        String lineItemID = sh.getCell(AssWindowResponse,i).getContents().toString()
+		                        addAssertionJsonPathMatch(testStepForAssertion,lineItemID,"breastPumpEligibilityWindowResponse["+arrResponse+"].lineItemID","lineItemID")
+		                        AssWindowResponse=AssWindowResponse+1;
+
+		                        String eligibilityWindowDays = sh.getCell(AssWindowResponse,i).getContents().toString()
+		                        addAssertionJsonPathMatch(testStepForAssertion,eligibilityWindowDays,"breastPumpEligibilityWindowResponse["+arrResponse+"].eligibilityWindowDays","eligibilityWindowDays")
+		                        AssWindowResponse=AssWindowResponse+1;
+
+		                        String eligibleToProcessDate = sh.getCell(AssWindowResponse,i).getContents().toString()
+		                        addAssertionJsonPathMatch(testStepForAssertion,eligibleToProcessDate,"breastPumpEligibilityWindowResponse["+arrResponse+"].eligibleToProcessDate","eligibleToProcessDate")
+		                        AssWindowResponse=AssWindowResponse+1;
+
+		                        String eligibilityWindowGracePeriodDays = sh.getCell(AssWindowResponse,i).getContents().toString()
+		                        addAssertionJsonPathMatch(testStepForAssertion,eligibilityWindowGracePeriodDays,"breastPumpEligibilityWindowResponse["+arrResponse+"].eligibilityWindowGracePeriodDays","eligibilityWindowGracePeriodDays")
+		                        AssWindowResponse=AssWindowResponse+1;
+
+		                        String eligibleToProcess = sh.getCell(AssWindowResponse,i).getContents().toString()
+		                        addAssertionJsonPathMatch(testStepForAssertion,eligibleToProcess,"breastPumpEligibilityWindowResponse["+arrResponse+"].eligibleToProcess","eligibleToProcess")
+		                        AssWindowResponse=AssWindowResponse+1;                                             
+		                        }
+            		}
+                             
+                             					
+                                //dynamic asserstion :End
+                            assertionResult = testStepForAssertion.getAssertionStatus()
+             if(assertionResult.toString().equals("FAILED")){
+
+                                       addCell(10,i,"Fail",sheet1);
+                                   for( assertion in testStepForAssertion.assertionList ){
+                                  for( e in assertion.errors ){
+
+                                                     addCell(11,i,e.message,sheet1);
+
+                                                } 
+
+                                   }
+
+                                }
+
+
+                                else{
+
+                                   addCell(10,i,"PASS",sheet1);
+
+                                }
+
+ 
+       }
+
+      wb1.write();
+            log.info "TestCase Execution Completed successfull"
+          
+/*}
+     
+catch(Exception e)
+{
+
+       log.info(e)                         
+}
+
+finally
+
+{*/
+    //close workbook
+     wb.close();
+     wb1.close();     
+
+//}
+
+//Method code
+def addAssertionJsonPathMatch(RestTestRequestStep testStepForAssertion,String expectedContent,String xPath,String assertionName) {
+          def assertionType = testStepForAssertion.addAssertion("JsonPath Match")
+                                assertionType.name = assertionName
+                                assertionType.setPath(xPath)
+                                assertionType.setExpectedContent(expectedContent)
+                                assertionType.setAllowWildcards(true) 
+
+}
+
+//Method code
+def addAssertionValidHTTPStatusCodes(RestTestRequestStep testStepForAssertion,String assertionName) {
+
+         def StatusCodeAssertionxpath = testStepForAssertion.addAssertion("Valid HTTP Status Codes")
+             StatusCodeAssertionxpath.name = assertionName
+             StatusCodeAssertionxpath.codes=200
+
+}
+
+//method to delete
+def cleanUp(String requestName){
+
+                //remove the teststep::Start
+                def testCase = testRunner.testCase
+                def testStep = testCase.getTestStepByName(requestName)
+
+                if (testStep!=null){
+
+ 
+                                    testCase.removeTestStep(testStep)
+                }
+
+    
+            //remove the teststep::End
+
+} 
+
+//method to add Cell to sheet1
+
+def addCell(int colmNum,int rowNum,String lblName,WritableSheet sheet1 ){
+
+                 Label header = new Label(colmNum,rowNum,lblName);
+                sheet1.addCell(header);               
+
+}</script>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="JSON Request" id="487328fc-310d-44ee-aaff-40fc310b8bb5">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineBreastPumpEligibilityWindow/DetermineBreastPumpEligibilityWindow/WADL" methodName="DetermineBreastPumpEligibilityWindow" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="JSON Request" id="401cb130-73b0-43e1-808a-00beb1cdc193" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "DetermineBreastPumpEligibilityWindow/DetermineBreastPumpEligibilityWindow",
+            "correlationID": "C1234",
+            "from": "string",
+            "timestamp": "2008-09-29T07:19:45.000+0530"
+        }
+    },
+    "infantDeliveryDate": "2020-05-19T04:48:33.000+0530",
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "Id001",
+                    "planCode": "9121"
+                }
+            ],
+            "productCategory": "Pump"
+        },
+        {
+            "lineItemID": "L002",
+            "plans": [
+                {
+                    "id": "Id002",
+                    "planCode": "9121"
+                }
+            ],
+            "productCategory": ""
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineBreastPumpEligibilityWindow/DetermineBreastPumpEligibilityWindow/WADL</con:originalUri>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-58919" id="e0bbcc03-077f-457c-9f76-f5bfa52ae7fc">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineBreastPumpEligibilityWindow/DetermineBreastPumpEligibilityWindow/WADL" methodName="DetermineBreastPumpEligibilityWindow" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-58919" id="401cb130-73b0-43e1-808a-00beb1cdc193" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "DetermineBreastPumpEligibilityWindow/DetermineBreastPumpEligibilityWindow",
+            "correlationID": "C1234",
+            "from": "string",
+            "timestamp": "2008-09-29T07:19:45.000+0530"
+        }
+    },
+    "infantDeliveryDate": "2020-09-19T04:48:33.000+0530",
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "Id001",
+                    "planCode": ""
+                }
+            ],
+            "productCategory": "Breast Pump"
+        },
+        {
+            "lineItemID": "",
+            "plans": [
+                {
+                    "id": "",
+                    "planCode": ""
+                }
+            ],
+            "productCategory": ""
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineBreastPumpEligibilityWindow/DetermineBreastPumpEligibilityWindow/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="8338ca8c-2e65-4be5-9b92-add737882aa0" name="Valid HTTP Status Codes_3">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="53256ecb-4c02-435d-9982-76db423b7352" name="lineItemID">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="0e77bb24-e853-4509-aba2-c36b19d5bf3b" name="eligibilityWindowDays">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].eligibilityWindowDays</path>
+            <content>274</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="17805237-2db9-447e-90a7-04724e2df0ca" name="eligibleToProcessDate">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].eligibleToProcessDate</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="743ffb42-129e-41cb-9246-e275706073d5" name="eligibilityWindowGracePeriodDays">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].eligibilityWindowGracePeriodDays</path>
+            <content>5</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="45001fe4-da51-4e4e-803b-4a2f3b30e84d" name="eligibleToProcess">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].eligibleToProcess</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="9db8ab80-ce0b-4b1c-8e90-688893fbf266" name="lineItemID">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].lineItemID</path>
+            <content/>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="c559df0e-94ed-47ba-ba04-e3636fd50698" name="eligibilityWindowDays">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].eligibilityWindowDays</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="9889461e-c236-4770-b3fe-01e40e390a41" name="eligibleToProcessDate">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].eligibleToProcessDate</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="c6527636-442a-471a-bf63-29ca2c442898" name="eligibilityWindowGracePeriodDays">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].eligibilityWindowGracePeriodDays</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="7b48ce15-e25a-422a-a264-db764416f187" name="eligibleToProcess">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].eligibleToProcess</path>
+            <content>false</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-58920" id="f24316d2-fa34-4056-b320-f18df74979e8">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineBreastPumpEligibilityWindow/DetermineBreastPumpEligibilityWindow/WADL" methodName="DetermineBreastPumpEligibilityWindow" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-58920" id="401cb130-73b0-43e1-808a-00beb1cdc193" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "DetermineBreastPumpEligibilityWindow/DetermineBreastPumpEligibilityWindow",
+            "correlationID": "C1234",
+            "from": "string",
+            "timestamp": "2008-09-29T07:19:45.000+0530"
+        }
+    },
+    "infantDeliveryDate": "2020-05-19T04:48:33.000+0530",
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "Id001",
+                    "planCode": "0011"
+                }
+            ],
+            "productCategory": "Breast Pump"
+        },
+        {
+            "lineItemID": "",
+            "plans": [
+                {
+                    "id": "",
+                    "planCode": ""
+                }
+            ],
+            "productCategory": ""
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineBreastPumpEligibilityWindow/DetermineBreastPumpEligibilityWindow/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="d8451918-ac11-4c54-9e6d-04243ddbd71f" name="Valid HTTP Status Codes_4">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="a2dbab44-2203-4d17-bf10-50f2c90522ee" name="lineItemID">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="232ae3c9-801c-4752-8356-7ea76ba7107b" name="eligibilityWindowDays">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].eligibilityWindowDays</path>
+            <content>30</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="5f48174c-4490-4ba2-bd18-669672e474d8" name="eligibleToProcessDate">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].eligibleToProcessDate</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="49881527-46a6-4229-96ba-fa4f7194624f" name="eligibilityWindowGracePeriodDays">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].eligibilityWindowGracePeriodDays</path>
+            <content>5</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="f0ba3522-29bd-439c-bdc9-7bab0e4c5790" name="eligibleToProcess">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].eligibleToProcess</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="ae2c81be-168a-497f-b248-a972cf609c0c" name="lineItemID">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].lineItemID</path>
+            <content/>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="c739e48d-8319-4a13-ac98-b0dce3ef07ca" name="eligibilityWindowDays">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].eligibilityWindowDays</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="d95a42cf-9e1d-4468-8999-675e46e1969a" name="eligibleToProcessDate">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].eligibleToProcessDate</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="13fb3734-128d-4ac0-9bc2-09fbf5e8fe6a" name="eligibilityWindowGracePeriodDays">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].eligibilityWindowGracePeriodDays</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="fd09c402-2104-4c99-85d1-dd57fdbceb72" name="eligibleToProcess">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].eligibleToProcess</path>
+            <content>false</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-58921" id="35c19014-ecbf-4496-8e1b-610734712cff">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineBreastPumpEligibilityWindow/DetermineBreastPumpEligibilityWindow/WADL" methodName="DetermineBreastPumpEligibilityWindow" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-58921" id="401cb130-73b0-43e1-808a-00beb1cdc193" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "DetermineBreastPumpEligibilityWindow/DetermineBreastPumpEligibilityWindow",
+            "correlationID": "C1234",
+            "from": "string",
+            "timestamp": "2008-09-29T07:19:45.000+0530"
+        }
+    },
+    "infantDeliveryDate": "2020-05-19T04:48:33.000+0530",
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "Id001",
+                    "planCode": "6907"
+                }
+            ],
+            "productCategory": "Breast Pump"
+        },
+        {
+            "lineItemID": "",
+            "plans": [
+                {
+                    "id": "",
+                    "planCode": ""
+                }
+            ],
+            "productCategory": ""
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineBreastPumpEligibilityWindow/DetermineBreastPumpEligibilityWindow/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="281cdeda-eb3f-40e4-a692-5ecec3173421" name="Valid HTTP Status Codes_5">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="9f832c44-687e-46f1-a336-d932388ea335" name="lineItemID">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="b57cd980-db93-419d-a69a-1bac062b3cc2" name="eligibilityWindowDays">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].eligibilityWindowDays</path>
+            <content>30</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="d0636f1b-3274-4384-bdf1-b5f86967eb6d" name="eligibleToProcessDate">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].eligibleToProcessDate</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="8da0d6d3-cf1b-448c-974e-3a437361977b" name="eligibilityWindowGracePeriodDays">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].eligibilityWindowGracePeriodDays</path>
+            <content>5</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="15e4ecb8-46a5-439d-87ba-fa03b04e6270" name="eligibleToProcess">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].eligibleToProcess</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="8dfa35ce-2eb9-4f1e-a18c-bc645c782dbf" name="lineItemID">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].lineItemID</path>
+            <content/>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="cf4afb77-7ba0-4af1-ad10-1c63a955b25f" name="eligibilityWindowDays">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].eligibilityWindowDays</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="d71890ae-3770-4204-a944-d117329c0401" name="eligibleToProcessDate">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].eligibleToProcessDate</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="0fe23dd0-ff70-4dca-be71-a9f7408dd045" name="eligibilityWindowGracePeriodDays">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].eligibilityWindowGracePeriodDays</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="9c81ad89-82ff-4550-9389-570ee6f095a0" name="eligibleToProcess">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].eligibleToProcess</path>
+            <content>false</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-58922" id="26ef540c-f2f4-4e3c-8050-f88297b4ad7f">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineBreastPumpEligibilityWindow/DetermineBreastPumpEligibilityWindow/WADL" methodName="DetermineBreastPumpEligibilityWindow" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-58922" id="401cb130-73b0-43e1-808a-00beb1cdc193" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "DetermineBreastPumpEligibilityWindow/DetermineBreastPumpEligibilityWindow",
+            "correlationID": "C1234",
+            "from": "string",
+            "timestamp": "2008-09-29T07:19:45.000+0530"
+        }
+    },
+    "infantDeliveryDate": "2020-05-19T04:48:33.000+0530",
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "Id001",
+                    "planCode": "9997"
+                }
+            ],
+            "productCategory": "Breast Pump"
+        },
+        {
+            "lineItemID": "",
+            "plans": [
+                {
+                    "id": "",
+                    "planCode": ""
+                }
+            ],
+            "productCategory": ""
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineBreastPumpEligibilityWindow/DetermineBreastPumpEligibilityWindow/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="fe5cf401-a256-4774-a65a-ea8aecd2ef68" name="Valid HTTP Status Codes_6">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="ea18552f-da60-4765-8068-dfa9e369c534" name="lineItemID">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="4fc5aeed-7ff2-4ff4-b8ec-b04a81d8b971" name="eligibilityWindowDays">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].eligibilityWindowDays</path>
+            <content>84</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="d6b0d70b-507d-45ba-8fd7-cee6a62a7525" name="eligibleToProcessDate">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].eligibleToProcessDate</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="c1b506f5-5ed3-4940-81c1-88e22510f5b2" name="eligibilityWindowGracePeriodDays">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].eligibilityWindowGracePeriodDays</path>
+            <content>5</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="197e73e3-d55b-4af9-b867-b92f764b177d" name="eligibleToProcess">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].eligibleToProcess</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="d25dbe03-8caf-4710-9ab9-74daf8cffa7b" name="lineItemID">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].lineItemID</path>
+            <content/>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="e774f7b0-f254-4b70-a6c4-9316fcf06353" name="eligibilityWindowDays">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].eligibilityWindowDays</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="a5889242-f943-4c4a-959b-5127c6d80769" name="eligibleToProcessDate">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].eligibleToProcessDate</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="3305e5c1-3d95-47e0-ab1f-5b9ee824bd5c" name="eligibilityWindowGracePeriodDays">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].eligibilityWindowGracePeriodDays</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="21900845-5a0c-4640-bbf2-2f4a939b3cea" name="eligibleToProcess">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].eligibleToProcess</path>
+            <content>false</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-58923" id="96e12d94-8049-4bd4-9359-10482caacf99">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineBreastPumpEligibilityWindow/DetermineBreastPumpEligibilityWindow/WADL" methodName="DetermineBreastPumpEligibilityWindow" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-58923" id="401cb130-73b0-43e1-808a-00beb1cdc193" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "DetermineBreastPumpEligibilityWindow/DetermineBreastPumpEligibilityWindow",
+            "correlationID": "C1234",
+            "from": "string",
+            "timestamp": "2008-09-29T07:19:45.000+0530"
+        }
+    },
+    "infantDeliveryDate": "2020-05-19T04:48:33.000+0530",
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "Id001",
+                    "planCode": "9121"
+                }
+            ],
+            "productCategory": "Breast Pump"
+        },
+        {
+            "lineItemID": "",
+            "plans": [
+                {
+                    "id": "",
+                    "planCode": ""
+                }
+            ],
+            "productCategory": ""
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineBreastPumpEligibilityWindow/DetermineBreastPumpEligibilityWindow/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="eaaf1c5b-e088-4e21-ae23-531edccdb0ca" name="Valid HTTP Status Codes_7">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="a6dfec93-1830-4cfd-880b-225343585b72" name="lineItemID">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="64c03e65-a738-4521-9324-2e51885ff691" name="eligibilityWindowDays">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].eligibilityWindowDays</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="6abb0438-bffc-4425-9a6e-b2fd7a22133b" name="eligibleToProcessDate">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].eligibleToProcessDate</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="5eec27e6-140b-4ff0-bd1e-6160a5297f64" name="eligibilityWindowGracePeriodDays">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].eligibilityWindowGracePeriodDays</path>
+            <content>5</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="19e0142d-9a39-42bd-889a-8f697fdfee20" name="eligibleToProcess">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].eligibleToProcess</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="5691ab5b-b4e3-464b-bc89-a9bcf45d93ba" name="lineItemID">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].lineItemID</path>
+            <content/>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="9bef8325-072b-4af8-b6a8-b2b7f7c2ac9f" name="eligibilityWindowDays">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].eligibilityWindowDays</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="89232b55-f482-448b-914f-84a2cb21b63a" name="eligibleToProcessDate">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].eligibleToProcessDate</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="21906338-d6ec-4b1e-b8f1-841b74d88f2d" name="eligibilityWindowGracePeriodDays">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].eligibilityWindowGracePeriodDays</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="3a577480-f81c-4b33-920d-75dc7dc430cf" name="eligibleToProcess">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].eligibleToProcess</path>
+            <content>false</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-58924" id="bc4bb3a7-adb4-4603-975c-ef16bbd01e11">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineBreastPumpEligibilityWindow/DetermineBreastPumpEligibilityWindow/WADL" methodName="DetermineBreastPumpEligibilityWindow" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-58924" id="401cb130-73b0-43e1-808a-00beb1cdc193" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "DetermineBreastPumpEligibilityWindow/DetermineBreastPumpEligibilityWindow",
+            "correlationID": "C1234",
+            "from": "string",
+            "timestamp": "2008-09-29T07:19:45.000+0530"
+        }
+    },
+    "infantDeliveryDate": "2020-09-19T04:48:33.000+0530",
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "Id001",
+                    "planCode": "E0603"
+                }
+            ],
+            "productCategory": "Breast Pump"
+        },
+        {
+            "lineItemID": "",
+            "plans": [
+                {
+                    "id": "",
+                    "planCode": ""
+                }
+            ],
+            "productCategory": ""
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineBreastPumpEligibilityWindow/DetermineBreastPumpEligibilityWindow/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="3d62a4e2-2bb1-49db-81f1-99348ad106db" name="Valid HTTP Status Codes_8">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="2489fad5-9386-4ac5-b80c-e7090abd9710" name="lineItemID">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="61af726d-4a72-453d-9d30-5bb10dd61436" name="eligibilityWindowDays">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].eligibilityWindowDays</path>
+            <content>274</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="5c5e725a-b7ad-4e0e-bb02-0b73e73873e4" name="eligibleToProcessDate">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].eligibleToProcessDate</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="a77c39a6-4297-4e89-a920-5c04d20da1e1" name="eligibilityWindowGracePeriodDays">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].eligibilityWindowGracePeriodDays</path>
+            <content>5</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="5dc7ac3d-c05b-4c6c-aab4-90ffdf2762a5" name="eligibleToProcess">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].eligibleToProcess</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="92a5b9a3-abfa-49ec-b4d1-118acc29ce28" name="lineItemID">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].lineItemID</path>
+            <content/>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="cad5d185-bf4b-499f-b357-fabc88aa1519" name="eligibilityWindowDays">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].eligibilityWindowDays</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="0d1da1b3-ca0c-4eb5-8dc0-b73a532d33af" name="eligibleToProcessDate">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].eligibleToProcessDate</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="e8c17178-9540-48b6-83ed-94d797cafb4c" name="eligibilityWindowGracePeriodDays">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].eligibilityWindowGracePeriodDays</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="ac86b100-612f-4e51-9e80-0de342395e12" name="eligibleToProcess">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].eligibleToProcess</path>
+            <content>false</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-58925" id="457ce71f-aa10-4d3d-9456-a4bdbf301e77">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineBreastPumpEligibilityWindow/DetermineBreastPumpEligibilityWindow/WADL" methodName="DetermineBreastPumpEligibilityWindow" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-58925" id="401cb130-73b0-43e1-808a-00beb1cdc193" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "DetermineBreastPumpEligibilityWindow/DetermineBreastPumpEligibilityWindow",
+            "correlationID": "C1234",
+            "from": "string",
+            "timestamp": "2008-09-29T07:19:45.000+0530"
+        }
+    },
+    "infantDeliveryDate": "2020-05-19T04:48:33.000+0530",
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "Id001",
+                    "planCode": "9121"
+                }
+            ],
+            "productCategory": "Pump"
+        },
+        {
+            "lineItemID": "",
+            "plans": [
+                {
+                    "id": "",
+                    "planCode": ""
+                }
+            ],
+            "productCategory": ""
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineBreastPumpEligibilityWindow/DetermineBreastPumpEligibilityWindow/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="602604f4-5c69-446d-b8ba-41637c90f45e" name="Valid HTTP Status Codes_9">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="b931a197-1e2d-4962-bb98-28af950e8502" name="lineItemID">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="6837a96a-150a-4598-b85a-37ffb88005f4" name="eligibilityWindowDays">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].eligibilityWindowDays</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="e7e2001d-6cee-4cff-822c-46c50e333044" name="eligibleToProcessDate">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].eligibleToProcessDate</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="acf56075-0846-444c-bbe3-e6a72118384c" name="eligibilityWindowGracePeriodDays">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].eligibilityWindowGracePeriodDays</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="6255cc5e-0cfc-472f-8442-90349402ca73" name="eligibleToProcess">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].eligibleToProcess</path>
+            <content>false</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="44fcdd0b-1d3e-4823-999e-4ca917b205bd" name="lineItemID">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].lineItemID</path>
+            <content/>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="29420e10-2148-4546-8ea7-c99aa22f642f" name="eligibilityWindowDays">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].eligibilityWindowDays</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="7858a6eb-b168-4c7c-85ce-a8952836eca2" name="eligibleToProcessDate">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].eligibleToProcessDate</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="0ba8adc6-26be-46da-ac20-f0190a99422d" name="eligibilityWindowGracePeriodDays">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].eligibilityWindowGracePeriodDays</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="0aedc7aa-065a-43fc-8f95-061ce4253b3e" name="eligibleToProcess">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].eligibleToProcess</path>
+            <content>false</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-58926" id="f191f6e2-2704-447a-b501-38f7461ba95e">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineBreastPumpEligibilityWindow/DetermineBreastPumpEligibilityWindow/WADL" methodName="DetermineBreastPumpEligibilityWindow" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-58926" id="401cb130-73b0-43e1-808a-00beb1cdc193" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "DetermineBreastPumpEligibilityWindow/DetermineBreastPumpEligibilityWindow",
+            "correlationID": "C1234",
+            "from": "string",
+            "timestamp": "2008-09-29T07:19:45.000+0530"
+        }
+    },
+    "infantDeliveryDate": "2020-05-19T04:48:33.000+0530",
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "Id001",
+                    "planCode": "9121"
+                }
+            ],
+            "productCategory": ""
+        },
+        {
+            "lineItemID": "",
+            "plans": [
+                {
+                    "id": "",
+                    "planCode": ""
+                }
+            ],
+            "productCategory": ""
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineBreastPumpEligibilityWindow/DetermineBreastPumpEligibilityWindow/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="d2d83712-ffc5-43d7-a413-1556ca023c7b" name="Valid HTTP Status Codes_10">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="86dfa2bc-7998-4c66-92c2-131c86df4ac4" name="lineItemID">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="47c133a2-56b3-4e25-9405-aaed08d57850" name="eligibilityWindowDays">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].eligibilityWindowDays</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="aa96f283-e6e2-40f8-8e67-8d38ea7d1207" name="eligibleToProcessDate">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].eligibleToProcessDate</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="36771f3f-7411-443a-8b14-bc44c2353907" name="eligibilityWindowGracePeriodDays">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].eligibilityWindowGracePeriodDays</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="6586d94e-31c1-4052-b6dd-e52d147fc822" name="eligibleToProcess">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].eligibleToProcess</path>
+            <content>false</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="31a15719-5f7f-4e9e-aa89-012e640c49e1" name="lineItemID">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].lineItemID</path>
+            <content/>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="2cf6bd35-0e5b-4e19-bd43-31ad238b5c92" name="eligibilityWindowDays">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].eligibilityWindowDays</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="1afc2e16-10e9-47b4-94f9-4163487f590f" name="eligibleToProcessDate">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].eligibleToProcessDate</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="d6990c90-ac45-4b71-9b37-41cf3e0b9a37" name="eligibilityWindowGracePeriodDays">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].eligibilityWindowGracePeriodDays</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="59ec3eef-2761-4c5c-8298-05a083a0aa09" name="eligibleToProcess">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].eligibleToProcess</path>
+            <content>false</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-58927" id="4d2cebcf-2953-431b-8496-52bbba92eb15">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineBreastPumpEligibilityWindow/DetermineBreastPumpEligibilityWindow/WADL" methodName="DetermineBreastPumpEligibilityWindow" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-58927" id="401cb130-73b0-43e1-808a-00beb1cdc193" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "DetermineBreastPumpEligibilityWindow/DetermineBreastPumpEligibilityWindow",
+            "correlationID": "C1234",
+            "from": "string",
+            "timestamp": "2008-09-29T07:19:45.000+0530"
+        }
+    },
+    "infantDeliveryDate": "",
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "Id001",
+                    "planCode": "0011"
+                }
+            ],
+            "productCategory": "Breast Pump"
+        },
+        {
+            "lineItemID": "",
+            "plans": [
+                {
+                    "id": "",
+                    "planCode": ""
+                }
+            ],
+            "productCategory": ""
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineBreastPumpEligibilityWindow/DetermineBreastPumpEligibilityWindow/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="2d263b4b-6f8c-4348-bc48-c27559072a52" name="Valid HTTP Status Codes_11">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="506f0d0e-7b7d-415e-9f0d-310bad43d75e" name="lineItemID">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="bf814e18-76ec-45e2-9645-6cce6e51c2de" name="eligibilityWindowDays">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].eligibilityWindowDays</path>
+            <content>30</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="72b7c8e1-3060-4132-b1d1-b5e1848e21f4" name="eligibleToProcessDate">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].eligibleToProcessDate</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="50f1b14c-bb64-4180-84f9-e5b1bdcb3e6b" name="eligibilityWindowGracePeriodDays">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].eligibilityWindowGracePeriodDays</path>
+            <content>5</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="aa55584f-26a8-4003-853b-ac3a1771dff7" name="eligibleToProcess">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].eligibleToProcess</path>
+            <content>false</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="38ab505c-40b6-46fe-a2b9-ac5591dcd5eb" name="lineItemID">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].lineItemID</path>
+            <content/>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="f85b10fc-5477-44b5-8548-541d282cfa42" name="eligibilityWindowDays">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].eligibilityWindowDays</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="81ddf480-8c7b-42de-9be9-580b0c91d0ae" name="eligibleToProcessDate">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].eligibleToProcessDate</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="3c5a0d78-ea61-46a9-912d-b0d4eedc03b8" name="eligibilityWindowGracePeriodDays">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].eligibilityWindowGracePeriodDays</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="524453d1-e60d-4933-8c22-84457e3e0cad" name="eligibleToProcess">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].eligibleToProcess</path>
+            <content>false</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-58928" id="b8e45784-5a61-450c-9c5b-d7eb97a65095">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineBreastPumpEligibilityWindow/DetermineBreastPumpEligibilityWindow/WADL" methodName="DetermineBreastPumpEligibilityWindow" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-58928" id="401cb130-73b0-43e1-808a-00beb1cdc193" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "DetermineBreastPumpEligibilityWindow/DetermineBreastPumpEligibilityWindow",
+            "correlationID": "C1234",
+            "from": "string",
+            "timestamp": "2008-09-29T07:19:45.000+0530"
+        }
+    },
+    "infantDeliveryDate": "2020-09-24T00:00:00.000+0000",
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "Id001",
+                    "planCode": "6907"
+                }
+            ],
+            "productCategory": "Breast Pump"
+        },
+        {
+            "lineItemID": "",
+            "plans": [
+                {
+                    "id": "",
+                    "planCode": ""
+                }
+            ],
+            "productCategory": ""
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineBreastPumpEligibilityWindow/DetermineBreastPumpEligibilityWindow/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="0a4e78d9-0eb2-4e17-aaf4-536c1c31bc93" name="Valid HTTP Status Codes_12">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="00aeed0f-c038-4217-aa40-1167fe4b8da3" name="lineItemID">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="27fe9697-0fe9-49e5-9fe8-3a387de3164d" name="eligibilityWindowDays">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].eligibilityWindowDays</path>
+            <content>30</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="44ceecf1-b608-4dce-96e8-de6d930606be" name="eligibleToProcessDate">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].eligibleToProcessDate</path>
+            <content>2020-08-20T00:00:00.000+0000</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="695c1c05-6e5f-4990-80ae-e2b887b6809a" name="eligibilityWindowGracePeriodDays">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].eligibilityWindowGracePeriodDays</path>
+            <content>5</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="090ab1b7-38db-4c4a-8f60-4e3653fa2a43" name="eligibleToProcess">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].eligibleToProcess</path>
+            <content>false</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="9ee23cf2-cbbf-4b7a-ae3c-4d40314c05c4" name="lineItemID">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].lineItemID</path>
+            <content/>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="6f80ca6a-60f1-4f27-aace-802ac1fdf343" name="eligibilityWindowDays">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].eligibilityWindowDays</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="651dcc23-da63-42fa-90e1-f9cb1e8b46a5" name="eligibleToProcessDate">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].eligibleToProcessDate</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="7d2f2659-7f81-4a31-a681-1bbcf0940c01" name="eligibilityWindowGracePeriodDays">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].eligibilityWindowGracePeriodDays</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="d578e525-d8c7-40df-ac08-3918fa803a90" name="eligibleToProcess">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].eligibleToProcess</path>
+            <content>false</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-58929" id="dc346cbc-eb9f-4910-9f1b-ee49acea0044">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineBreastPumpEligibilityWindow/DetermineBreastPumpEligibilityWindow/WADL" methodName="DetermineBreastPumpEligibilityWindow" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-58929" id="401cb130-73b0-43e1-808a-00beb1cdc193" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "DetermineBreastPumpEligibilityWindow/DetermineBreastPumpEligibilityWindow",
+            "correlationID": "C1234",
+            "from": "string",
+            "timestamp": "2008-09-29T07:19:45.000+0530"
+        }
+    },
+    "infantDeliveryDate": "2020-09-19T00:00:00.000+0000",
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "Id001",
+                    "planCode": ""
+                }
+            ],
+            "productCategory": "Breast Pump"
+        },
+        {
+            "lineItemID": "L002",
+            "plans": [
+                {
+                    "id": "Id002",
+                    "planCode": "6907"
+                }
+            ],
+            "productCategory": "Breast Pump"
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineBreastPumpEligibilityWindow/DetermineBreastPumpEligibilityWindow/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="4146cfac-f614-4232-aca1-26d51131557f" name="Valid HTTP Status Codes_13">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="4c814046-4e6e-40ad-941e-1aad79be8ded" name="lineItemID">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="3182a6aa-34b5-4112-a586-6645c8143442" name="eligibilityWindowDays">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].eligibilityWindowDays</path>
+            <content>274</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="3a723db3-8bc8-436b-ae37-2f474bfa166a" name="eligibleToProcessDate">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].eligibleToProcessDate</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="ca4d05a5-63b2-4dc7-8ce3-b0deb319df59" name="eligibilityWindowGracePeriodDays">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].eligibilityWindowGracePeriodDays</path>
+            <content>5</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="8d186e57-5428-4ff1-9a92-0bf0aa4a18d9" name="eligibleToProcess">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].eligibleToProcess</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="1a70599f-d9ee-4eba-a0e9-f64c3cdcf4f9" name="lineItemID">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].lineItemID</path>
+            <content>L002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="cc3ac391-75ec-41ee-8516-65691acb199e" name="eligibilityWindowDays">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].eligibilityWindowDays</path>
+            <content>30</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="c3c2c32d-0fcf-456b-b1ab-5546e8cb6d46" name="eligibleToProcessDate">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].eligibleToProcessDate</path>
+            <content>2020-08-15T00:00:00.000+0000</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="0818834e-6db7-44e4-aaf3-f0a5c12c1243" name="eligibilityWindowGracePeriodDays">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].eligibilityWindowGracePeriodDays</path>
+            <content>5</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="bd9becd6-ba22-4e6d-98b1-137b8910368d" name="eligibleToProcess">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].eligibleToProcess</path>
+            <content>false</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-58930" id="dcf34d55-bff4-438a-8b6c-e41936add804">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineBreastPumpEligibilityWindow/DetermineBreastPumpEligibilityWindow/WADL" methodName="DetermineBreastPumpEligibilityWindow" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-58930" id="401cb130-73b0-43e1-808a-00beb1cdc193" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "DetermineBreastPumpEligibilityWindow/DetermineBreastPumpEligibilityWindow",
+            "correlationID": "C1234",
+            "from": "string",
+            "timestamp": "2008-09-29T07:19:45.000+0530"
+        }
+    },
+    "infantDeliveryDate": "2020-05-19T04:48:33.000+0530",
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "Id001",
+                    "planCode": "9121"
+                }
+            ],
+            "productCategory": "Breast Pump"
+        },
+        {
+            "lineItemID": "L002",
+            "plans": [
+                {
+                    "id": "Id002",
+                    "planCode": "9997"
+                }
+            ],
+            "productCategory": "Breast Pump"
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineBreastPumpEligibilityWindow/DetermineBreastPumpEligibilityWindow/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="754ac2a8-4581-46ce-be76-85839ed0c967" name="Valid HTTP Status Codes_14">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="fc07318d-6dad-4609-983d-1d44cfdc33aa" name="lineItemID">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="722e7e3c-e60f-46c1-b903-12b77159741b" name="eligibilityWindowDays">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].eligibilityWindowDays</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="dd0dfb01-57e8-4e5f-835d-b27b2eb972c7" name="eligibleToProcessDate">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].eligibleToProcessDate</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="b1b1760b-172d-4e64-95aa-f44c527f2c1f" name="eligibilityWindowGracePeriodDays">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].eligibilityWindowGracePeriodDays</path>
+            <content>5</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="21a5c166-3173-4d9e-8d83-68bef342cf7a" name="eligibleToProcess">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].eligibleToProcess</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="1d1a4f18-0401-4b82-a9d0-2aaf8090e8b6" name="lineItemID">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].lineItemID</path>
+            <content>L002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="37ddf03f-0877-4ef2-bca8-72f277f7f8e7" name="eligibilityWindowDays">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].eligibilityWindowDays</path>
+            <content>84</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="11ed5cdd-febd-4005-b60e-587959e7750d" name="eligibleToProcessDate">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].eligibleToProcessDate</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="b23c217a-1717-4449-8ef3-c6e709ecc1b4" name="eligibilityWindowGracePeriodDays">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].eligibilityWindowGracePeriodDays</path>
+            <content>5</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="9c5c459c-41e0-4ab3-936a-7cefadab3614" name="eligibleToProcess">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].eligibleToProcess</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-58931" id="c372ba41-ced3-4f2a-b637-4de6be077cfe">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineBreastPumpEligibilityWindow/DetermineBreastPumpEligibilityWindow/WADL" methodName="DetermineBreastPumpEligibilityWindow" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-58931" id="401cb130-73b0-43e1-808a-00beb1cdc193" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "DetermineBreastPumpEligibilityWindow/DetermineBreastPumpEligibilityWindow",
+            "correlationID": "C1234",
+            "from": "string",
+            "timestamp": "2008-09-29T07:19:45.000+0530"
+        }
+    },
+    "infantDeliveryDate": "2020-09-19T04:48:33.000+0530",
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "Id001",
+                    "planCode": "E0603"
+                }
+            ],
+            "productCategory": "Breast Pump"
+        },
+        {
+            "lineItemID": "L002",
+            "plans": [
+                {
+                    "id": "Id002",
+                    "planCode": ""
+                }
+            ],
+            "productCategory": "Breast Pump"
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineBreastPumpEligibilityWindow/DetermineBreastPumpEligibilityWindow/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="7b4a3ff5-88f8-417e-8497-ed2af3527e4f" name="Valid HTTP Status Codes_15">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="db49e957-6e9a-4e22-a466-933d0ee1b934" name="lineItemID">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="326f6a0c-53aa-455e-99a6-8d2b913691f4" name="eligibilityWindowDays">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].eligibilityWindowDays</path>
+            <content>274</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="f85ec998-2df2-48e8-9c25-b7ffc9775abf" name="eligibleToProcessDate">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].eligibleToProcessDate</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="9c39a32a-d5c1-418f-ba79-79ee5cf2aecc" name="eligibilityWindowGracePeriodDays">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].eligibilityWindowGracePeriodDays</path>
+            <content>5</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="47989a39-6ddf-43e3-9c44-e3bc06f3bfdf" name="eligibleToProcess">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].eligibleToProcess</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="594b9798-2298-4dd3-8d9e-f6f299f20e10" name="lineItemID">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].lineItemID</path>
+            <content>L002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="d6ae0542-44d9-48bf-af7e-f9b101291e84" name="eligibilityWindowDays">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].eligibilityWindowDays</path>
+            <content>274</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="393064e2-6306-4c06-b468-6cea144fc8d0" name="eligibleToProcessDate">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].eligibleToProcessDate</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="141e6941-c788-46ad-b6a3-a6956a50187b" name="eligibilityWindowGracePeriodDays">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].eligibilityWindowGracePeriodDays</path>
+            <content>5</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="d9aa4ebb-74bb-447f-b218-a200340f55fc" name="eligibleToProcess">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].eligibleToProcess</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-58932" id="1e2c43f4-aff7-40ee-b2ef-aa2999c2696d">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineBreastPumpEligibilityWindow/DetermineBreastPumpEligibilityWindow/WADL" methodName="DetermineBreastPumpEligibilityWindow" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-58932" id="401cb130-73b0-43e1-808a-00beb1cdc193" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "DetermineBreastPumpEligibilityWindow/DetermineBreastPumpEligibilityWindow",
+            "correlationID": "C1234",
+            "from": "string",
+            "timestamp": "2008-09-29T07:19:45.000+0530"
+        }
+    },
+    "infantDeliveryDate": "2020-05-19T04:48:33.000+0530",
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "Id001",
+                    "planCode": "9121"
+                }
+            ],
+            "productCategory": "Pump"
+        },
+        {
+            "lineItemID": "L002",
+            "plans": [
+                {
+                    "id": "Id002",
+                    "planCode": "9121"
+                }
+            ],
+            "productCategory": ""
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineBreastPumpEligibilityWindow/DetermineBreastPumpEligibilityWindow/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="91c74722-540b-4acf-8a4c-72be7accea4b" name="Valid HTTP Status Codes_16">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="e410defc-2658-410f-8ad2-b15654a39083" name="lineItemID">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="6cf4736b-9966-42ce-bd58-39f82a000026" name="eligibilityWindowDays">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].eligibilityWindowDays</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="df98a926-ee60-4ee4-a13d-3fb55d07f10b" name="eligibleToProcessDate">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].eligibleToProcessDate</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="38a8d276-8417-4991-8502-ced09bface7d" name="eligibilityWindowGracePeriodDays">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].eligibilityWindowGracePeriodDays</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="061447b9-b8b2-4781-92f4-8b0e285e4300" name="eligibleToProcess">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[0].eligibleToProcess</path>
+            <content>false</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="503fb843-c7e0-4af4-b765-41ac648875ab" name="lineItemID">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].lineItemID</path>
+            <content>L002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="ac0a85fc-b6c9-420d-8252-56816ab3610b" name="eligibilityWindowDays">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].eligibilityWindowDays</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="7f73e1c1-c3a9-45a0-98f7-5b59ab20504d" name="eligibleToProcessDate">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].eligibleToProcessDate</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="8ad66865-9d58-4ca9-8d53-07a13e265c9c" name="eligibilityWindowGracePeriodDays">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].eligibilityWindowGracePeriodDays</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="bc76e57e-7d36-4b0d-93b2-3e94abff1f33" name="eligibleToProcess">
+          <con:configuration>
+            <path>breastPumpEligibilityWindowResponse[1].eligibleToProcess</path>
+            <content>false</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:properties/>
+  <con:reportParameters/>
+</con:testCase>

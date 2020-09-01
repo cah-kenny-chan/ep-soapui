@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<con:resource name="DetermineSampleLimits" path="/DecisionService/rest/v1/DetermineSampleLimits/DetermineSampleLimits/WADL" id="43ec1f37-8756-4f85-99a6-524e4e67e92e" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:con="http://eviware.com/soapui/config">
+  <con:settings>
+    <con:setting id="43ec1f37-8756-4f85-99a6-524e4e67e92efileName">DetermineSampleLimits</con:setting>
+  </con:settings>
+  <con:parameters/>
+  <con:method name="DetermineSampleLimits" id="7c48ae6c-da01-4836-a6fd-9cb3d6baaa70" method="POST">
+    <con:settings/>
+    <con:parameters/>
+    <con:request name="DetermineSampleLimits" id="bd7c84ea-b130-4f8c-805d-b5d4e9aa42db" mediaType="application/json" postQueryString="false">
+      <con:settings>
+        <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+      </con:settings>
+      <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+      <con:request>{
+    "lineItems": [{
+            "itemNumber": "S958320149",
+            "lineItemID": "L001"
+        },
+        {
+            "itemNumber": "Item1234",
+            "lineItemID": "L002"
+        }
+    ],
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "from": "string",
+            "callingFunction": "string",
+            "correlationID": "123",
+            "timestamp": "2008-09-29T07:19:45.000+0530"
+        }
+    }
+}</con:request>
+      <con:credentials>
+        <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+        <con:authType>No Authorization</con:authType>
+      </con:credentials>
+      <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+      <con:jmsPropertyConfig/>
+      <con:parameters/>
+    </con:request>
+  </con:method>
+</con:resource>

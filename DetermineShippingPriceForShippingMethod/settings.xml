@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<con:testSuite id="2d4098c0-1888-4539-bffe-e81648b64da8" name="DetermineShippingPriceForShippingMethod" xmlns:con="http://eviware.com/soapui/config">
+  <con:settings>
+    <con:setting id="2d4098c0-1888-4539-bffe-e81648b64da8fileName">DetermineShippingPriceForShippingMethod</con:setting>
+  </con:settings>
+  <con:runType>SEQUENTIAL</con:runType>
+  <con:properties/>
+  <con:reportParameters/>
+</con:testSuite>

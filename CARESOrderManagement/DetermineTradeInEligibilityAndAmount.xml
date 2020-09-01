@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<con:resource name="DetermineTradeInEligibilityAndAmount" path="/DecisionService/rest/v1/DetermineTradeInEligibilityAndAmount/DetermineTradeInEligibilityAndAmount/WADL" id="41eca028-f4fa-4fa5-bb02-b277ee310fed" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:con="http://eviware.com/soapui/config">
+  <con:settings>
+    <con:setting id="41eca028-f4fa-4fa5-bb02-b277ee310fedfileName">DetermineTradeInEligibilityAndAmount</con:setting>
+  </con:settings>
+  <con:parameters/>
+  <con:method name="DetermineTradeInEligibilityAndAmount" id="fbfe019f-40b6-4e67-bad5-6082c6cc4e7a" method="POST">
+    <con:settings/>
+    <con:parameters/>
+    <con:request name="DetermineTradeInEligibilityAndAmount" id="51e9f46e-3502-411c-84fc-986fa7f7fff1" mediaType="application/json" postQueryString="false">
+      <con:settings>
+        <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+      </con:settings>
+      <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+      <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "C12345",
+            "from": "string",
+            "timestamp": "2020-04-01T18:30:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "currentItemManufacturersCode": "MINIMED DISTRIBUTION CENT",
+            "hcpcsCode": "E0784",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "09gJKJI56FHGJ787UU9897834",
+                    "planCode": ""
+                }
+            ],
+            "tradingInItemManufacturersCode": ""
+        },
+        {
+            "currentItemManufacturersCode": "TANDEM DIABETES CARE",
+            "hcpcsCode": "E0784",
+            "lineItemID": "L002",
+            "payers": [
+                {
+                    "id": "09GJKJI56FHGJ787UU9897834",
+                    "planName": ""
+                }
+            ],
+            "tradingInItemManufacturersCode": ""
+        }
+    ]
+}</con:request>
+      <con:credentials>
+        <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+        <con:authType>No Authorization</con:authType>
+      </con:credentials>
+      <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+      <con:jmsPropertyConfig/>
+      <con:parameters/>
+    </con:request>
+  </con:method>
+</con:resource>

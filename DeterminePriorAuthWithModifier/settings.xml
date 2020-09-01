@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<con:testSuite id="346e43ba-ebde-4d44-a25c-5553094c5c75" name="DeterminePriorAuthWithModifier" xmlns:con="http://eviware.com/soapui/config">
+  <con:settings>
+    <con:setting id="346e43ba-ebde-4d44-a25c-5553094c5c75fileName">DeterminePriorAuthWithModifier</con:setting>
+  </con:settings>
+  <con:runType>SEQUENTIAL</con:runType>
+  <con:properties/>
+  <con:reportParameters/>
+</con:testSuite>

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<con:resource name="DeterminePhysicianSpecialtyAndPrimaryCareRequired" path="/DecisionService/rest/v1/DeterminePhysicianSpecialtyAndPrimaryCareRequired/DeterminePhysicianSpecialtyAndPrimaryCareRequired/WADL" id="98b344a1-9374-4d4b-951c-04963849b81c" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:con="http://eviware.com/soapui/config">
+  <con:settings>
+    <con:setting id="98b344a1-9374-4d4b-951c-04963849b81cfileName">DeterminePhysicianSpecialtyAndPrimaryCareRequired</con:setting>
+  </con:settings>
+  <con:parameters/>
+  <con:method name="DeterminePhysicianSpecialtyAndPrimaryCareRequired" id="e733db93-a719-4a34-9f04-20fb116a34f4" method="POST">
+    <con:settings/>
+    <con:parameters/>
+    <con:representation type="RESPONSE">
+      <con:mediaType>application/json; charset=UTF-8</con:mediaType>
+      <con:status>200</con:status>
+      <con:params/>
+      <con:element xmlns:wadl="http://lqec5009c1ods01/DecisionService/rest/v1/DeterminePhysicianSpecialtyAndPrimaryCareRequired/DeterminePhysicianSpecialtyAndPrimaryCareRequired/WADL">wadl:Response</con:element>
+    </con:representation>
+    <con:representation type="REQUEST">
+      <con:mediaType>application/json</con:mediaType>
+      <con:params/>
+    </con:representation>
+    <con:request name="DeterminePhysicianSpecialtyAndPrimaryCareRequired" id="4cc0062e-fee2-44e1-8964-69274685cef6" mediaType="application/json" postQueryString="false">
+      <con:settings>
+        <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+      </con:settings>
+      <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+      <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2004-02-15T00:14:14.000+0530"
+        }
+    },
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "physician": {
+                "physicianID": "P0001",
+                "primaryCarePhysician": "false",
+                "specialityCode": "",
+                "taxonomyCode": ""
+            },
+            "plans": [
+                {
+                    "id": "513942563DD75A34E0532C97F4A150EF",
+                    "planCode": "8095"
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": ""
+        },
+        {
+            "lineItemID": "L002",
+            "physician": {
+                "physicianID": "P0002",
+                "primaryCarePhysician": "true",
+                "specialityCode": "Surgery",
+                "taxonomyCode": "Pediatric Endocrinology"
+            },
+            "plans": [
+                {
+                    "id": "513942563DD75A34E0532C97F4A150EF",
+                    "planCode": "6513"
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": "Continuous Glucose Monitors"
+        }
+    ]
+}</con:request>
+      <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DeterminePhysicianSpecialtyAndPrimaryCareRequired/DeterminePhysicianSpecialtyAndPrimaryCareRequired/WADL</con:originalUri>
+      <con:credentials>
+        <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+        <con:authType>No Authorization</con:authType>
+      </con:credentials>
+      <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+      <con:jmsPropertyConfig/>
+      <con:parameters/>
+    </con:request>
+  </con:method>
+</con:resource>

@@ -1,0 +1,1985 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<con:testCase id="cd087804-41db-45b8-a310-cd4c6336a91e" failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="DetermineDaysSupplyOnHand" searchProperties="true" xmlns:con="http://eviware.com/soapui/config">
+  <con:settings>
+    <con:setting id="cd087804-41db-45b8-a310-cd4c6336a91efileName">DetermineDaysSupplyOnHand</con:setting>
+  </con:settings>
+  <con:testStep type="restrequest" name="JSON Request" id="0516858b-ef7b-4e8f-bd62-d58737c9b220">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineDaysSupplyOnHand/DetermineDaysSupplyOnHand/WADL" methodName="DetermineDaysSupplyOnHand" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="JSON Request" id="057deaed-30b2-4af0-8462-9ff14abcf13a" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2020-01-19T04:48:33.000+0530"
+        }
+    },
+    "order": {
+        "lineItems": [
+            {
+                "daysSupplyOnHand": "-17",
+                "lineItemID": "L001"
+            },
+            {
+                "daysSupplyOnHand": "8",
+                "lineItemID": "L002"
+            }
+        ],
+        "nextEligibleShipDate": "2020-01-08T00:00:00.000+0000"
+    }
+}</con:request>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="groovy" name="DetremineDaysSupplyOnHand-SingleLineItem" id="fbfdf89a-2671-461c-80c9-a723c5c2a126">
+    <con:settings/>
+    <con:config>
+      <script>import jxl.*;
+import jxl.write.*
+import java.io.*
+import java.io.file.*
+import java.util.*
+import java.lang.*
+import jxl.read.biff.BiffException;
+import net.sf.*
+import net.sf.json.*
+import net.sf.json.groovy.*
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+import groovy.json.JsonBuilder
+import com.eviware.soapui.model.testsuite.TestStepResult.TestStepStatus
+import com.eviware.soapui.impl.wsdl.teststeps.RestTestRequestStep
+
+def groovyUtils = new com.eviware.soapui.support.GroovyUtils(context)
+def projectDir = groovyUtils.projectPath
+
+def inputfile =  projectDir + "/DetermineDaysSupplyOnHand/DetermineDaysSupplyOnHand-Input.xls"
+def outputfile = projectDir + "/DetermineDaysSupplyOnHand/DetermineDaysSupplyOnHand-SingleLineItem-Output.xls"
+ 
+//Creating workbook for reading value from Excel Sheet
+Workbook wb = Workbook.getWorkbook(new File(inputfile))
+Sheet sh = wb.getSheet("ExpectedResults_SingleLineItem")
+Sheet jsonInput = wb.getSheet("JSON_SingleLineItem")
+
+
+//reading data from input Excel sheet
+rc = sh.getRows();
+cc = sh.getColumns();
+
+Cell jreq = jsonInput.getCell(0,0)
+
+//Creating Workbook for writing value in Excel Sheet
+WritableWorkbook wb1= Workbook.createWorkbook(new File(outputfile));
+WritableSheet sheet1 = wb1.createSheet("ActualResults",0);
+
+//Header declaration for output file
+addCell(0,0,"Test Case Description",sheet1);
+addCell(1,0,"nextEligibleShipDate",sheet1);
+addCell(2,0,"lineItemID",sheet1);
+addCell(3,0,"daysSupplyOnHand",sheet1);
+addCell(4,0,"PASS/FAIL",sheet1);
+addCell(5,0,"FAILED DUE TO",sheet1);
+
+//new testStepName
+
+def newTestStep=null
+
+try {
+
+            
+
+               def req = jreq.getContents()
+   
+                //Assigning request value dynamically
+
+                //request
+                def slurper = new JsonSlurper().parseText(req);
+                def requestTemplet = new JsonBuilder(slurper);
+
+            
+               for (i=2;i&lt;rc;i++){
+
+                                  // Input for TestCaseName
+                         Cell varTestCaseName = sh.getCell(0,i)
+                        def TestCaseName = varTestCaseName.getContents()
+                                                           
+                                 //Input for nextEligibleShipDate                                                       
+                            requestTemplet.content.order.nextEligibleShipDate= sh.getCell(1,i).getContents().toString()  
+
+                                //Input for lineItemID                                                                       
+                            requestTemplet.content.order.lineItems[0].lineItemID = sh.getCell(2,i).getContents()
+
+                               //Input for daysSupplyOnHand                                
+                           requestTemplet.content.order.lineItems[0].daysSupplyOnHand = sh.getCell(3,i).getContents().toString()
+
+                        
+                             //Assign json request to variable
+                       def jsonReqAsString = requestTemplet.toPrettyString()
+                       def restRequest = testRunner.testCase.getTestStepByName('JSON Request');
+                       restRequest.setPropertyValue('Request',jsonReqAsString);
+
+                                //teststep cloned: Start
+                          def getTestCase = testRunner.testCase;
+                          def testst = testRunner.testCase.getTestStepByName("JSON Request");                  
+                              newTestStep = TestCaseName
+                              cleanUp(newTestStep)
+                              getTestCase.cloneStep(restRequest,newTestStep)
+
+                                
+                         //teststep cloned: End
+                         //Executing the testcase
+                        testRunner.runTestStepByName(newTestStep)
+
+                          //retrive response
+                        
+                      def ResponseMessage = testRunner.testCase.testSteps[newTestStep].testRequest.response.contentAsString
+                             
+                        //new JsonSlurper to parse and get the response in Json format
+                        def slurper1 = new JsonSlurper()
+                        def json = slurper1.parseText(ResponseMessage)
+
+                                             
+
+                            // get nextEligibleShipDate from response json
+                        addCell(0,i,varTestCaseName.getContents().toString(),sheet1)   
+                        addCell(1,i,json.order.nextEligibleShipDate.toString(),sheet1); 
+                          // get lineItemID from response json          
+                        addCell(2,i,json.order.lineItems[0].lineItemID,sheet1);    
+                          // get daysSupplyOnHand from response json          
+                        addCell(3,i,json.order.lineItems[0].daysSupplyOnHand.toString(),sheet1);   
+                         // get lineItemID from response json          
+                       
+
+                                    
+                      //dynamic asserstion :Start
+                   def testStepForAssertion = testRunner.testCase.getTestStepByName(newTestStep);
+
+                                //ValidHTTPStatusCodes 200 Assertion
+                  addAssertionValidHTTPStatusCodes(testStepForAssertion,"Valid HTTP Status Codes_"+i)
+       
+                            //get the expected values                           
+                          nextEligibleShipDate = sh.getCell(4,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,nextEligibleShipDate,"order.nextEligibleShipDate","nextEligibleShipDate1")
+
+                         lineItemID = sh.getCell(5,i).getContents()
+                       addAssertionJsonPathMatch(testStepForAssertion,lineItemID,"order.lineItems[0].lineItemID","lineItemID")
+
+                         daysSupplyOnHand = sh.getCell(6,i).getContents().toString()
+                        addAssertionJsonPathMatch(testStepForAssertion,daysSupplyOnHand,"order.lineItems[0].daysSupplyOnHand","daysSupplyOnHand")
+
+                                  
+                              //dynamic asserstion :End
+                            assertionResult = testStepForAssertion.getAssertionStatus()
+             if(assertionResult.toString().equals("FAILED")){
+
+                                      addCell(4,i,"Fail",sheet1);
+                                   for( assertion in testStepForAssertion.assertionList ){
+
+                                 for( e in assertion.errors ){
+
+                                                    addCell(5,i,e.message,sheet1);
+
+                                                }  
+
+                                   }
+
+                                }
+
+                                else{
+
+                                  addCell(4,i,"PASS",sheet1);
+
+                                }
+
+       }
+
+        wb1.write();
+
+                log.info "TestCase Execution Completed successfull"
+
+                }              
+
+            
+           
+catch(Exception e)
+
+{
+
+                log.info(e)                          
+
+}
+
+finally
+
+{
+
+     //close workbook
+
+     wb.close();
+     wb1.close();      
+
+     
+
+}
+
+  //Method code
+
+def addAssertionJsonPathMatch(RestTestRequestStep testStepForAssertion,String expectedContent,String xPath,String assertionName) {
+
+          def assertionType = testStepForAssertion.addAssertion("JsonPath Match")
+
+                                assertionType.name = assertionName
+
+                                assertionType.setPath(xPath)
+
+                                assertionType.setExpectedContent(expectedContent)
+
+                                assertionType.setAllowWildcards(true)  
+
+}
+
+   //Method code
+
+def addAssertionValidHTTPStatusCodes(RestTestRequestStep testStepForAssertion,String assertionName) {
+
+         def StatusCodeAssertionxpath = testStepForAssertion.addAssertion("Valid HTTP Status Codes")
+
+                    StatusCodeAssertionxpath.name = assertionName
+
+                    StatusCodeAssertionxpath.codes=200
+
+}
+
+//method to delete
+
+def cleanUp(String requestName){
+
+                //remove the teststep::Start
+
+                def testCase = testRunner.testCase
+
+                def testStep = testCase.getTestStepByName(requestName)
+
+                if (testStep!=null){
+
+                                                testCase.removeTestStep(testStep)
+
+                }
+
+               
+
+                //remove the teststep::End
+
+}
+
+//method to add Cell to sheet1
+
+def addCell(int colmNum,int rowNum,String lblName,WritableSheet sheet1 ){
+
+                Label header = new Label(colmNum,rowNum,lblName);
+
+                sheet1.addCell(header);                
+
+}</script>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="groovy" name="DetremineDaysSupplyOnHand-TwoLineItem" id="3d0fe20a-c3df-43bf-993f-c8b6c1686cfb">
+    <con:settings/>
+    <con:config>
+      <script>import jxl.*;
+import jxl.write.*
+import java.io.*
+import java.io.file.*
+import java.util.*
+import java.lang.*
+import jxl.read.biff.BiffException;
+import net.sf.*
+import net.sf.json.*
+import net.sf.json.groovy.*
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+import groovy.json.JsonBuilder
+import com.eviware.soapui.model.testsuite.TestStepResult.TestStepStatus
+import com.eviware.soapui.impl.wsdl.teststeps.RestTestRequestStep
+
+def groovyUtils = new com.eviware.soapui.support.GroovyUtils(context)
+def projectDir = groovyUtils.projectPath
+
+def inputfile =  projectDir + "/DetermineDaysSupplyOnHand/DetermineDaysSupplyOnHand-Input.xls"
+def outputfile = projectDir + "/DetermineDaysSupplyOnHand/DetermineDaysSupplyOnHand-TwoLineItem-Output.xls"
+ 
+//Creating workbook for reading value from Excel Sheet
+Workbook wb = Workbook.getWorkbook(new File(inputfile))
+Sheet sh = wb.getSheet("ExpectedResults_TwoLineItem")
+Sheet jsonInput = wb.getSheet("JSON_TwoLineItem")
+
+
+//reading data from input Excel sheet
+rc = sh.getRows();
+cc = sh.getColumns();
+
+Cell jreq = jsonInput.getCell(0,0)
+
+//Creating Workbook for writing value in Excel Sheet
+WritableWorkbook wb1= Workbook.createWorkbook(new File(outputfile));
+WritableSheet sheet1 = wb1.createSheet("ActualResults",0);
+
+//Header declaration for output file
+addCell(0,0,"Test Case Description",sheet1);
+addCell(1,0,"nextEligibleShipDate",sheet1);
+addCell(2,0,"lineItemID1",sheet1);
+addCell(3,0,"daysSupplyOnHand1",sheet1);
+addCell(4,0,"PASS/FAIL",sheet1);
+addCell(5,0,"FAILED DUE TO",sheet1);
+
+//new testStepName
+
+def newTestStep=null
+
+try {
+
+            
+
+               def req = jreq.getContents()
+   
+                //Assigning request value dynamically
+
+                //request
+                def slurper = new JsonSlurper().parseText(req);
+                def requestTemplet = new JsonBuilder(slurper);
+
+            
+               for (i=2;i&lt;rc;i++){
+
+                                  // Input for TestCaseName
+                         Cell varTestCaseName = sh.getCell(0,i)
+                        def TestCaseName = varTestCaseName.getContents()
+                                                           
+                                 //Input for nextEligibleShipDate           
+                                 // log.info sh.getCell(1,i).getContents().toString()                            
+                            requestTemplet.content.order.nextEligibleShipDate= sh.getCell(1,i).getContents().toString()  
+
+                                //Input for lineItemID1
+                                // log.info sh.getCell(2,i).getContents().toString()                                      
+                            requestTemplet.content.order.lineItems[0].lineItemID = sh.getCell(2,i).getContents()
+
+                               //Input for daysSupplyOnHand1
+                               // log.info sh.getCell(3,i).getContents().toString()
+                           requestTemplet.content.order.lineItems[0].daysSupplyOnHand = sh.getCell(3,i).getContents().toString()
+
+                             //Input for lineItemID1
+                               // log.info sh.getCell(4,i).getContents().toString()                                      
+                            requestTemplet.content.order.lineItems[1].lineItemID = sh.getCell(4,i).getContents()
+
+                               //Input for daysSupplyOnHand1
+                              // log.info sh.getCell(5,i).getContents().toString()
+                           requestTemplet.content.order.lineItems[1].daysSupplyOnHand = sh.getCell(5,i).getContents().toString()
+
+
+                        
+                             //Assign json request to variable
+                       def jsonReqAsString = requestTemplet.toPrettyString()
+                       def restRequest = testRunner.testCase.getTestStepByName('JSON Request');
+                       restRequest.setPropertyValue('Request',jsonReqAsString);
+
+                                //teststep cloned: Start
+                          def getTestCase = testRunner.testCase;
+                          def testst = testRunner.testCase.getTestStepByName("JSON Request");                  
+                              newTestStep = TestCaseName
+                              cleanUp(newTestStep)
+                              getTestCase.cloneStep(restRequest,newTestStep)
+
+                                
+                         //teststep cloned: End
+                         //Executing the testcase
+                        testRunner.runTestStepByName(newTestStep)
+
+                          //retrive response
+                        
+                      def ResponseMessage = testRunner.testCase.testSteps[newTestStep].testRequest.response.contentAsString
+                             
+                        //new JsonSlurper to parse and get the response in Json format
+                        def slurper1 = new JsonSlurper()
+                        def json = slurper1.parseText(ResponseMessage)
+
+                                             
+                           // get nextEligibleShipDate from response json
+                        addCell(0,i,varTestCaseName.getContents().toString(),sheet1)   
+                        addCell(1,i,json.order.nextEligibleShipDate.toString(),sheet1); 
+                           //nextEligibleShipDate1 = subString(nextEligibleShipDate1,1,10)
+                             //  log.info "nextEligibleShipDate" +nextEligibleShipDate1
+                         // get lineItemID from response json          
+                        addCell(2,i,json.order.lineItems[0].lineItemID,sheet1);    
+                          // get daysSupplyOnHand from response json          
+                        addCell(3,i,json.order.lineItems[0].daysSupplyOnHand.toString(),sheet1);   
+                         // get lineItemID from response json          
+                         
+                         
+                                    
+                      //dynamic asserstion :Start
+                   def testStepForAssertion = testRunner.testCase.getTestStepByName(newTestStep);
+
+                                //ValidHTTPStatusCodes 200 Assertion
+                  addAssertionValidHTTPStatusCodes(testStepForAssertion,"Valid HTTP Status Codes_"+i)
+       
+                            //get the expected values                           
+                          nextEligibleShipDate = sh.getCell(6,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,nextEligibleShipDate,"order.nextEligibleShipDate","nextEligibleShipDate")
+
+                         lineItemID = sh.getCell(7,i).getContents()
+                       addAssertionJsonPathMatch(testStepForAssertion,lineItemID,"order.lineItems[0].lineItemID","lineItemID")
+
+                         daysSupplyOnHand = sh.getCell(8,i).getContents().toString()
+                        addAssertionJsonPathMatch(testStepForAssertion,daysSupplyOnHand,"order.lineItems[0].daysSupplyOnHand","daysSupplyOnHand")
+
+                                                          
+                              //dynamic asserstion :End
+                            assertionResult = testStepForAssertion.getAssertionStatus()
+             if(assertionResult.toString().equals("FAILED")){
+
+                                      addCell(4,i,"Fail",sheet1);
+                                   for( assertion in testStepForAssertion.assertionList ){
+
+                                 for( e in assertion.errors ){
+
+                                                    addCell(5,i,e.message,sheet1);
+
+                                                }  
+
+                                   }
+
+                                }
+
+                                else{
+
+                                  addCell(4,i,"PASS",sheet1);
+
+                                }
+
+       }
+
+        wb1.write();
+
+                log.info "TestCase Execution Completed successfull"
+
+                }              
+
+            
+           
+catch(Exception e)
+
+{
+
+                log.info(e)                          
+
+}
+
+finally
+
+{
+
+     //close workbook
+
+     wb.close();
+     wb1.close();      
+
+     
+
+}
+
+  //Method code
+
+def addAssertionJsonPathMatch(RestTestRequestStep testStepForAssertion,String expectedContent,String xPath,String assertionName) {
+
+          def assertionType = testStepForAssertion.addAssertion("JsonPath Match")
+
+                                assertionType.name = assertionName
+
+                                assertionType.setPath(xPath)
+
+                                assertionType.setExpectedContent(expectedContent)
+
+                                assertionType.setAllowWildcards(true)  
+
+}
+
+   //Method code
+
+def addAssertionValidHTTPStatusCodes(RestTestRequestStep testStepForAssertion,String assertionName) {
+
+         def StatusCodeAssertionxpath = testStepForAssertion.addAssertion("Valid HTTP Status Codes")
+
+                    StatusCodeAssertionxpath.name = assertionName
+
+                    StatusCodeAssertionxpath.codes=200
+
+}
+
+//method to delete
+
+def cleanUp(String requestName){
+
+                //remove the teststep::Start
+
+                def testCase = testRunner.testCase
+
+                def testStep = testCase.getTestStepByName(requestName)
+
+                if (testStep!=null){
+
+                                                testCase.removeTestStep(testStep)
+
+                }
+
+               
+
+                //remove the teststep::End
+
+}
+
+//method to add Cell to sheet1
+
+def addCell(int colmNum,int rowNum,String lblName,WritableSheet sheet1 ){
+
+                Label header = new Label(colmNum,rowNum,lblName);
+
+                sheet1.addCell(header);                
+
+}</script>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="groovy" name="DetremineDaysSupplyOnHand-ThreeLineItem" id="7b95c7e8-6b6c-4910-916b-982f5e91ecb9">
+    <con:settings/>
+    <con:config>
+      <script>import jxl.*;
+import jxl.write.*
+import java.io.*
+import java.io.file.*
+import java.util.*
+import java.lang.*
+import jxl.read.biff.BiffException;
+import net.sf.*
+import net.sf.json.*
+import net.sf.json.groovy.*
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+import groovy.json.JsonBuilder
+import com.eviware.soapui.model.testsuite.TestStepResult.TestStepStatus
+import com.eviware.soapui.impl.wsdl.teststeps.RestTestRequestStep
+
+def groovyUtils = new com.eviware.soapui.support.GroovyUtils(context)
+def projectDir = groovyUtils.projectPath
+
+def inputfile =  projectDir + "/DetermineDaysSupplyOnHand/DetermineDaysSupplyOnHand-Input.xls"
+def outputfile = projectDir + "/DetermineDaysSupplyOnHand/DetermineDaysSupplyOnHand-ThreeLineItem-Output.xls"
+ 
+//Creating workbook for reading value from Excel Sheet
+Workbook wb = Workbook.getWorkbook(new File(inputfile))
+Sheet sh = wb.getSheet("ExpectedResults_ThreeLineItem")
+Sheet jsonInput = wb.getSheet("JSON_ThreeLineItem")
+
+
+//reading data from input Excel sheet
+rc = sh.getRows();
+cc = sh.getColumns();
+
+Cell jreq = jsonInput.getCell(0,0)
+
+//Creating Workbook for writing value in Excel Sheet
+WritableWorkbook wb1= Workbook.createWorkbook(new File(outputfile));
+WritableSheet sheet1 = wb1.createSheet("ActualResults",0);
+
+//Header declaration for output file
+addCell(0,0,"Test Case Description",sheet1);
+addCell(1,0,"nextEligibleShipDate",sheet1);
+addCell(2,0,"lineItemID1",sheet1);
+addCell(3,0,"daysSupplyOnHand1",sheet1);
+addCell(4,0,"PASS/FAIL",sheet1);
+addCell(5,0,"FAILED DUE TO",sheet1);
+
+//new testStepName
+
+def newTestStep=null
+
+try {
+
+            
+
+               def req = jreq.getContents()
+   
+                //Assigning request value dynamically
+
+                //request
+                def slurper = new JsonSlurper().parseText(req);
+                def requestTemplet = new JsonBuilder(slurper);
+
+            
+               for (i=2;i&lt;rc;i++){
+
+                                  // Input for TestCaseName
+                         Cell varTestCaseName = sh.getCell(0,i)
+                        def TestCaseName = varTestCaseName.getContents()
+                                                           
+                                 //Input for nextEligibleShipDate           
+                                                          
+                            requestTemplet.content.order.nextEligibleShipDate= sh.getCell(1,i).getContents().toString()  
+
+                                //Input for lineItemID1
+                                // log.info sh.getCell(2,i).getContents().toString()                                      
+                            requestTemplet.content.order.lineItems[0].lineItemID = sh.getCell(2,i).getContents()
+
+                               //Input for daysSupplyOnHand1
+                               // log.info sh.getCell(3,i).getContents().toString()
+                           requestTemplet.content.order.lineItems[0].daysSupplyOnHand = sh.getCell(3,i).getContents().toString()
+
+                             //Input for lineItemID2
+                               // log.info sh.getCell(4,i).getContents().toString()                                      
+                            requestTemplet.content.order.lineItems[1].lineItemID = sh.getCell(4,i).getContents()
+
+                               //Input for daysSupplyOnHand2
+                              // log.info sh.getCell(5,i).getContents().toString()
+                           requestTemplet.content.order.lineItems[1].daysSupplyOnHand = sh.getCell(5,i).getContents().toString()
+
+                           //Input for lineItemID3
+                              //  log.info sh.getCell(6,i).getContents().toString()                                      
+                            requestTemplet.content.order.lineItems[2].lineItemID = sh.getCell(6,i).getContents()
+
+                               //Input for daysSupplyOnHand3
+                             //  log.info sh.getCell(7,i).getContents().toString()
+                           requestTemplet.content.order.lineItems[2].daysSupplyOnHand = sh.getCell(7,i).getContents().toString()
+
+                       
+                             //Assign json request to variable
+                       def jsonReqAsString = requestTemplet.toPrettyString()
+                       def restRequest = testRunner.testCase.getTestStepByName('JSON Request');
+                       restRequest.setPropertyValue('Request',jsonReqAsString);
+
+                                //teststep cloned: Start
+                          def getTestCase = testRunner.testCase;
+                          def testst = testRunner.testCase.getTestStepByName("JSON Request");                  
+                              newTestStep = TestCaseName
+                              cleanUp(newTestStep)
+                              getTestCase.cloneStep(restRequest,newTestStep)
+
+                                
+                         //teststep cloned: End
+                         //Executing the testcase
+                        testRunner.runTestStepByName(newTestStep)
+
+                          //retrive response
+                        
+                      def ResponseMessage = testRunner.testCase.testSteps[newTestStep].testRequest.response.contentAsString
+                             
+                        //new JsonSlurper to parse and get the response in Json format
+                        def slurper1 = new JsonSlurper()
+                        def json = slurper1.parseText(ResponseMessage)
+
+                                             
+                            // get nextEligibleShipDate from response json
+                        addCell(0,i,varTestCaseName.getContents().toString(),sheet1)   
+                        addCell(1,i,json.order.nextEligibleShipDate.toString(),sheet1); 
+                           // get lineItemID from response json          
+                        addCell(2,i,json.order.lineItems[0].lineItemID,sheet1);    
+                          // get daysSupplyOnHand from response json          
+                        addCell(3,i,json.order.lineItems[0].daysSupplyOnHand.toString(),sheet1);   
+                         // get lineItemID from response json          
+                       
+                                    
+                      //dynamic asserstion :Start
+                   def testStepForAssertion = testRunner.testCase.getTestStepByName(newTestStep);
+
+                                //ValidHTTPStatusCodes 200 Assertion
+                  addAssertionValidHTTPStatusCodes(testStepForAssertion,"Valid HTTP Status Codes_"+i)
+       
+                            //get the expected values                           
+                          nextEligibleShipDate = sh.getCell(8,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,nextEligibleShipDate,"order.nextEligibleShipDate","nextEligibleShipDate")
+
+                         lineItemID = sh.getCell(9,i).getContents()
+                       addAssertionJsonPathMatch(testStepForAssertion,lineItemID,"order.lineItems[0].lineItemID","lineItemID")
+
+                         daysSupplyOnHand = sh.getCell(10,i).getContents().toString()
+                        addAssertionJsonPathMatch(testStepForAssertion,daysSupplyOnHand,"order.lineItems[0].daysSupplyOnHand","daysSupplyOnHand")
+
+                        
+                                  
+                              //dynamic asserstion :End
+                            assertionResult = testStepForAssertion.getAssertionStatus()
+             if(assertionResult.toString().equals("FAILED")){
+
+                                      addCell(4,i,"Fail",sheet1);
+                                   for( assertion in testStepForAssertion.assertionList ){
+
+                                 for( e in assertion.errors ){
+
+                                                    addCell(5,i,e.message,sheet1);
+
+                                                }  
+
+                                   }
+
+                                }
+
+                                else{
+
+                                  addCell(4,i,"PASS",sheet1);
+
+                                }
+
+       }
+
+        wb1.write();
+
+                log.info "TestCase Execution Completed successfull"
+
+                }              
+
+            
+           
+catch(Exception e)
+
+{
+
+                log.info(e)                          
+
+}
+
+finally
+
+{
+
+     //close workbook
+
+     wb.close();
+     wb1.close();      
+
+     
+
+}
+
+  //Method code
+
+def addAssertionJsonPathMatch(RestTestRequestStep testStepForAssertion,String expectedContent,String xPath,String assertionName) {
+
+          def assertionType = testStepForAssertion.addAssertion("JsonPath Match")
+
+                                assertionType.name = assertionName
+
+                                assertionType.setPath(xPath)
+
+                                assertionType.setExpectedContent(expectedContent)
+
+                                assertionType.setAllowWildcards(true)  
+
+}
+
+   //Method code
+
+def addAssertionValidHTTPStatusCodes(RestTestRequestStep testStepForAssertion,String assertionName) {
+
+         def StatusCodeAssertionxpath = testStepForAssertion.addAssertion("Valid HTTP Status Codes")
+
+                    StatusCodeAssertionxpath.name = assertionName
+
+                    StatusCodeAssertionxpath.codes=200
+
+}
+
+//method to delete
+
+def cleanUp(String requestName){
+
+                //remove the teststep::Start
+
+                def testCase = testRunner.testCase
+
+                def testStep = testCase.getTestStepByName(requestName)
+
+                if (testStep!=null){
+
+                                                testCase.removeTestStep(testStep)
+
+                }
+
+               
+
+                //remove the teststep::End
+
+}
+
+//method to add Cell to sheet1
+
+def addCell(int colmNum,int rowNum,String lblName,WritableSheet sheet1 ){
+
+                Label header = new Label(colmNum,rowNum,lblName);
+
+                sheet1.addCell(header);                
+
+}</script>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-40793" id="7b899a6e-1aad-4b94-92b5-5e7d1de1630f">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineDaysSupplyOnHand/DetermineDaysSupplyOnHand/WADL" methodName="DetermineDaysSupplyOnHand" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-40793" id="057deaed-30b2-4af0-8462-9ff14abcf13a" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2020-01-19T04:48:33.000+0530"
+        }
+    },
+    "order": {
+        "lineItems": [
+            {
+                "daysSupplyOnHand": "13",
+                "lineItemID": "L001"
+            }
+        ],
+        "nextEligibleShipDate": "2020-06-23T00:00:00.000+0000\n"
+    }
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineDaysSupplyOnHand/DetermineDaysSupplyOnHand/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="0109d269-cf04-4377-b392-3588f5486483" name="Valid HTTP Status Codes_2">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="4f572858-3847-4e8e-b73b-023ef57070d3" name="nextEligibleShipDate1">
+          <con:configuration>
+            <path>order.nextEligibleShipDate</path>
+            <content>2020-07-31T00:00:00.000+0000</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="16db2439-e3e7-42e0-b12e-f3470688a24e" name="lineItemID">
+          <con:configuration>
+            <path>order.lineItems[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="f7f0de33-edb9-4423-baa2-c08fa1e54f77" name="daysSupplyOnHand">
+          <con:configuration>
+            <path>order.lineItems[0].daysSupplyOnHand</path>
+            <content>13</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-40794" id="4e326805-41f9-4c84-abc1-0c08f0c71dcc">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineDaysSupplyOnHand/DetermineDaysSupplyOnHand/WADL" methodName="DetermineDaysSupplyOnHand" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-40794" id="057deaed-30b2-4af0-8462-9ff14abcf13a" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2020-01-19T04:48:33.000+0530"
+        }
+    },
+    "order": {
+        "lineItems": [
+            {
+                "daysSupplyOnHand": "10",
+                "lineItemID": "L001"
+            }
+        ],
+        "nextEligibleShipDate": "null"
+    }
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineDaysSupplyOnHand/DetermineDaysSupplyOnHand/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="c6b231d0-a55a-4c3d-80d1-09b9a020ea28" name="Valid HTTP Status Codes_3">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="8bd39ba4-2106-4c48-bb7f-fa8a5a7694c5" name="nextEligibleShipDate1">
+          <con:configuration>
+            <path>order.nextEligibleShipDate</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="94e79902-d3d3-4421-8e9d-396ec4b47a98" name="lineItemID">
+          <con:configuration>
+            <path>order.lineItems[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="27825089-fd7a-4649-a684-7d01068e3e67" name="daysSupplyOnHand">
+          <con:configuration>
+            <path>order.lineItems[0].daysSupplyOnHand</path>
+            <content>10</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-40795" id="1832b36c-1333-4452-8621-b1d18d69b1ae">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineDaysSupplyOnHand/DetermineDaysSupplyOnHand/WADL" methodName="DetermineDaysSupplyOnHand" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-40795" id="057deaed-30b2-4af0-8462-9ff14abcf13a" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2020-01-19T04:48:33.000+0530"
+        }
+    },
+    "order": {
+        "lineItems": [
+            {
+                "daysSupplyOnHand": "null",
+                "lineItemID": "L001"
+            }
+        ],
+        "nextEligibleShipDate": "null"
+    }
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineDaysSupplyOnHand/DetermineDaysSupplyOnHand/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="d2b948aa-108d-4caf-9a38-d702b1d7b532" name="Valid HTTP Status Codes_4">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="9854dcde-ea8b-4526-b427-98751d4ed946" name="nextEligibleShipDate1">
+          <con:configuration>
+            <path>order.nextEligibleShipDate</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="1136930d-3c79-441d-ba16-3006b3d78a12" name="lineItemID">
+          <con:configuration>
+            <path>order.lineItems[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="85a2ccb5-b3ca-4a94-bd19-e97087d4d223" name="daysSupplyOnHand">
+          <con:configuration>
+            <path>order.lineItems[0].daysSupplyOnHand</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-40796" id="97c6b418-35fd-48bc-8a08-7aefb0999934">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineDaysSupplyOnHand/DetermineDaysSupplyOnHand/WADL" methodName="DetermineDaysSupplyOnHand" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-40796" id="057deaed-30b2-4af0-8462-9ff14abcf13a" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2020-01-19T04:48:33.000+0530"
+        }
+    },
+    "order": {
+        "lineItems": [
+            {
+                "daysSupplyOnHand": "5",
+                "lineItemID": "L001"
+            }
+        ],
+        "nextEligibleShipDate": "2019-12-30T00:00:00.000+0000"
+    }
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineDaysSupplyOnHand/DetermineDaysSupplyOnHand/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="123a2431-633b-4a6f-84e1-af43100a1b1c" name="Valid HTTP Status Codes_5">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="c7a6efcb-5617-49dd-9003-bb42b0ff2dc7" name="nextEligibleShipDate1">
+          <con:configuration>
+            <path>order.nextEligibleShipDate</path>
+            <content>2019-12-30T00:00:00.000+0000</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="51777515-494f-4218-b412-65ad0c57cf84" name="lineItemID">
+          <con:configuration>
+            <path>order.lineItems[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="ed6d5967-ae93-4b5f-b965-2a06db8d1fd4" name="daysSupplyOnHand">
+          <con:configuration>
+            <path>order.lineItems[0].daysSupplyOnHand</path>
+            <content>5</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-40802" id="ec3c55d2-369c-47e5-b912-a0b0022f23ed">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineDaysSupplyOnHand/DetermineDaysSupplyOnHand/WADL" methodName="DetermineDaysSupplyOnHand" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-40802" id="057deaed-30b2-4af0-8462-9ff14abcf13a" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2020-01-19T04:48:33.000+0530"
+        }
+    },
+    "order": {
+        "lineItems": [
+            {
+                "daysSupplyOnHand": "11",
+                "lineItemID": "L001"
+            },
+            {
+                "daysSupplyOnHand": "4",
+                "lineItemID": "L002"
+            },
+            {
+                "daysSupplyOnHand": "5",
+                "lineItemID": "L003"
+            }
+        ],
+        "nextEligibleShipDate": "2020-01-31T00:00:00.000+0000"
+    }
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineDaysSupplyOnHand/DetermineDaysSupplyOnHand/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="ebad2968-25d6-4149-8a68-c8738a440f63" name="Valid HTTP Status Codes_2">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="c68e96cf-53b7-4c65-9e2f-1841a4641dd9" name="nextEligibleShipDate">
+          <con:configuration>
+            <path>order.nextEligibleShipDate</path>
+            <content>2020-07-29T00:00:00.000+0000</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="5b4ca902-540c-4dbd-929b-e8b342bff1a9" name="lineItemID">
+          <con:configuration>
+            <path>order.lineItems[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="50a0e9fb-b20c-417f-8392-e6d34c94d2c5" name="daysSupplyOnHand">
+          <con:configuration>
+            <path>order.lineItems[0].daysSupplyOnHand</path>
+            <content>11</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-40803" id="57b197d4-33f2-4f3c-8376-7c00108bf606">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineDaysSupplyOnHand/DetermineDaysSupplyOnHand/WADL" methodName="DetermineDaysSupplyOnHand" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-40803" id="057deaed-30b2-4af0-8462-9ff14abcf13a" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2020-01-19T04:48:33.000+0530"
+        }
+    },
+    "order": {
+        "lineItems": [
+            {
+                "daysSupplyOnHand": "5",
+                "lineItemID": "L001"
+            },
+            {
+                "daysSupplyOnHand": "6",
+                "lineItemID": "L002"
+            },
+            {
+                "daysSupplyOnHand": "10",
+                "lineItemID": "L003"
+            }
+        ],
+        "nextEligibleShipDate": "2020-12-27T00:00:00.000+0000"
+    }
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineDaysSupplyOnHand/DetermineDaysSupplyOnHand/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="d138819a-d80c-442e-bf03-b91601777009" name="Valid HTTP Status Codes_3">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="b5a4eba3-a066-4ccb-8c70-6bfb67b24d4e" name="nextEligibleShipDate">
+          <con:configuration>
+            <path>order.nextEligibleShipDate</path>
+            <content>2020-12-27T00:00:00.000+0000</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="40de0b52-2808-4006-b98b-20567d86871b" name="lineItemID">
+          <con:configuration>
+            <path>order.lineItems[0].lineItemID</path>
+            <content>L003</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="bd0d9447-521a-4614-a774-be5182477bd0" name="daysSupplyOnHand">
+          <con:configuration>
+            <path>order.lineItems[0].daysSupplyOnHand</path>
+            <content>10</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-40804" id="523393af-e757-44da-b4e0-10411c21c79b">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineDaysSupplyOnHand/DetermineDaysSupplyOnHand/WADL" methodName="DetermineDaysSupplyOnHand" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-40804" id="057deaed-30b2-4af0-8462-9ff14abcf13a" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2020-01-19T04:48:33.000+0530"
+        }
+    },
+    "order": {
+        "lineItems": [
+            {
+                "daysSupplyOnHand": "7",
+                "lineItemID": "L001"
+            },
+            {
+                "daysSupplyOnHand": "11",
+                "lineItemID": "L002"
+            },
+            {
+                "daysSupplyOnHand": "14",
+                "lineItemID": "L003"
+            }
+        ],
+        "nextEligibleShipDate": "2020-01-30T00:00:00.000+0000"
+    }
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineDaysSupplyOnHand/DetermineDaysSupplyOnHand/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="786836dc-5f04-427a-b67a-85af401831e6" name="Valid HTTP Status Codes_4">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="f3d066eb-d730-4ce1-865e-54fbe8f5341e" name="nextEligibleShipDate">
+          <con:configuration>
+            <path>order.nextEligibleShipDate</path>
+            <content>2020-08-01T00:00:00.000+0000</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="95d538f5-e47e-497c-9dd6-3125c7bf30e0" name="lineItemID">
+          <con:configuration>
+            <path>order.lineItems[0].lineItemID</path>
+            <content>L003</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="db50a016-608f-4f58-8acb-1bad6edd5816" name="daysSupplyOnHand">
+          <con:configuration>
+            <path>order.lineItems[0].daysSupplyOnHand</path>
+            <content>14</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-40805" id="77ee154a-b201-46fa-9ecc-340200879aec">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineDaysSupplyOnHand/DetermineDaysSupplyOnHand/WADL" methodName="DetermineDaysSupplyOnHand" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-40805" id="057deaed-30b2-4af0-8462-9ff14abcf13a" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2020-01-19T04:48:33.000+0530"
+        }
+    },
+    "order": {
+        "lineItems": [
+            {
+                "daysSupplyOnHand": "-6",
+                "lineItemID": "L001"
+            },
+            {
+                "daysSupplyOnHand": "-17",
+                "lineItemID": "L002"
+            },
+            {
+                "daysSupplyOnHand": "0",
+                "lineItemID": "L003"
+            }
+        ],
+        "nextEligibleShipDate": "2020-01-10T00:00:00.000+0000"
+    }
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineDaysSupplyOnHand/DetermineDaysSupplyOnHand/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="cd8c5997-cbd5-4b51-adce-c78dda67acd4" name="Valid HTTP Status Codes_5">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="a21e99ba-3678-43be-a240-9575f316148e" name="nextEligibleShipDate">
+          <con:configuration>
+            <path>order.nextEligibleShipDate</path>
+            <content>2020-01-10T00:00:00.000+0000</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="cfbabf91-08cc-49fa-8b7c-19da3050d692" name="lineItemID">
+          <con:configuration>
+            <path>order.lineItems[0].lineItemID</path>
+            <content>L003</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="8a464a83-1283-46f5-a04f-e6bc2eb9e762" name="daysSupplyOnHand">
+          <con:configuration>
+            <path>order.lineItems[0].daysSupplyOnHand</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-40806" id="42dfa956-c748-4e33-ad45-8e497c0d79fd">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineDaysSupplyOnHand/DetermineDaysSupplyOnHand/WADL" methodName="DetermineDaysSupplyOnHand" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-40806" id="057deaed-30b2-4af0-8462-9ff14abcf13a" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2020-01-19T04:48:33.000+0530"
+        }
+    },
+    "order": {
+        "lineItems": [
+            {
+                "daysSupplyOnHand": "21",
+                "lineItemID": "L001"
+            },
+            {
+                "daysSupplyOnHand": "22",
+                "lineItemID": "L002"
+            },
+            {
+                "daysSupplyOnHand": "-8",
+                "lineItemID": "L003"
+            }
+        ],
+        "nextEligibleShipDate": "2020-03-03T00:00:00.000+0000"
+    }
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineDaysSupplyOnHand/DetermineDaysSupplyOnHand/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="39eb44e6-b198-4aad-afd1-2b1adef38aea" name="Valid HTTP Status Codes_6">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="e9514ef1-0378-438f-b69c-f1edb838eebf" name="nextEligibleShipDate">
+          <con:configuration>
+            <path>order.nextEligibleShipDate</path>
+            <content>2020-08-09T00:00:00.000+0000</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="0faebd10-7a40-464b-ad8f-5300a642924d" name="lineItemID">
+          <con:configuration>
+            <path>order.lineItems[0].lineItemID</path>
+            <content>L002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="fce8797b-02b5-4b1f-89fa-ac873b2ad03e" name="daysSupplyOnHand">
+          <con:configuration>
+            <path>order.lineItems[0].daysSupplyOnHand</path>
+            <content>22</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-40807" id="737f989a-87c1-48ed-8282-729bbc9db0ce">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineDaysSupplyOnHand/DetermineDaysSupplyOnHand/WADL" methodName="DetermineDaysSupplyOnHand" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-40807" id="057deaed-30b2-4af0-8462-9ff14abcf13a" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2020-01-19T04:48:33.000+0530"
+        }
+    },
+    "order": {
+        "lineItems": [
+            {
+                "daysSupplyOnHand": "-21",
+                "lineItemID": "L001"
+            },
+            {
+                "daysSupplyOnHand": "-22",
+                "lineItemID": "L002"
+            },
+            {
+                "daysSupplyOnHand": "-9",
+                "lineItemID": "L003"
+            }
+        ],
+        "nextEligibleShipDate": "2020-03-03T00:00:00.000+0000"
+    }
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineDaysSupplyOnHand/DetermineDaysSupplyOnHand/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="9dac771a-e174-4b65-9437-ccd154fadfc3" name="Valid HTTP Status Codes_7">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="7cf5a52d-cd38-4541-a1ff-44e2d242d67a" name="nextEligibleShipDate">
+          <con:configuration>
+            <path>order.nextEligibleShipDate</path>
+            <content>2020-03-03T00:00:00.000+0000</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="cae0f4a6-2653-4163-ad14-70d072f3ec64" name="lineItemID">
+          <con:configuration>
+            <path>order.lineItems[0].lineItemID</path>
+            <content>L003</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="af68013a-eec9-4ddc-b7de-c7b8db4be24e" name="daysSupplyOnHand">
+          <con:configuration>
+            <path>order.lineItems[0].daysSupplyOnHand</path>
+            <content>-9</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-40797" id="5bbc6ae4-02bf-4ec4-b049-b2dd6aca9c32">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineDaysSupplyOnHand/DetermineDaysSupplyOnHand/WADL" methodName="DetermineDaysSupplyOnHand" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-40797" id="057deaed-30b2-4af0-8462-9ff14abcf13a" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2020-01-19T04:48:33.000+0530"
+        }
+    },
+    "order": {
+        "lineItems": [
+            {
+                "daysSupplyOnHand": "12",
+                "lineItemID": "L001"
+            },
+            {
+                "daysSupplyOnHand": "6",
+                "lineItemID": "L002"
+            }
+        ],
+        "nextEligibleShipDate": "2019-12-15T00:00:00.000+0000"
+    }
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineDaysSupplyOnHand/DetermineDaysSupplyOnHand/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="079036b4-a527-437f-adf7-e749b10d5413" name="Valid HTTP Status Codes_2">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="9ba5e848-8ff6-47c8-a45b-f2471c33e6f7" name="nextEligibleShipDate">
+          <con:configuration>
+            <path>order.nextEligibleShipDate</path>
+            <content>2020-07-30T00:00:00.000+0000</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="ed024ebe-8622-4a42-bb38-1c6a9acbe135" name="lineItemID">
+          <con:configuration>
+            <path>order.lineItems[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="ea03efab-31f7-48c6-91c4-67d73604252b" name="daysSupplyOnHand">
+          <con:configuration>
+            <path>order.lineItems[0].daysSupplyOnHand</path>
+            <content>12</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-40798" id="190fd5a4-a82a-440c-9c93-9c700a341e1a">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineDaysSupplyOnHand/DetermineDaysSupplyOnHand/WADL" methodName="DetermineDaysSupplyOnHand" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-40798" id="057deaed-30b2-4af0-8462-9ff14abcf13a" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2020-01-19T04:48:33.000+0530"
+        }
+    },
+    "order": {
+        "lineItems": [
+            {
+                "daysSupplyOnHand": "6",
+                "lineItemID": "L001"
+            },
+            {
+                "daysSupplyOnHand": "15",
+                "lineItemID": "L002"
+            }
+        ],
+        "nextEligibleShipDate": "2020-01-03T00:00:00.000+0000"
+    }
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineDaysSupplyOnHand/DetermineDaysSupplyOnHand/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="2af154fa-a754-45f3-aae8-40e74a22c49d" name="Valid HTTP Status Codes_3">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="0b32cfa3-62fb-4e2b-8235-963bbef0ee7b" name="nextEligibleShipDate">
+          <con:configuration>
+            <path>order.nextEligibleShipDate</path>
+            <content>2020-08-02T00:00:00.000+0000</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="a574e77d-6af3-4a46-8a90-5465f17a6d2b" name="lineItemID">
+          <con:configuration>
+            <path>order.lineItems[0].lineItemID</path>
+            <content>L002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="e8e60817-e70a-4bcd-940e-95091c102173" name="daysSupplyOnHand">
+          <con:configuration>
+            <path>order.lineItems[0].daysSupplyOnHand</path>
+            <content>15</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-40799" id="d8b4f975-0f6b-423b-97b1-808f0ac2c8be">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineDaysSupplyOnHand/DetermineDaysSupplyOnHand/WADL" methodName="DetermineDaysSupplyOnHand" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-40799" id="057deaed-30b2-4af0-8462-9ff14abcf13a" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2020-01-19T04:48:33.000+0530"
+        }
+    },
+    "order": {
+        "lineItems": [
+            {
+                "daysSupplyOnHand": "5",
+                "lineItemID": "L001"
+            },
+            {
+                "daysSupplyOnHand": "7",
+                "lineItemID": "L002"
+            }
+        ],
+        "nextEligibleShipDate": "2020-01-04T00:00:00.000+0000"
+    }
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineDaysSupplyOnHand/DetermineDaysSupplyOnHand/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="3cfda492-c407-475b-a745-fd72db1a225b" name="Valid HTTP Status Codes_4">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="a0758dd5-f585-4aa9-8297-7f0121ba2f3c" name="nextEligibleShipDate">
+          <con:configuration>
+            <path>order.nextEligibleShipDate</path>
+            <content>2020-01-04T00:00:00.000+0000</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="ab7ffd46-0c5e-4f70-9502-1caa94bba26a" name="lineItemID">
+          <con:configuration>
+            <path>order.lineItems[0].lineItemID</path>
+            <content>L002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="ab21c04b-a1e4-4a70-8652-00095cfd5560" name="daysSupplyOnHand">
+          <con:configuration>
+            <path>order.lineItems[0].daysSupplyOnHand</path>
+            <content>7</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-40800" id="a1efd9bd-eac9-42fb-9a8e-5c7d2fea3419">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineDaysSupplyOnHand/DetermineDaysSupplyOnHand/WADL" methodName="DetermineDaysSupplyOnHand" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-40800" id="057deaed-30b2-4af0-8462-9ff14abcf13a" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2020-01-19T04:48:33.000+0530"
+        }
+    },
+    "order": {
+        "lineItems": [
+            {
+                "daysSupplyOnHand": "10",
+                "lineItemID": "L001"
+            },
+            {
+                "daysSupplyOnHand": "10",
+                "lineItemID": "L002"
+            }
+        ],
+        "nextEligibleShipDate": "2020-02-04T00:00:00.000+0000"
+    }
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineDaysSupplyOnHand/DetermineDaysSupplyOnHand/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="7cbd56bb-8475-4e1e-b722-88a7823744ca" name="Valid HTTP Status Codes_5">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="defe833c-c021-4500-a4a9-b14d2fabf728" name="nextEligibleShipDate">
+          <con:configuration>
+            <path>order.nextEligibleShipDate</path>
+            <content>2020-02-04T00:00:00.000+0000</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="414c139f-52a5-4723-aa6f-0cb6449a9444" name="lineItemID">
+          <con:configuration>
+            <path>order.lineItems[0].lineItemID</path>
+            <content>L002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="50f748d1-aabd-499a-b7b1-09a2dc289d6e" name="daysSupplyOnHand">
+          <con:configuration>
+            <path>order.lineItems[0].daysSupplyOnHand</path>
+            <content>10</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-40801" id="f52fee39-7548-4126-9eb0-6c170bd22bf2">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineDaysSupplyOnHand/DetermineDaysSupplyOnHand/WADL" methodName="DetermineDaysSupplyOnHand" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-40801" id="057deaed-30b2-4af0-8462-9ff14abcf13a" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2020-01-19T04:48:33.000+0530"
+        }
+    },
+    "order": {
+        "lineItems": [
+            {
+                "daysSupplyOnHand": "-17",
+                "lineItemID": "L001"
+            },
+            {
+                "daysSupplyOnHand": "8",
+                "lineItemID": "L002"
+            }
+        ],
+        "nextEligibleShipDate": "2020-01-08T00:00:00.000+0000"
+    }
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineDaysSupplyOnHand/DetermineDaysSupplyOnHand/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="cc2b070c-3baf-4061-9ba9-75993b046761" name="Valid HTTP Status Codes_6">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="afb97238-43b8-46b4-bd5b-aa7431a171b7" name="nextEligibleShipDate">
+          <con:configuration>
+            <path>order.nextEligibleShipDate</path>
+            <content>2020-01-08T00:00:00.000+0000</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="6ebabb9c-975b-42e4-9b25-e24789cde53a" name="lineItemID">
+          <con:configuration>
+            <path>order.lineItems[0].lineItemID</path>
+            <content>L002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="ce7f012d-79c5-4bd6-8ec8-8238f1264dff" name="daysSupplyOnHand">
+          <con:configuration>
+            <path>order.lineItems[0].daysSupplyOnHand</path>
+            <content>8</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:properties/>
+  <con:reportParameters/>
+</con:testCase>

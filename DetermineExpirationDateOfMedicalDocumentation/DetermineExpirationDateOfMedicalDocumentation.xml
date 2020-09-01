@@ -1,0 +1,3979 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<con:testCase id="943a680b-5a94-4359-bcf0-1fb4ad09ad3e" failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="DetermineExpirationDateOfMedicalDocumentation" searchProperties="true" xmlns:con="http://eviware.com/soapui/config">
+  <con:settings>
+    <con:setting id="943a680b-5a94-4359-bcf0-1fb4ad09ad3efileName">DetermineExpirationDateOfMedicalDocumentation</con:setting>
+  </con:settings>
+  <con:testStep type="groovy" name="DetermineExpirationDateOfMedicalDocumentation_MultiDocType" id="74bb61a6-e1c7-431d-9ab8-a9465ecf6fce">
+    <con:settings/>
+    <con:config>
+      <script>import jxl.*;
+import jxl.write.*
+import java.io.*
+import java.io.file.*
+import java.util.*
+import java.lang.*
+import jxl.read.biff.BiffException;
+import net.sf.*
+import net.sf.json.*
+import net.sf.json.groovy.*
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+import groovy.json.JsonBuilder
+import com.eviware.soapui.model.testsuite.TestStepResult.TestStepStatus
+import com.eviware.soapui.impl.wsdl.teststeps.RestTestRequestStep
+
+def groovyUtils = new com.eviware.soapui.support.GroovyUtils(context)
+def projectDir = groovyUtils.projectPath
+
+def inputfile =  projectDir + "/DetermineExpirationDateOfMedicalDocumentation/DetermineExpirationDateofMedicalDocumentation_Input.xls"
+def outputfile = projectDir + "/DetermineExpirationDateOfMedicalDocumentation/DetermineExpirationDateOfMedicalDocumentation_MultiDocType_Output.xls"
+
+//Creating workbook for reading value from Excel Sheet
+Workbook wb = Workbook.getWorkbook(new File(inputfile))
+Sheet sh = wb.getSheet("SingleLineItem-MultiDocType")
+Sheet jsonInput = wb.getSheet("JSON-MultiDocType")
+
+//reading data from input Excel sheet
+rc = sh.getRows();
+cc = sh.getColumns();
+Cell jreq = jsonInput.getCell(0,0)
+
+//Creating Workbook for writing value in Excel Sheet
+WritableWorkbook wb1= Workbook.createWorkbook(new File(outputfile));
+WritableSheet sheet1 = wb1.createSheet("ActualResults",0);
+
+//Header declaration for output file
+addCell(0,0,"Expected Results (medicalDocumentsResponse)",sheet1);
+
+addCell(0,1,"medDocID",sheet1);
+addCell(1,1,"physicianRestrictionLengthOfNeed",sheet1);
+addCell(2,1,"insuranceRestrictionLengthOfNeed",sheet1);
+addCell(3,1,"lengthOfNeed",sheet1);
+addCell(4,1,"expirationDate",sheet1);
+
+addCell(5,1,"medDocID1",sheet1);
+addCell(6,1,"physicianRestrictionLengthOfNeed1",sheet1);
+addCell(7,1,"insuranceRestrictionLengthOfNeed1",sheet1);
+addCell(8,1,"lengthOfNeed1",sheet1);
+addCell(9,1,"expirationDate1",sheet1);
+
+addCell(10,0,"PASS/FAIL",sheet1);
+addCell(11,0,"FAILED DUE TO",sheet1);
+
+//new testStepName
+def newTestStep=null
+
+//try {   
+               def req = jreq.getContents()
+               //Assigning request value dynamically
+               //request
+               def slurper = new JsonSlurper().parseText(req);
+               def requestTemplet = new JsonBuilder(slurper);
+         
+               for (i=3;i&lt;rc;i++){                                                                                      
+                           // Input for TestCaseName
+                         Cell varTestCaseName = sh.getCell(0,i)
+                        def TestCaseName = varTestCaseName.getContents()
+                                                        
+                                //Input for lineitem1                                
+                                requestTemplet.content.lineItems[0].lineItemID = sh.getCell(2,i).getContents().toString()
+                                requestTemplet.content.lineItems[0].medicalDocuments[0].medDocType = sh.getCell(3,i).getContents().toString()
+                                requestTemplet.content.lineItems[0].medicalDocuments[0].medDocID = sh.getCell(4,i).getContents().toString()
+	           			  requestTemplet.content.lineItems[0].medicalDocuments[0].startDate = sh.getCell(5,i).getContents().toString()
+                                requestTemplet.content.lineItems[0].medicalDocuments[0].endDate = sh.getCell(6,i).getContents().toString()
+                                requestTemplet.content.lineItems[0].medicalDocuments[0].lengthOfNeed = sh.getCell(7,i).getContents().toString()
+                                
+                                requestTemplet.content.lineItems[0].medicalDocuments[1].medDocType = sh.getCell(8,i).getContents().toString()
+                                requestTemplet.content.lineItems[0].medicalDocuments[1].medDocID = sh.getCell(9,i).getContents().toString()
+	           			  requestTemplet.content.lineItems[0].medicalDocuments[1].startDate = sh.getCell(10,i).getContents().toString()
+                                requestTemplet.content.lineItems[0].medicalDocuments[1].endDate = sh.getCell(11,i).getContents().toString()
+                                requestTemplet.content.lineItems[0].medicalDocuments[1].lengthOfNeed = sh.getCell(12,i).getContents().toString()
+                                
+	           			  requestTemplet.content.lineItems[0].overLimit = sh.getCell(13,i).getContents().toString()                                
+                                requestTemplet.content.lineItems[0].plans[0].planCode = sh.getCell(14,i).getContents().toString()
+                                requestTemplet.content.lineItems[0].plans[0].type = sh.getCell(15,i).getContents().toString()
+                                requestTemplet.content.lineItems[0].productCategory = sh.getCell(16,i).getContents().toString()
+	           			  requestTemplet.content.lineItems[0].productSubCategory1 = sh.getCell(17,i).getContents().toString()
+                                requestTemplet.content.lineItems[0].productSubCategory2 = sh.getCell(18,i).getContents().toString()
+	           			  requestTemplet.content.lineItems[0].productSubCategory3 = sh.getCell(19,i).getContents().toString()                          
+                                requestTemplet.content.lineItems[0].productSubCategory4 = sh.getCell(20,i).getContents().toString()  
+                                requestTemplet.content.physicianState = sh.getCell(21,i).getContents().toString()                   
+                                                      
+              	        //Assign json request to variable
+                       def jsonReqAsString = requestTemplet.toPrettyString()
+                       def restRequest = testRunner.testCase.getTestStepByName('JSON Request-MultiDocType');
+                       restRequest.setPropertyValue('Request',jsonReqAsString);
+
+                        //teststep cloned: Start
+                        def getTestCase = testRunner.testCase;
+                        def testst = testRunner.testCase.getTestStepByName("JSON Request-MultiDocType");                 
+                            newTestStep = TestCaseName
+                            cleanUp(newTestStep)
+                            getTestCase.cloneStep(restRequest,newTestStep)                             
+                         //teststep cloned: End
+                         
+                         //Executing the testcase
+                        testRunner.runTestStepByName(newTestStep)
+ 
+                         //retrive response         
+                       def ResponseMessage = testRunner.testCase.testSteps[newTestStep].testRequest.response.contentAsString
+                    
+                         //new JsonSlurper to parse and get the response in Json format
+                        def slurper1 = new JsonSlurper()
+                        def json = slurper1.parseText(ResponseMessage)
+                    
+
+                          //get response                                       
+                         //Check the existence of the array: lineitems
+
+
+                          if (json.medicalDocumentsResponse!= null)
+                         {
+		                       //initialize the cel postion for medDocID
+		                        int celmedDocID=0; 
+		                        int cmedDocID; 
+		                        	                        		
+			                 //Get the array size for lineItems
+                                for(int arrmedicalDocumentsResponse=0; arrmedicalDocumentsResponse&lt;json.medicalDocumentsResponse.size(); arrmedicalDocumentsResponse++)
+				                        	{	
+				                        		cmedDocID= celmedDocID
+				                        		
+			                               	addCell(cmedDocID,i,json.medicalDocumentsResponse[arrmedicalDocumentsResponse].medDocID.toString(),sheet1);
+			                               	cmedDocID=cmedDocID+1; 
+			                               	addCell(cmedDocID,i,json.medicalDocumentsResponse[arrmedicalDocumentsResponse].physicianRestrictionLengthOfNeed.toString(),sheet1);
+			                               	cmedDocID=cmedDocID+1; 
+			                               	addCell(cmedDocID,i,json.medicalDocumentsResponse[arrmedicalDocumentsResponse].insuranceRestrictionLengthOfNeed.toString(),sheet1);
+			                               	cmedDocID=cmedDocID+1; 
+			                               	addCell(cmedDocID,i,json.medicalDocumentsResponse[arrmedicalDocumentsResponse].lengthOfNeed.toString(),sheet1);
+			                               	cmedDocID=cmedDocID+1; 
+			                               	addCell(cmedDocID,i,json.medicalDocumentsResponse[arrmedicalDocumentsResponse].expirationDate.toString(),sheet1);
+			                               	cmedDocID=cmedDocID+1; 
+
+			                               	celmedDocID=celmedDocID+5;
+				                        	}
+				               	     						    						   							     
+		                 }       					                     
+
+          
+                      //dynamic asserstion :Start
+                   def testStepForAssertion = testRunner.testCase.getTestStepByName(newTestStep);
+                    //ValidHTTPStatusCodes 200 Assertion
+                  addAssertionValidHTTPStatusCodes(testStepForAssertion,"Valid HTTP Status Codes_"+i)
+            
+                          //get the expected values
+					 //check the existence of array medicalDocumentsResponse                         
+                          if (json.medicalDocumentsResponse != null)
+                        	 {
+                        	 	//initialize the cell postion used for assertion for medDocID
+		                         int AssForcelmedDocID=22; 
+		                         int AssFormedDocID;
+		                         
+		                         //Get the array size for medicalDocumentsResponse
+		                        for(int arrmedicalDocumentsResponse=0; arrmedicalDocumentsResponse&lt;json.medicalDocumentsResponse.size(); arrmedicalDocumentsResponse++)
+		                       		{ 
+		                        	
+		                        		AssFormedDocID=AssForcelmedDocID
+		                        				
+			                      			String medDocID = sh.getCell(AssFormedDocID,i).getContents().toString()
+			                     			addAssertionJsonPathMatch(testStepForAssertion,medDocID,"medicalDocumentsResponse["+arrmedicalDocumentsResponse+"].medDocID","medDocID")                       
+			                      			AssFormedDocID=AssFormedDocID+1
+
+                                                  String physicianRestrictionLengthOfNeed = sh.getCell(AssFormedDocID,i).getContents().toString()
+			                     			addAssertionJsonPathMatch(testStepForAssertion,physicianRestrictionLengthOfNeed,"medicalDocumentsResponse["+arrmedicalDocumentsResponse+"].physicianRestrictionLengthOfNeed","physicianRestrictionLengthOfNeed	")                       
+			                      			AssFormedDocID=AssFormedDocID+1
+
+                                                  String insuranceRestrictionLengthOfNeed = sh.getCell(AssFormedDocID,i).getContents().toString()
+			                     			addAssertionJsonPathMatch(testStepForAssertion,insuranceRestrictionLengthOfNeed,"medicalDocumentsResponse["+arrmedicalDocumentsResponse+"].insuranceRestrictionLengthOfNeed","insuranceRestrictionLengthOfNeed")                       
+			                      			AssFormedDocID=AssFormedDocID+1	
+
+			                      			String lengthOfNeed = sh.getCell(AssFormedDocID,i).getContents().toString()
+			                     			addAssertionJsonPathMatch(testStepForAssertion,lengthOfNeed,"medicalDocumentsResponse["+arrmedicalDocumentsResponse+"].lengthOfNeed","lengthOfNeed")                       
+			                      			AssFormedDocID=AssFormedDocID+1
+
+			                      			String expirationDate = sh.getCell(AssFormedDocID,i).getContents().toString()
+			                     			addAssertionJsonPathMatch(testStepForAssertion,expirationDate,"medicalDocumentsResponse["+arrmedicalDocumentsResponse+"].expirationDate","expirationDate")                       
+			                      			AssFormedDocID=AssFormedDocID+1  
+		                       		
+		                       		AssForcelmedDocID=AssForcelmedDocID+5; 
+		                       		}
+		                       							     					   							         					                     
+			              }  
+			                              						
+                                //dynamic asserstion :End
+                            assertionResult = testStepForAssertion.getAssertionStatus()
+             if(assertionResult.toString().equals("FAILED")){
+
+                                       addCell(10,i,"Fail",sheet1);
+                                   for( assertion in testStepForAssertion.assertionList ){
+                                  for( e in assertion.errors ){
+
+                                                     addCell(11,i,e.message,sheet1);
+
+                                                } 
+                                   }
+
+                                }
+
+                                else{
+                                   addCell(10,i,"PASS",sheet1);
+                               	 }
+ 
+  }
+
+      wb1.write();
+      log.info "TestCase Execution Completed successfully"
+          
+/*}
+     
+catch(Exception e)
+{
+
+       log.info(e)                         
+}
+
+finally
+
+{*/
+    //close workbook
+     wb.close();
+     wb1.close();   
+//}
+
+
+//Method code
+def addAssertionJsonPathMatch(RestTestRequestStep testStepForAssertion,String expectedContent,String xPath,String assertionName) {
+          def assertionType = testStepForAssertion.addAssertion("JsonPath Match")
+                                assertionType.name = assertionName
+                                assertionType.setPath(xPath)
+                                assertionType.setExpectedContent(expectedContent)
+                                assertionType.setAllowWildcards(true) 
+
+}
+
+//Method code
+def addAssertionValidHTTPStatusCodes(RestTestRequestStep testStepForAssertion,String assertionName) {
+
+         def StatusCodeAssertionxpath = testStepForAssertion.addAssertion("Valid HTTP Status Codes")
+             StatusCodeAssertionxpath.name = assertionName
+             StatusCodeAssertionxpath.codes=200
+										}
+
+//method to delete
+def cleanUp(String requestName){
+
+                //remove the teststep::Start
+                def testCase = testRunner.testCase
+                def testStep = testCase.getTestStepByName(requestName)
+
+                if (testStep!=null){ 
+                                    testCase.removeTestStep(testStep)
+               				 }
+
+//remove the teststep::End
+} 
+
+//method to add Cell to sheet1
+def addCell(int colmNum,int rowNum,String lblName,WritableSheet sheet1 ){
+                 Label header = new Label(colmNum,rowNum,lblName);
+                sheet1.addCell(header);             
+}</script>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="groovy" name="DetermineExpirationDateOfMedicalDocumentation_WithoutLON" id="2000c992-b41f-49f6-b7b4-83070538b2aa">
+    <con:settings/>
+    <con:config>
+      <script>import jxl.*;
+import jxl.write.*
+import java.io.*
+import java.io.file.*
+import java.util.*
+import java.lang.*
+import jxl.read.biff.BiffException;
+import net.sf.*
+import net.sf.json.*
+import net.sf.json.groovy.*
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+import groovy.json.JsonBuilder
+import com.eviware.soapui.model.testsuite.TestStepResult.TestStepStatus
+import com.eviware.soapui.impl.wsdl.teststeps.RestTestRequestStep
+
+def groovyUtils = new com.eviware.soapui.support.GroovyUtils(context)
+def projectDir = groovyUtils.projectPath
+
+def inputfile =  projectDir + "/DetermineExpirationDateOfMedicalDocumentation/DetermineExpirationDateofMedicalDocumentation_Input.xls"
+def outputfile = projectDir + "/DetermineExpirationDateOfMedicalDocumentation/DetermineExpirationDateOfMedicalDocumentation_WithoutLON_Output.xls"
+
+//Creating workbook for reading value from Excel Sheet
+Workbook wb = Workbook.getWorkbook(new File(inputfile))
+Sheet sh = wb.getSheet("WithoutLON")
+Sheet jsonInput = wb.getSheet("JSON-WithoutLON")
+
+//reading data from input Excel sheet
+rc = sh.getRows();
+cc = sh.getColumns();
+Cell jreq = jsonInput.getCell(0,0)
+
+//Creating Workbook for writing value in Excel Sheet
+WritableWorkbook wb1= Workbook.createWorkbook(new File(outputfile));
+WritableSheet sheet1 = wb1.createSheet("ActualResults",0);
+
+//Header declaration for output file
+addCell(0,0,"Expected Results (medicalDocumentsResponse)",sheet1);
+
+addCell(0,1,"medDocID",sheet1);
+addCell(1,1,"physicianRestrictionLengthOfNeed",sheet1);
+addCell(2,1,"insuranceRestrictionLengthOfNeed",sheet1);
+addCell(3,1,"lengthOfNeed",sheet1);
+addCell(4,1,"expirationDate",sheet1);
+
+addCell(5,0,"PASS/FAIL",sheet1);
+addCell(6,0,"FAILED DUE TO",sheet1);
+
+//new testStepName
+def newTestStep=null
+
+//try {   
+               def req = jreq.getContents()
+               //Assigning request value dynamically
+               //request
+               def slurper = new JsonSlurper().parseText(req);
+               def requestTemplet = new JsonBuilder(slurper);
+         
+               for (i=3;i&lt;rc;i++){                                                                                      
+                           // Input for TestCaseName
+                         Cell varTestCaseName = sh.getCell(0,i)
+                        def TestCaseName = varTestCaseName.getContents()
+                                                        
+                                //Input for lineitem1                                
+                                requestTemplet.content.lineItems[0].lineItemID = sh.getCell(2,i).getContents().toString()
+                                requestTemplet.content.lineItems[0].medicalDocuments[0].medDocType = sh.getCell(3,i).getContents().toString()
+                                requestTemplet.content.lineItems[0].medicalDocuments[0].medDocID = sh.getCell(4,i).getContents().toString()
+	           			  requestTemplet.content.lineItems[0].medicalDocuments[0].startDate = sh.getCell(5,i).getContents().toString()
+                                requestTemplet.content.lineItems[0].medicalDocuments[0].endDate = sh.getCell(6,i).getContents().toString()
+	           			  requestTemplet.content.lineItems[0].overLimit = sh.getCell(7,i).getContents().toString()                                
+                                requestTemplet.content.lineItems[0].plans[0].planCode = sh.getCell(8,i).getContents().toString()
+                                requestTemplet.content.lineItems[0].plans[0].type = sh.getCell(9,i).getContents().toString()
+                                requestTemplet.content.lineItems[0].productCategory = sh.getCell(10,i).getContents().toString()
+	           			  requestTemplet.content.lineItems[0].productSubCategory1 = sh.getCell(11,i).getContents().toString()
+                                requestTemplet.content.lineItems[0].productSubCategory2 = sh.getCell(12,i).getContents().toString()
+	           			  requestTemplet.content.lineItems[0].productSubCategory3 = sh.getCell(13,i).getContents().toString()                          
+                                requestTemplet.content.lineItems[0].productSubCategory4 = sh.getCell(14,i).getContents().toString()  
+                                requestTemplet.content.physicianState = sh.getCell(15,i).getContents().toString()                   
+                                                      
+              	        //Assign json request to variable
+                       def jsonReqAsString = requestTemplet.toPrettyString()
+                       def restRequest = testRunner.testCase.getTestStepByName('JSON Request-WithoutLON');
+                       restRequest.setPropertyValue('Request',jsonReqAsString);
+
+                        //teststep cloned: Start
+                        def getTestCase = testRunner.testCase;
+                        def testst = testRunner.testCase.getTestStepByName("JSON Request-WithoutLON");                 
+                            newTestStep = TestCaseName
+                            cleanUp(newTestStep)
+                            getTestCase.cloneStep(restRequest,newTestStep)                             
+                         //teststep cloned: End
+                         
+                         //Executing the testcase
+                        testRunner.runTestStepByName(newTestStep)
+ 
+                         //retrive response         
+                       def ResponseMessage = testRunner.testCase.testSteps[newTestStep].testRequest.response.contentAsString
+                    
+                         //new JsonSlurper to parse and get the response in Json format
+                        def slurper1 = new JsonSlurper()
+                        def json = slurper1.parseText(ResponseMessage)
+                    
+
+                          //get response                                       
+                         //Check the existence of the array: lineitems
+
+
+                          if (json.medicalDocumentsResponse!= null)
+                         {
+		                       //initialize the cel postion for medDocID 
+		                        int cmedDocID; 
+                                               
+			                               	addCell(cmedDocID,i,json.medicalDocumentsResponse[0].medDocID.toString(),sheet1);
+			                               	cmedDocID=cmedDocID+1; 
+			                               	addCell(cmedDocID,i,json.medicalDocumentsResponse[0].physicianRestrictionLengthOfNeed.toString(),sheet1);
+			                               	cmedDocID=cmedDocID+1; 
+			                               	addCell(cmedDocID,i,json.medicalDocumentsResponse[0].insuranceRestrictionLengthOfNeed.toString(),sheet1);
+			                               	cmedDocID=cmedDocID+1; 
+			                               	addCell(cmedDocID,i,json.medicalDocumentsResponse[0].lengthOfNeed.toString(),sheet1);
+			                               	cmedDocID=cmedDocID+1; 
+			                               	addCell(cmedDocID,i,json.medicalDocumentsResponse[0].expirationDate.toString(),sheet1);
+			                               	cmedDocID=cmedDocID+1; 
+			                         	     						    						   							     
+		                 }       					                     
+
+          
+                      //dynamic asserstion :Start
+                   def testStepForAssertion = testRunner.testCase.getTestStepByName(newTestStep);
+                    //ValidHTTPStatusCodes 200 Assertion
+                  addAssertionValidHTTPStatusCodes(testStepForAssertion,"Valid HTTP Status Codes_"+i)
+            
+                          //get the expected values
+					 //check the existence of array medicalDocumentsResponse                         
+                          if (json.medicalDocumentsResponse != null)
+                        	 {
+                        	 	//initialize the cell postion used for assertion for medDocID
+		                         int AssForcelmedDocID=16; 
+		                         int AssFormedDocID;
+		                         
+		                        		AssFormedDocID=AssForcelmedDocID
+		                        				
+			                      			String medDocID = sh.getCell(AssFormedDocID,i).getContents().toString()
+			                     			addAssertionJsonPathMatch(testStepForAssertion,medDocID,"medicalDocumentsResponse[0].medDocID","medDocID")                       
+			                      			AssFormedDocID=AssFormedDocID+1
+
+                                                  String physicianRestrictionLengthOfNeed = sh.getCell(AssFormedDocID,i).getContents().toString()
+			                     			addAssertionJsonPathMatch(testStepForAssertion,physicianRestrictionLengthOfNeed,"medicalDocumentsResponse[0].physicianRestrictionLengthOfNeed","physicianRestrictionLengthOfNeed	")                       
+			                      			AssFormedDocID=AssFormedDocID+1
+
+                                                  String insuranceRestrictionLengthOfNeed = sh.getCell(AssFormedDocID,i).getContents().toString()
+			                     			addAssertionJsonPathMatch(testStepForAssertion,insuranceRestrictionLengthOfNeed,"medicalDocumentsResponse[0].insuranceRestrictionLengthOfNeed","insuranceRestrictionLengthOfNeed")                       
+			                      			AssFormedDocID=AssFormedDocID+1	
+
+			                      			/*String lengthOfNeed = sh.getCell(AssFormedDocID,i).getContents().toString()
+			                     			addAssertionJsonPathMatch(testStepForAssertion,lengthOfNeed,"medicalDocumentsResponse[0].lengthOfNeed","lengthOfNeed")                       
+			                      			AssFormedDocID=AssFormedDocID+1*/
+
+			                      			String expirationDate = sh.getCell(AssFormedDocID,i).getContents().toString()
+			                     			addAssertionJsonPathMatch(testStepForAssertion,expirationDate,"medicalDocumentsResponse[0].expirationDate","expirationDate")                       
+			                      			AssFormedDocID=AssFormedDocID+1   
+     							     					   							         					                     
+			              }  
+			                              						
+                                //dynamic asserstion :End
+                            assertionResult = testStepForAssertion.getAssertionStatus()
+             if(assertionResult.toString().equals("FAILED")){
+
+                                       addCell(5,i,"Fail",sheet1);
+                                   for( assertion in testStepForAssertion.assertionList ){
+                                  for( e in assertion.errors ){
+
+                                                     addCell(6,i,e.message,sheet1);
+
+                                                } 
+                                   }
+
+                                }
+
+                                else{
+                                   addCell(5,i,"PASS",sheet1);
+                               	 }
+ 
+  }
+
+      wb1.write();
+      log.info "TestCase Execution Completed successfully"
+          
+/*}
+     
+catch(Exception e)
+{
+
+       log.info(e)                         
+}
+
+finally
+
+{*/
+    //close workbook
+     wb.close();
+     wb1.close();   
+//}
+
+
+//Method code
+def addAssertionJsonPathMatch(RestTestRequestStep testStepForAssertion,String expectedContent,String xPath,String assertionName) {
+          def assertionType = testStepForAssertion.addAssertion("JsonPath Match")
+                                assertionType.name = assertionName
+                                assertionType.setPath(xPath)
+                                assertionType.setExpectedContent(expectedContent)
+                                assertionType.setAllowWildcards(true) 
+
+}
+
+//Method code
+def addAssertionValidHTTPStatusCodes(RestTestRequestStep testStepForAssertion,String assertionName) {
+
+         def StatusCodeAssertionxpath = testStepForAssertion.addAssertion("Valid HTTP Status Codes")
+             StatusCodeAssertionxpath.name = assertionName
+             StatusCodeAssertionxpath.codes=200
+										}
+
+//method to delete
+def cleanUp(String requestName){
+
+                //remove the teststep::Start
+                def testCase = testRunner.testCase
+                def testStep = testCase.getTestStepByName(requestName)
+
+                if (testStep!=null){ 
+                                    testCase.removeTestStep(testStep)
+               				 }
+
+//remove the teststep::End
+} 
+
+//method to add Cell to sheet1
+def addCell(int colmNum,int rowNum,String lblName,WritableSheet sheet1 ){
+                 Label header = new Label(colmNum,rowNum,lblName);
+                sheet1.addCell(header);             
+}</script>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="groovy" name="DetermineExpirationDateOfMedicalDocumentation_MultiLineItem" id="459a0e65-b293-41ed-a8a2-6bc44d6e65b5">
+    <con:settings/>
+    <con:config>
+      <script>import jxl.*;
+import jxl.write.*
+import java.io.*
+import java.io.file.*
+import java.util.*
+import java.lang.*
+import jxl.read.biff.BiffException;
+import net.sf.*
+import net.sf.json.*
+import net.sf.json.groovy.*
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+import groovy.json.JsonBuilder
+import com.eviware.soapui.model.testsuite.TestStepResult.TestStepStatus
+import com.eviware.soapui.impl.wsdl.teststeps.RestTestRequestStep
+
+def groovyUtils = new com.eviware.soapui.support.GroovyUtils(context)
+def projectDir = groovyUtils.projectPath
+
+def inputfile =  projectDir + "/DetermineExpirationDateOfMedicalDocumentation/DetermineExpirationDateofMedicalDocumentation_Input.xls"
+def outputfile = projectDir + "/DetermineExpirationDateOfMedicalDocumentation/DetermineExpirationDateOfMedicalDocumentation_MultiLineItem_Output.xls"
+
+//Creating workbook for reading value from Excel Sheet
+Workbook wb = Workbook.getWorkbook(new File(inputfile))
+Sheet sh = wb.getSheet("MultiLineItem")
+Sheet jsonInput = wb.getSheet("JSON-MultiLineItem")
+
+//reading data from input Excel sheet
+rc = sh.getRows();
+cc = sh.getColumns();
+Cell jreq = jsonInput.getCell(0,0)
+
+//Creating Workbook for writing value in Excel Sheet
+WritableWorkbook wb1= Workbook.createWorkbook(new File(outputfile));
+WritableSheet sheet1 = wb1.createSheet("ActualResults",0);
+
+//Header declaration for output file
+addCell(0,0,"Expected Results (medicalDocumentsResponse)",sheet1);
+
+addCell(0,1,"medDocID",sheet1);
+addCell(1,1,"physicianRestrictionLengthOfNeed",sheet1);
+addCell(2,1,"insuranceRestrictionLengthOfNeed",sheet1);
+addCell(3,1,"lengthOfNeed",sheet1);
+addCell(4,1,"expirationDate",sheet1);
+
+addCell(5,1,"medDocID1",sheet1);
+addCell(6,1,"physicianRestrictionLengthOfNeed1",sheet1);
+addCell(7,1,"insuranceRestrictionLengthOfNeed1",sheet1);
+addCell(8,1,"lengthOfNeed1",sheet1);
+addCell(9,1,"expirationDate1",sheet1);
+
+addCell(10,0,"PASS/FAIL",sheet1);
+addCell(11,0,"FAILED DUE TO",sheet1);
+
+//new testStepName
+def newTestStep=null
+
+//try {   
+               def req = jreq.getContents()
+               //Assigning request value dynamically
+               //request
+               def slurper = new JsonSlurper().parseText(req);
+               def requestTemplet = new JsonBuilder(slurper);
+         
+               for (i=3;i&lt;rc;i++){                                                                                      
+                           // Input for TestCaseName
+                         Cell varTestCaseName = sh.getCell(0,i)
+                        def TestCaseName = varTestCaseName.getContents()
+                                                        
+                                //Input for lineitem1                                
+                                requestTemplet.content.lineItems[0].lineItemID = sh.getCell(2,i).getContents().toString()
+                                requestTemplet.content.lineItems[0].medicalDocuments[0].medDocType = sh.getCell(3,i).getContents().toString()
+                                requestTemplet.content.lineItems[0].medicalDocuments[0].medDocID = sh.getCell(4,i).getContents().toString()
+	           			  requestTemplet.content.lineItems[0].medicalDocuments[0].startDate = sh.getCell(5,i).getContents().toString()
+                                requestTemplet.content.lineItems[0].medicalDocuments[0].endDate = sh.getCell(6,i).getContents().toString()
+                                requestTemplet.content.lineItems[0].medicalDocuments[0].lengthOfNeed = sh.getCell(7,i).getContents().toString()
+                                requestTemplet.content.lineItems[0].overLimit = sh.getCell(8,i).getContents().toString()                                
+                                requestTemplet.content.lineItems[0].plans[0].planCode = sh.getCell(9,i).getContents().toString()
+                                requestTemplet.content.lineItems[0].plans[0].type = sh.getCell(10,i).getContents().toString()
+                                requestTemplet.content.lineItems[0].productCategory = sh.getCell(11,i).getContents().toString()
+	           			  requestTemplet.content.lineItems[0].productSubCategory1 = sh.getCell(12,i).getContents().toString()
+                                requestTemplet.content.lineItems[0].productSubCategory2 = sh.getCell(13,i).getContents().toString()
+	           			  requestTemplet.content.lineItems[0].productSubCategory3 = sh.getCell(14,i).getContents().toString()                          
+                                requestTemplet.content.lineItems[0].productSubCategory4 = sh.getCell(15,i).getContents().toString()  
+                                //requestTemplet.content.physicianState = sh.getCell(16,i).getContents().toString()    
+                                
+                                requestTemplet.content.lineItems[1].lineItemID = sh.getCell(16,i).getContents().toString()
+                                requestTemplet.content.lineItems[1].medicalDocuments[0].medDocType = sh.getCell(17,i).getContents().toString()
+                                requestTemplet.content.lineItems[1].medicalDocuments[0].medDocID = sh.getCell(18,i).getContents().toString()
+	           			  requestTemplet.content.lineItems[1].medicalDocuments[0].startDate = sh.getCell(19,i).getContents().toString()
+                                requestTemplet.content.lineItems[1].medicalDocuments[0].endDate = sh.getCell(20,i).getContents().toString()
+                                requestTemplet.content.lineItems[1].medicalDocuments[0].lengthOfNeed = sh.getCell(21,i).getContents().toString()
+                                requestTemplet.content.lineItems[1].overLimit = sh.getCell(22,i).getContents().toString()                                
+                                requestTemplet.content.lineItems[1].plans[0].planCode = sh.getCell(23,i).getContents().toString()
+                                requestTemplet.content.lineItems[1].plans[0].type = sh.getCell(24,i).getContents().toString()
+                                requestTemplet.content.lineItems[1].productCategory = sh.getCell(25,i).getContents().toString()
+	           			  requestTemplet.content.lineItems[1].productSubCategory1 = sh.getCell(26,i).getContents().toString()
+                                requestTemplet.content.lineItems[1].productSubCategory2 = sh.getCell(27,i).getContents().toString()
+	           			  requestTemplet.content.lineItems[1].productSubCategory3 = sh.getCell(28,i).getContents().toString()                          
+                                requestTemplet.content.lineItems[1].productSubCategory4 = sh.getCell(29,i).getContents().toString()  
+                                requestTemplet.content.physicianState = sh.getCell(30,i).getContents().toString()                
+                                                      
+              	        //Assign json request to variable
+                       def jsonReqAsString = requestTemplet.toPrettyString()
+                       def restRequest = testRunner.testCase.getTestStepByName('JSON Request-MultiLineItem');
+                       restRequest.setPropertyValue('Request',jsonReqAsString);
+
+                        //teststep cloned: Start
+                        def getTestCase = testRunner.testCase;
+                        def testst = testRunner.testCase.getTestStepByName("JSON Request-MultiLineItem");                 
+                            newTestStep = TestCaseName
+                            cleanUp(newTestStep)
+                            getTestCase.cloneStep(restRequest,newTestStep)                             
+                         //teststep cloned: End
+                         
+                         //Executing the testcase
+                        testRunner.runTestStepByName(newTestStep)
+ 
+                         //retrive response         
+                       def ResponseMessage = testRunner.testCase.testSteps[newTestStep].testRequest.response.contentAsString
+                    
+                         //new JsonSlurper to parse and get the response in Json format
+                        def slurper1 = new JsonSlurper()
+                        def json = slurper1.parseText(ResponseMessage)
+                    
+
+                          //get response                                       
+                         //Check the existence of the array: lineitems
+
+
+                          if (json.medicalDocumentsResponse!= null)
+                         {
+		                       //initialize the cel postion for medDocID
+		                        int celmedDocID=0; 
+		                        int cmedDocID; 
+		                        	                        		
+			                 //Get the array size for lineItems
+                                for(int arrmedicalDocumentsResponse=0; arrmedicalDocumentsResponse&lt;json.medicalDocumentsResponse.size(); arrmedicalDocumentsResponse++)
+				                        	{	
+				                        		cmedDocID= celmedDocID
+				                        		
+			                               	addCell(cmedDocID,i,json.medicalDocumentsResponse[arrmedicalDocumentsResponse].medDocID.toString(),sheet1);
+			                               	cmedDocID=cmedDocID+1; 
+			                               	addCell(cmedDocID,i,json.medicalDocumentsResponse[arrmedicalDocumentsResponse].physicianRestrictionLengthOfNeed.toString(),sheet1);
+			                               	cmedDocID=cmedDocID+1; 
+			                               	addCell(cmedDocID,i,json.medicalDocumentsResponse[arrmedicalDocumentsResponse].insuranceRestrictionLengthOfNeed.toString(),sheet1);
+			                               	cmedDocID=cmedDocID+1; 
+			                               	addCell(cmedDocID,i,json.medicalDocumentsResponse[arrmedicalDocumentsResponse].lengthOfNeed.toString(),sheet1);
+			                               	cmedDocID=cmedDocID+1; 
+			                               	addCell(cmedDocID,i,json.medicalDocumentsResponse[arrmedicalDocumentsResponse].expirationDate.toString(),sheet1);
+			                               	cmedDocID=cmedDocID+1; 
+
+			                               	celmedDocID=celmedDocID+5;
+				                        	}
+				               	     						    						   							     
+		                 }       					                     
+
+          
+                      //dynamic asserstion :Start
+                   def testStepForAssertion = testRunner.testCase.getTestStepByName(newTestStep);
+                    //ValidHTTPStatusCodes 200 Assertion
+                  addAssertionValidHTTPStatusCodes(testStepForAssertion,"Valid HTTP Status Codes_"+i)
+            
+                          //get the expected values
+					 //check the existence of array medicalDocumentsResponse                         
+                          if (json.medicalDocumentsResponse != null)
+                        	 {
+                        	 	//initialize the cell postion used for assertion for medDocID
+		                         int AssForcelmedDocID=31; 
+		                         int AssFormedDocID;
+		                         
+		                         //Get the array size for medicalDocumentsResponse
+		                        for(int arrmedicalDocumentsResponse=0; arrmedicalDocumentsResponse&lt;json.medicalDocumentsResponse.size(); arrmedicalDocumentsResponse++)
+		                       		{ 
+		                        	
+		                        		AssFormedDocID=AssForcelmedDocID
+		                        				
+			                      			String medDocID = sh.getCell(AssFormedDocID,i).getContents().toString()
+			                     			addAssertionJsonPathMatch(testStepForAssertion,medDocID,"medicalDocumentsResponse["+arrmedicalDocumentsResponse+"].medDocID","medDocID")                       
+			                      			AssFormedDocID=AssFormedDocID+1
+
+                                                  String physicianRestrictionLengthOfNeed = sh.getCell(AssFormedDocID,i).getContents().toString()
+			                     			addAssertionJsonPathMatch(testStepForAssertion,physicianRestrictionLengthOfNeed,"medicalDocumentsResponse["+arrmedicalDocumentsResponse+"].physicianRestrictionLengthOfNeed","physicianRestrictionLengthOfNeed	")                       
+			                      			AssFormedDocID=AssFormedDocID+1
+
+                                                  String insuranceRestrictionLengthOfNeed = sh.getCell(AssFormedDocID,i).getContents().toString()
+			                     			addAssertionJsonPathMatch(testStepForAssertion,insuranceRestrictionLengthOfNeed,"medicalDocumentsResponse["+arrmedicalDocumentsResponse+"].insuranceRestrictionLengthOfNeed","insuranceRestrictionLengthOfNeed")                       
+			                      			AssFormedDocID=AssFormedDocID+1	
+
+			                      			String lengthOfNeed = sh.getCell(AssFormedDocID,i).getContents().toString()
+			                     			addAssertionJsonPathMatch(testStepForAssertion,lengthOfNeed,"medicalDocumentsResponse["+arrmedicalDocumentsResponse+"].lengthOfNeed","lengthOfNeed")                       
+			                      			AssFormedDocID=AssFormedDocID+1
+
+			                      			String expirationDate = sh.getCell(AssFormedDocID,i).getContents().toString()
+			                     			addAssertionJsonPathMatch(testStepForAssertion,expirationDate,"medicalDocumentsResponse["+arrmedicalDocumentsResponse+"].expirationDate","expirationDate")                       
+			                      			AssFormedDocID=AssFormedDocID+1  
+		                       		
+		                       		AssForcelmedDocID=AssForcelmedDocID+5; 
+		                       		}
+		                       							     					   							         					                     
+			              }  
+			                              						
+                                //dynamic asserstion :End
+                            assertionResult = testStepForAssertion.getAssertionStatus()
+             if(assertionResult.toString().equals("FAILED")){
+
+                                       addCell(10,i,"Fail",sheet1);
+                                   for( assertion in testStepForAssertion.assertionList ){
+                                  for( e in assertion.errors ){
+
+                                                     addCell(11,i,e.message,sheet1);
+
+                                                } 
+                                   }
+
+                                }
+
+                                else{
+                                   addCell(10,i,"PASS",sheet1);
+                               	 }
+ 
+  }
+
+      wb1.write();
+      log.info "TestCase Execution Completed successfully"
+          
+/*}
+     
+catch(Exception e)
+{
+
+       log.info(e)                         
+}
+
+finally
+
+{*/
+    //close workbook
+     wb.close();
+     wb1.close();   
+//}
+
+
+//Method code
+def addAssertionJsonPathMatch(RestTestRequestStep testStepForAssertion,String expectedContent,String xPath,String assertionName) {
+          def assertionType = testStepForAssertion.addAssertion("JsonPath Match")
+                                assertionType.name = assertionName
+                                assertionType.setPath(xPath)
+                                assertionType.setExpectedContent(expectedContent)
+                                assertionType.setAllowWildcards(true) 
+
+}
+
+//Method code
+def addAssertionValidHTTPStatusCodes(RestTestRequestStep testStepForAssertion,String assertionName) {
+
+         def StatusCodeAssertionxpath = testStepForAssertion.addAssertion("Valid HTTP Status Codes")
+             StatusCodeAssertionxpath.name = assertionName
+             StatusCodeAssertionxpath.codes=200
+										}
+
+//method to delete
+def cleanUp(String requestName){
+
+                //remove the teststep::Start
+                def testCase = testRunner.testCase
+                def testStep = testCase.getTestStepByName(requestName)
+
+                if (testStep!=null){ 
+                                    testCase.removeTestStep(testStep)
+               				 }
+
+//remove the teststep::End
+} 
+
+//method to add Cell to sheet1
+def addCell(int colmNum,int rowNum,String lblName,WritableSheet sheet1 ){
+                 Label header = new Label(colmNum,rowNum,lblName);
+                sheet1.addCell(header);             
+}</script>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="groovy" name="DetermineExpirationDateOfMedicalDocumentation_SingleLineItem" id="53dc767a-a198-4168-bb23-d7716cfb23e9">
+    <con:settings/>
+    <con:config>
+      <script>import jxl.*;
+import jxl.write.*
+import java.io.*
+import java.io.file.*
+import java.util.*
+import java.lang.*
+import jxl.read.biff.BiffException;
+import net.sf.*
+import net.sf.json.*
+import net.sf.json.groovy.*
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+import groovy.json.JsonBuilder
+import com.eviware.soapui.model.testsuite.TestStepResult.TestStepStatus
+import com.eviware.soapui.impl.wsdl.teststeps.RestTestRequestStep
+
+def groovyUtils = new com.eviware.soapui.support.GroovyUtils(context)
+def projectDir = groovyUtils.projectPath
+
+def inputfile =  projectDir + "/DetermineExpirationDateOfMedicalDocumentation/DetermineExpirationDateofMedicalDocumentation_Input.xls"
+def outputfile = projectDir + "/DetermineExpirationDateOfMedicalDocumentation/DetermineExpirationDateOfMedicalDocumentation_SingleLineItem_Output.xls"
+
+//Creating workbook for reading value from Excel Sheet
+Workbook wb = Workbook.getWorkbook(new File(inputfile))
+Sheet sh = wb.getSheet("SingleLineItem-SingleDocType")
+Sheet jsonInput = wb.getSheet("JSON-SingleLineItem")
+
+//reading data from input Excel sheet
+rc = sh.getRows();
+cc = sh.getColumns();
+Cell jreq = jsonInput.getCell(0,0)
+
+//Creating Workbook for writing value in Excel Sheet
+WritableWorkbook wb1= Workbook.createWorkbook(new File(outputfile));
+WritableSheet sheet1 = wb1.createSheet("ActualResults",0);
+
+//Header declaration for output file
+addCell(0,0,"Expected Results (medicalDocumentsResponse)",sheet1);
+
+addCell(0,1,"medDocID",sheet1);
+addCell(1,1,"physicianRestrictionLengthOfNeed",sheet1);
+addCell(2,1,"insuranceRestrictionLengthOfNeed",sheet1);
+addCell(3,1,"lengthOfNeed",sheet1);
+addCell(4,1,"expirationDate",sheet1);
+
+addCell(5,0,"PASS/FAIL",sheet1);
+addCell(6,0,"FAILED DUE TO",sheet1);
+
+//new testStepName
+def newTestStep=null
+
+//try {   
+               def req = jreq.getContents()
+               //Assigning request value dynamically
+               //request
+               def slurper = new JsonSlurper().parseText(req);
+               def requestTemplet = new JsonBuilder(slurper);
+         
+               for (i=3;i&lt;rc;i++){                                                                                      
+                           // Input for TestCaseName
+                         Cell varTestCaseName = sh.getCell(0,i)
+                        def TestCaseName = varTestCaseName.getContents()
+                                                        
+                                //Input for lineitem1                                
+                                requestTemplet.content.lineItems[0].lineItemID = sh.getCell(2,i).getContents().toString()
+                                requestTemplet.content.lineItems[0].medicalDocuments[0].medDocType = sh.getCell(3,i).getContents().toString()
+                                requestTemplet.content.lineItems[0].medicalDocuments[0].medDocID = sh.getCell(4,i).getContents().toString()
+	           			  requestTemplet.content.lineItems[0].medicalDocuments[0].startDate = sh.getCell(5,i).getContents().toString()
+                                requestTemplet.content.lineItems[0].medicalDocuments[0].endDate = sh.getCell(6,i).getContents().toString()
+                                requestTemplet.content.lineItems[0].medicalDocuments[0].lengthOfNeed = sh.getCell(7,i).getContents().toString()
+	           			  requestTemplet.content.lineItems[0].overLimit = sh.getCell(8,i).getContents().toString()                                
+                                requestTemplet.content.lineItems[0].plans[0].planCode = sh.getCell(9,i).getContents().toString()
+                                requestTemplet.content.lineItems[0].plans[0].type = sh.getCell(10,i).getContents().toString()
+                                requestTemplet.content.lineItems[0].productCategory = sh.getCell(11,i).getContents().toString()
+	           			  requestTemplet.content.lineItems[0].productSubCategory1 = sh.getCell(12,i).getContents().toString()
+                                requestTemplet.content.lineItems[0].productSubCategory2 = sh.getCell(13,i).getContents().toString()
+	           			  requestTemplet.content.lineItems[0].productSubCategory3 = sh.getCell(14,i).getContents().toString()                          
+                                requestTemplet.content.lineItems[0].productSubCategory4 = sh.getCell(15,i).getContents().toString()  
+                                requestTemplet.content.physicianState = sh.getCell(16,i).getContents().toString()                   
+                                                      
+              	        //Assign json request to variable
+                       def jsonReqAsString = requestTemplet.toPrettyString()
+                       def restRequest = testRunner.testCase.getTestStepByName('JSON Request-SingleLineItem');
+                       restRequest.setPropertyValue('Request',jsonReqAsString);
+
+                        //teststep cloned: Start
+                        def getTestCase = testRunner.testCase;
+                        def testst = testRunner.testCase.getTestStepByName("JSON Request-SingleLineItem");                 
+                            newTestStep = TestCaseName
+                            cleanUp(newTestStep)
+                            getTestCase.cloneStep(restRequest,newTestStep)                             
+                         //teststep cloned: End
+                         
+                         //Executing the testcase
+                        testRunner.runTestStepByName(newTestStep)
+ 
+                         //retrive response         
+                       def ResponseMessage = testRunner.testCase.testSteps[newTestStep].testRequest.response.contentAsString
+                    
+                         //new JsonSlurper to parse and get the response in Json format
+                        def slurper1 = new JsonSlurper()
+                        def json = slurper1.parseText(ResponseMessage)
+                    
+
+                          //get response                                       
+                         //Check the existence of the array: lineitems
+
+
+                          if (json.medicalDocumentsResponse!= null)
+                         {
+		                       //initialize the cel postion for medDocID 
+		                        int cmedDocID; 
+                                               
+			                               	addCell(cmedDocID,i,json.medicalDocumentsResponse[0].medDocID.toString(),sheet1);
+			                               	cmedDocID=cmedDocID+1; 
+			                               	addCell(cmedDocID,i,json.medicalDocumentsResponse[0].physicianRestrictionLengthOfNeed.toString(),sheet1);
+			                               	cmedDocID=cmedDocID+1; 
+			                               	addCell(cmedDocID,i,json.medicalDocumentsResponse[0].insuranceRestrictionLengthOfNeed.toString(),sheet1);
+			                               	cmedDocID=cmedDocID+1; 
+			                               	addCell(cmedDocID,i,json.medicalDocumentsResponse[0].lengthOfNeed.toString(),sheet1);
+			                               	cmedDocID=cmedDocID+1; 
+			                               	addCell(cmedDocID,i,json.medicalDocumentsResponse[0].expirationDate.toString(),sheet1);
+			                               	cmedDocID=cmedDocID+1; 
+			                         	     						    						   							     
+		                 }       					                     
+
+          
+                      //dynamic asserstion :Start
+                   def testStepForAssertion = testRunner.testCase.getTestStepByName(newTestStep);
+                    //ValidHTTPStatusCodes 200 Assertion
+                  addAssertionValidHTTPStatusCodes(testStepForAssertion,"Valid HTTP Status Codes_"+i)
+            
+                          //get the expected values
+					 //check the existence of array medicalDocumentsResponse                         
+                          if (json.medicalDocumentsResponse != null)
+                        	 {
+                        	 	//initialize the cell postion used for assertion for medDocID
+		                         int AssForcelmedDocID=17; 
+		                         int AssFormedDocID;
+		                         
+		                        		AssFormedDocID=AssForcelmedDocID
+		                        				
+			                      			String medDocID = sh.getCell(AssFormedDocID,i).getContents().toString()
+			                     			addAssertionJsonPathMatch(testStepForAssertion,medDocID,"medicalDocumentsResponse[0].medDocID","medDocID")                       
+			                      			AssFormedDocID=AssFormedDocID+1
+
+                                                  String physicianRestrictionLengthOfNeed = sh.getCell(AssFormedDocID,i).getContents().toString()
+			                     			addAssertionJsonPathMatch(testStepForAssertion,physicianRestrictionLengthOfNeed,"medicalDocumentsResponse[0].physicianRestrictionLengthOfNeed","physicianRestrictionLengthOfNeed	")                       
+			                      			AssFormedDocID=AssFormedDocID+1
+
+                                                  String insuranceRestrictionLengthOfNeed = sh.getCell(AssFormedDocID,i).getContents().toString()
+			                     			addAssertionJsonPathMatch(testStepForAssertion,insuranceRestrictionLengthOfNeed,"medicalDocumentsResponse[0].insuranceRestrictionLengthOfNeed","insuranceRestrictionLengthOfNeed")                       
+			                      			AssFormedDocID=AssFormedDocID+1	
+
+			                      			String lengthOfNeed = sh.getCell(AssFormedDocID,i).getContents().toString()
+			                     			addAssertionJsonPathMatch(testStepForAssertion,lengthOfNeed,"medicalDocumentsResponse[0].lengthOfNeed","lengthOfNeed")                       
+			                      			AssFormedDocID=AssFormedDocID+1
+
+			                      			String expirationDate = sh.getCell(AssFormedDocID,i).getContents().toString()
+			                     			addAssertionJsonPathMatch(testStepForAssertion,expirationDate,"medicalDocumentsResponse[0].expirationDate","expirationDate")                       
+			                      			AssFormedDocID=AssFormedDocID+1   
+     							     					   							         					                     
+			              }  
+			                              						
+                                //dynamic asserstion :End
+                            assertionResult = testStepForAssertion.getAssertionStatus()
+             if(assertionResult.toString().equals("FAILED")){
+
+                                       addCell(5,i,"Fail",sheet1);
+                                   for( assertion in testStepForAssertion.assertionList ){
+                                  for( e in assertion.errors ){
+
+                                                     addCell(6,i,e.message,sheet1);
+
+                                                } 
+                                   }
+
+                                }
+
+                                else{
+                                   addCell(5,i,"PASS",sheet1);
+                               	 }
+ 
+  }
+
+      wb1.write();
+      log.info "TestCase Execution Completed successfully"
+          
+/*}
+     
+catch(Exception e)
+{
+
+       log.info(e)                         
+}
+
+finally
+
+{*/
+    //close workbook
+     wb.close();
+     wb1.close();   
+//}
+
+
+//Method code
+def addAssertionJsonPathMatch(RestTestRequestStep testStepForAssertion,String expectedContent,String xPath,String assertionName) {
+          def assertionType = testStepForAssertion.addAssertion("JsonPath Match")
+                                assertionType.name = assertionName
+                                assertionType.setPath(xPath)
+                                assertionType.setExpectedContent(expectedContent)
+                                assertionType.setAllowWildcards(true) 
+
+}
+
+//Method code
+def addAssertionValidHTTPStatusCodes(RestTestRequestStep testStepForAssertion,String assertionName) {
+
+         def StatusCodeAssertionxpath = testStepForAssertion.addAssertion("Valid HTTP Status Codes")
+             StatusCodeAssertionxpath.name = assertionName
+             StatusCodeAssertionxpath.codes=200
+										}
+
+//method to delete
+def cleanUp(String requestName){
+
+                //remove the teststep::Start
+                def testCase = testRunner.testCase
+                def testStep = testCase.getTestStepByName(requestName)
+
+                if (testStep!=null){ 
+                                    testCase.removeTestStep(testStep)
+               				 }
+
+//remove the teststep::End
+} 
+
+//method to add Cell to sheet1
+def addCell(int colmNum,int rowNum,String lblName,WritableSheet sheet1 ){
+                 Label header = new Label(colmNum,rowNum,lblName);
+                sheet1.addCell(header);             
+}</script>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="JSON Request-SingleLineItem" id="5e9fdf4b-0e41-41c2-b973-885e5da7c393">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineExpirationDateOfMedicalDocumentation/DetermineExpirationDateOfMedicalDocumentation/WADL" methodName="DetermineExpirationDateOfMedicalDocumentation" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="JSON Request-SingleLineItem" id="dd3ce318-ea40-4501-a50b-ad4e774e4145" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "ABC",
+            "correlationID": "c123",
+            "from": "PCF",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "medicalDocuments": [
+                {
+                    "endDate": "2021-02-04",
+                    "lengthOfNeed": "2",
+                    "medDocID": "M001",
+                    "medDocType": "1",
+                    "startDate": ""
+                }
+            ],
+            "overLimit": "true",
+            "plans": [
+                {
+                    "planCode": "5001",
+                    "type": ""
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": "Insulin Pumps",
+            "productSubCategory3": "",
+            "productSubCategory4": ""
+        }
+    ],
+    "physicianState": "IA"
+}</con:request>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="JSON Request-MultiLineItem" id="04be3edb-8545-43b0-9d19-d32011c7ef4a">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineExpirationDateOfMedicalDocumentation/DetermineExpirationDateOfMedicalDocumentation/WADL" methodName="DetermineExpirationDateOfMedicalDocumentation" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="JSON Request-MultiLineItem" id="b8fb76b2-b393-42cc-893c-7c02e19c43fa" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "ABC",
+            "correlationID": "c123",
+            "from": "PCF",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "medicalDocuments": [
+                {
+                    "endDate": "2020-09-10",
+                    "lengthOfNeed": "2",
+                    "medDocID": "M001",
+                    "medDocType": "4",
+                    "startDate": "2020-07-10"
+                }
+            ],
+            "overLimit": "",
+            "plans": [
+                {
+                    "planCode": "",
+                    "type": ""
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": "",
+            "productSubCategory3": "",
+            "productSubCategory4": ""
+        },
+        {
+            "lineItemID": "L002",
+            "medicalDocuments": [
+                {
+                    "endDate": "2021-03-02",
+                    "lengthOfNeed": "5",
+                    "medDocID": "M002",
+                    "medDocType": "1",
+                    "startDate": "2021-02-01"
+                }
+            ],
+            "overLimit": "",
+            "plans": [
+                {
+                    "planCode": "1907",
+                    "type": ""
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": "Insulin Pump Supplies",
+            "productSubCategory3": "",
+            "productSubCategory4": ""
+        }
+    ],
+    "physicianState": ""
+}</con:request>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="JSON Request-WithoutLON" id="2871f690-9e65-4760-a416-856a967c96d0">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineExpirationDateOfMedicalDocumentation/DetermineExpirationDateOfMedicalDocumentation/WADL" methodName="DetermineExpirationDateOfMedicalDocumentation" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="JSON Request-WithoutLON" id="85250bb0-9b49-45fe-baca-57fb3130e01e" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "ABC",
+            "correlationID": "c123",
+            "from": "PCF",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "medicalDocuments": [
+                {
+                    "endDate": "2020-04-10",
+                    "medDocID": "M001",
+                    "medDocType": "4",
+                    "startDate": "2020-02-10"
+                }
+            ],
+            "overLimit": "",
+            "plans": [
+                {
+                    "planCode": "1207",
+                    "type": ""
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": "Continuous Glucose Monitors",
+            "productSubCategory3": "",
+            "productSubCategory4": ""
+        }
+    ],
+    "physicianState": ""
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods02/DecisionService/rest/v1/DetermineExpirationDateOfMedicalDocumentation/DetermineExpirationDateOfMedicalDocumentation/WADL</con:originalUri>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="JSON Request-MultiDocType" id="302b6ce0-7780-4193-82d8-93c1fce37315">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineExpirationDateOfMedicalDocumentation/DetermineExpirationDateOfMedicalDocumentation/WADL" methodName="DetermineExpirationDateOfMedicalDocumentation" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="JSON Request-MultiDocType" id="7800c8c6-8771-44d2-96aa-0edd73697c7e" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "ABC",
+            "correlationID": "c123",
+            "from": "PCF",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "medicalDocuments": [
+                {
+                    "endDate": "2020-09-10",
+                    "lengthOfNeed": "0",
+                    "medDocID": "M001",
+                    "medDocType": "1",
+                    "startDate": "2020-05-10"
+                },
+                {
+                    "endDate": "2020-04-10",
+                    "lengthOfNeed": "7",
+                    "medDocID": "M002",
+                    "medDocType": "2",
+                    "startDate": "2020-02-10"
+                }
+            ],
+            "overLimit": "",
+            "plans": [
+                {
+                    "planCode": "1207",
+                    "type": "4"
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": "Blood Glucose Test Strips",
+            "productSubCategory3": "",
+            "productSubCategory4": ""
+        }
+    ],
+    "physicianState": "DC"
+}</con:request>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-49526" id="80bfe7d0-3100-4e07-9d6f-b13304319774">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineExpirationDateOfMedicalDocumentation/DetermineExpirationDateOfMedicalDocumentation/WADL" methodName="DetermineExpirationDateOfMedicalDocumentation" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-49526" id="7800c8c6-8771-44d2-96aa-0edd73697c7e" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "ABC",
+            "correlationID": "c123",
+            "from": "PCF",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "medicalDocuments": [
+                {
+                    "endDate": "2019-09-10",
+                    "lengthOfNeed": "5",
+                    "medDocID": "M001",
+                    "medDocType": "1",
+                    "startDate": "2019-05-10"
+                },
+                {
+                    "endDate": "2019-09-10",
+                    "lengthOfNeed": "13",
+                    "medDocID": "M002",
+                    "medDocType": "1",
+                    "startDate": "2019-05-10"
+                }
+            ],
+            "overLimit": "",
+            "plans": [
+                {
+                    "planCode": "8095",
+                    "type": ""
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": "",
+            "productSubCategory3": "",
+            "productSubCategory4": ""
+        }
+    ],
+    "physicianState": "FL"
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineExpirationDateOfMedicalDocumentation/DetermineExpirationDateOfMedicalDocumentation/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="20ebd492-c81a-444d-af9b-637e12804184" name="Valid HTTP Status Codes_3">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="b41b17e9-a17d-48de-b982-b9489cd3edb7" name="medDocID">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].medDocID</path>
+            <content>M001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="6ed5343b-1be7-4cb5-98b2-49b2747d8735" name="physicianRestrictionLengthOfNeed ">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].physicianRestrictionLengthOfNeed</path>
+            <content>12</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="4f432107-551a-4f57-a131-b7630f3b8df6" name="insuranceRestrictionLengthOfNeed">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].insuranceRestrictionLengthOfNeed</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="818c7e17-164f-4aa0-b468-086d3fa1debd" name="lengthOfNeed">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].lengthOfNeed</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="725d2144-a4ca-4c17-9397-5859911cd4ee" name="expirationDate">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].expirationDate</path>
+            <content>2019-05-10T00:00:00.000+0000</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="b457c750-c26d-47c8-bdf8-837e145d29d1" name="medDocID">
+          <con:configuration>
+            <path>medicalDocumentsResponse[1].medDocID</path>
+            <content>M002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="12b9893a-be39-4558-b075-6116d2cb228b" name="physicianRestrictionLengthOfNeed ">
+          <con:configuration>
+            <path>medicalDocumentsResponse[1].physicianRestrictionLengthOfNeed</path>
+            <content>12</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="039b4556-74c6-4591-a9a3-09a874659aa2" name="insuranceRestrictionLengthOfNeed">
+          <con:configuration>
+            <path>medicalDocumentsResponse[1].insuranceRestrictionLengthOfNeed</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="4b212fa9-e446-46a0-93f4-bd3cd1f37369" name="lengthOfNeed">
+          <con:configuration>
+            <path>medicalDocumentsResponse[1].lengthOfNeed</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="3dfaed91-08be-46a4-9644-c2a355b7f20e" name="expirationDate">
+          <con:configuration>
+            <path>medicalDocumentsResponse[1].expirationDate</path>
+            <content>2019-05-10T00:00:00.000+0000</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-49527" id="edf33d40-fa67-469d-886f-7a61db77aa0a">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineExpirationDateOfMedicalDocumentation/DetermineExpirationDateOfMedicalDocumentation/WADL" methodName="DetermineExpirationDateOfMedicalDocumentation" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-49527" id="7800c8c6-8771-44d2-96aa-0edd73697c7e" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "ABC",
+            "correlationID": "c123",
+            "from": "PCF",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "medicalDocuments": [
+                {
+                    "endDate": "2020-09-10",
+                    "lengthOfNeed": "0",
+                    "medDocID": "M001",
+                    "medDocType": "1",
+                    "startDate": "2020-05-10"
+                },
+                {
+                    "endDate": "2020-04-10",
+                    "lengthOfNeed": "7",
+                    "medDocID": "M002",
+                    "medDocType": "2",
+                    "startDate": "2020-02-10"
+                }
+            ],
+            "overLimit": "",
+            "plans": [
+                {
+                    "planCode": "1207",
+                    "type": "4"
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": "Blood Glucose Test Strips",
+            "productSubCategory3": "",
+            "productSubCategory4": ""
+        }
+    ],
+    "physicianState": "DC"
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineExpirationDateOfMedicalDocumentation/DetermineExpirationDateOfMedicalDocumentation/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="83572e1b-68ec-4330-b94a-ea599dc0ff7e" name="Valid HTTP Status Codes_4">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="ab7276ae-f53c-4e90-8b07-94370bc536f3" name="medDocID">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].medDocID</path>
+            <content>M001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="693786bb-8c52-48d5-9e18-4ee0a80f86ca" name="physicianRestrictionLengthOfNeed ">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].physicianRestrictionLengthOfNeed</path>
+            <content>12</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="4e04606c-fb2c-4629-9ea1-7b15f0620684" name="insuranceRestrictionLengthOfNeed">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].insuranceRestrictionLengthOfNeed</path>
+            <content>999</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="fc3d9af5-628b-4326-b7cb-8e80d9219654" name="lengthOfNeed">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].lengthOfNeed</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="39a3ad5a-7bb8-408f-ab05-4617de7f7a4e" name="expirationDate">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].expirationDate</path>
+            <content>2021-05-10T00:00:00.000+0000</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="e0561fe7-fd79-48f6-a24e-8fe3506fa82f" name="medDocID">
+          <con:configuration>
+            <path>medicalDocumentsResponse[1].medDocID</path>
+            <content>M002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="7fae9594-fa20-41bf-9671-1f7598ec2d02" name="physicianRestrictionLengthOfNeed ">
+          <con:configuration>
+            <path>medicalDocumentsResponse[1].physicianRestrictionLengthOfNeed</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="7a76e772-04df-4ade-9cef-07615063d711" name="insuranceRestrictionLengthOfNeed">
+          <con:configuration>
+            <path>medicalDocumentsResponse[1].insuranceRestrictionLengthOfNeed</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="3cc6bd0c-00cc-46ab-92d0-fcc01ba3a30a" name="lengthOfNeed">
+          <con:configuration>
+            <path>medicalDocumentsResponse[1].lengthOfNeed</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="b4bce39a-b0fe-47f3-89e6-23be032c4f9c" name="expirationDate">
+          <con:configuration>
+            <path>medicalDocumentsResponse[1].expirationDate</path>
+            <content>2020-04-10T00:00:00.000+0000</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-49533" id="31c18719-ebdd-4158-b040-b5559af563a9">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineExpirationDateOfMedicalDocumentation/DetermineExpirationDateOfMedicalDocumentation/WADL" methodName="DetermineExpirationDateOfMedicalDocumentation" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-49533" id="85250bb0-9b49-45fe-baca-57fb3130e01e" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "ABC",
+            "correlationID": "c123",
+            "from": "PCF",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "medicalDocuments": [
+                {
+                    "endDate": "2020-04-10",
+                    "medDocID": "M001",
+                    "medDocType": "2",
+                    "startDate": "2020-02-10"
+                }
+            ],
+            "overLimit": "true",
+            "plans": [
+                {
+                    "planCode": "4258",
+                    "type": ""
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": "Insulin Pump Supplies",
+            "productSubCategory3": "",
+            "productSubCategory4": ""
+        }
+    ],
+    "physicianState": ""
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods02/DecisionService/rest/v1/DetermineExpirationDateOfMedicalDocumentation/DetermineExpirationDateOfMedicalDocumentation/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="85398661-ef43-42fd-a84a-5815eae8714e" name="Valid HTTP Status Codes_3">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="0b5eccaa-bdf6-4338-a291-71ff5aad10af" name="medDocID">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].medDocID</path>
+            <content>M001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="56990f26-dd46-4a69-9f0a-0eebf3a55fd7" name="physicianRestrictionLengthOfNeed ">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].physicianRestrictionLengthOfNeed</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="4b5b5445-9f46-4543-a874-215a403df14d" name="insuranceRestrictionLengthOfNeed">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].insuranceRestrictionLengthOfNeed</path>
+            <content>12</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="38e2afa5-dbcb-4446-b744-dc397854901c" name="expirationDate">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].expirationDate</path>
+            <content>2021-04-10T00:00:00.000+0000</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-49534" id="2b5027d6-a1c1-45be-b294-f9ba6bbfa95a">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineExpirationDateOfMedicalDocumentation/DetermineExpirationDateOfMedicalDocumentation/WADL" methodName="DetermineExpirationDateOfMedicalDocumentation" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-49534" id="85250bb0-9b49-45fe-baca-57fb3130e01e" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "ABC",
+            "correlationID": "c123",
+            "from": "PCF",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "medicalDocuments": [
+                {
+                    "endDate": "2020-04-10",
+                    "medDocID": "M001",
+                    "medDocType": "1",
+                    "startDate": "2020-02-10"
+                }
+            ],
+            "overLimit": "",
+            "plans": [
+                {
+                    "planCode": "4228",
+                    "type": ""
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": "",
+            "productSubCategory3": "",
+            "productSubCategory4": ""
+        }
+    ],
+    "physicianState": "ND"
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods02/DecisionService/rest/v1/DetermineExpirationDateOfMedicalDocumentation/DetermineExpirationDateOfMedicalDocumentation/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="9bdc11cb-7864-4de6-8e6a-b29ec48fa3f5" name="Valid HTTP Status Codes_4">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="de2cf1ed-fa91-44ad-84d8-f5c4029ea6ad" name="medDocID">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].medDocID</path>
+            <content>M001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="ac11c1f1-96e0-48a4-9e56-b8da826d574e" name="physicianRestrictionLengthOfNeed ">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].physicianRestrictionLengthOfNeed</path>
+            <content>12</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="01c44ff1-e056-4f1f-80d8-8f09fd95a214" name="insuranceRestrictionLengthOfNeed">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].insuranceRestrictionLengthOfNeed</path>
+            <content>6</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="4c11981b-80b3-4ced-a9a7-8da8f6d313de" name="expirationDate">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].expirationDate</path>
+            <content>2020-08-10T00:00:00.000+0000</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-49535" id="4192c92f-eb9b-40da-84f6-76cca1c5cc76">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineExpirationDateOfMedicalDocumentation/DetermineExpirationDateOfMedicalDocumentation/WADL" methodName="DetermineExpirationDateOfMedicalDocumentation" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-49535" id="85250bb0-9b49-45fe-baca-57fb3130e01e" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "ABC",
+            "correlationID": "c123",
+            "from": "PCF",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "medicalDocuments": [
+                {
+                    "endDate": "2020-04-10",
+                    "medDocID": "M001",
+                    "medDocType": "4",
+                    "startDate": "2020-02-10"
+                }
+            ],
+            "overLimit": "",
+            "plans": [
+                {
+                    "planCode": "1207",
+                    "type": ""
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": "Continuous Glucose Monitors",
+            "productSubCategory3": "",
+            "productSubCategory4": ""
+        }
+    ],
+    "physicianState": ""
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods02/DecisionService/rest/v1/DetermineExpirationDateOfMedicalDocumentation/DetermineExpirationDateOfMedicalDocumentation/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="aec06cf1-e807-43b0-9d28-10b3f01f2af0" name="Valid HTTP Status Codes_5">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="a7cb2c7a-a789-4090-a04e-5cdacbbf179a" name="medDocID">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].medDocID</path>
+            <content>M001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="8a379961-dfc6-46aa-98a9-b05885dc516b" name="physicianRestrictionLengthOfNeed ">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].physicianRestrictionLengthOfNeed</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="335dc6ab-e07c-4235-b3b9-196a8168487d" name="insuranceRestrictionLengthOfNeed">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].insuranceRestrictionLengthOfNeed</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="b4ed6778-6fe1-4e82-bc27-5c9d3800b587" name="expirationDate">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].expirationDate</path>
+            <content>2020-02-10T00:00:00.000+0000</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-49528" id="c420b06c-f224-472f-8e60-9a9987a1812a">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineExpirationDateOfMedicalDocumentation/DetermineExpirationDateOfMedicalDocumentation/WADL" methodName="DetermineExpirationDateOfMedicalDocumentation" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-49528" id="b8fb76b2-b393-42cc-893c-7c02e19c43fa" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "ABC",
+            "correlationID": "c123",
+            "from": "PCF",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "medicalDocuments": [
+                {
+                    "endDate": "2020-04-10",
+                    "lengthOfNeed": "7",
+                    "medDocID": "M001",
+                    "medDocType": "2",
+                    "startDate": "2020-02-10"
+                }
+            ],
+            "overLimit": "",
+            "plans": [
+                {
+                    "planCode": "1207",
+                    "type": "4"
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": "Continuous Glucose Monitors",
+            "productSubCategory3": "",
+            "productSubCategory4": ""
+        },
+        {
+            "lineItemID": "L002",
+            "medicalDocuments": [
+                {
+                    "endDate": "2020-04-10",
+                    "lengthOfNeed": "2",
+                    "medDocID": "M002",
+                    "medDocType": "2",
+                    "startDate": "2020-02-10"
+                }
+            ],
+            "overLimit": "",
+            "plans": [
+                {
+                    "planCode": "1207",
+                    "type": "4"
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": "Continuous Glucose Monitors",
+            "productSubCategory3": "",
+            "productSubCategory4": ""
+        }
+    ],
+    "physicianState": ""
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineExpirationDateOfMedicalDocumentation/DetermineExpirationDateOfMedicalDocumentation/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="71e3c911-b1a6-40f3-b6fe-256c02cebd3f" name="Valid HTTP Status Codes_3">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="151cff9a-27c8-481e-990a-b8cb5ab6d6d4" name="medDocID">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].medDocID</path>
+            <content>M001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="1d5467a7-e1e4-4aa7-ad50-c43a9d44c4b3" name="physicianRestrictionLengthOfNeed ">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].physicianRestrictionLengthOfNeed</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="34809e0b-6995-475a-bfb6-cccabe367db3" name="insuranceRestrictionLengthOfNeed">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].insuranceRestrictionLengthOfNeed</path>
+            <content>6</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="1861cd72-49e0-4b9c-b712-86bec4c826a3" name="lengthOfNeed">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].lengthOfNeed</path>
+            <content>6</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="b118d986-b03a-4ecd-8e66-dbdf6a795403" name="expirationDate">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].expirationDate</path>
+            <content>2020-10-10T00:00:00.000+0000</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="30ff8529-8d5d-4355-8fde-e87be4c8b8b8" name="medDocID">
+          <con:configuration>
+            <path>medicalDocumentsResponse[1].medDocID</path>
+            <content>M002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="2a7cf6c7-49eb-484b-a87c-b3f40297f521" name="physicianRestrictionLengthOfNeed ">
+          <con:configuration>
+            <path>medicalDocumentsResponse[1].physicianRestrictionLengthOfNeed</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="e740c158-aa5d-4e91-91c5-a740e08d515d" name="insuranceRestrictionLengthOfNeed">
+          <con:configuration>
+            <path>medicalDocumentsResponse[1].insuranceRestrictionLengthOfNeed</path>
+            <content>6</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="8453845f-bbbf-4782-be3c-52eafd9a5e85" name="lengthOfNeed">
+          <con:configuration>
+            <path>medicalDocumentsResponse[1].lengthOfNeed</path>
+            <content>2</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="37e09c75-20be-435f-9f73-02ea6bf68bfa" name="expirationDate">
+          <con:configuration>
+            <path>medicalDocumentsResponse[1].expirationDate</path>
+            <content>2020-06-10T00:00:00.000+0000</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-49529" id="4772b2be-82b0-47af-ba5e-9869e75af254">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineExpirationDateOfMedicalDocumentation/DetermineExpirationDateOfMedicalDocumentation/WADL" methodName="DetermineExpirationDateOfMedicalDocumentation" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-49529" id="b8fb76b2-b393-42cc-893c-7c02e19c43fa" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "ABC",
+            "correlationID": "c123",
+            "from": "PCF",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "medicalDocuments": [
+                {
+                    "endDate": "2020-04-10",
+                    "lengthOfNeed": "3",
+                    "medDocID": "M001",
+                    "medDocType": "1",
+                    "startDate": "2020-02-10"
+                }
+            ],
+            "overLimit": "",
+            "plans": [
+                {
+                    "planCode": "9421",
+                    "type": ""
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": "Insulin Pumps",
+            "productSubCategory3": "",
+            "productSubCategory4": ""
+        },
+        {
+            "lineItemID": "L002",
+            "medicalDocuments": [
+                {
+                    "endDate": "2020-04-10",
+                    "lengthOfNeed": "13",
+                    "medDocID": "M002",
+                    "medDocType": "1",
+                    "startDate": "2020-02-10"
+                }
+            ],
+            "overLimit": "",
+            "plans": [
+                {
+                    "planCode": "9421",
+                    "type": ""
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": "Insulin Pumps",
+            "productSubCategory3": "",
+            "productSubCategory4": ""
+        }
+    ],
+    "physicianState": "VA"
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineExpirationDateOfMedicalDocumentation/DetermineExpirationDateOfMedicalDocumentation/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="fc32a1a8-c4ee-407e-964c-eeef3a6409ad" name="Valid HTTP Status Codes_4">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="12b542f4-9db9-466f-8e56-93f6c0dd1d1d" name="medDocID">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].medDocID</path>
+            <content>M001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="d2893171-a60a-4d9d-ac54-e6f98cf2b8c2" name="physicianRestrictionLengthOfNeed ">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].physicianRestrictionLengthOfNeed</path>
+            <content>12</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="343b58ca-3f03-4da7-bb5e-29b766407d5c" name="insuranceRestrictionLengthOfNeed">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].insuranceRestrictionLengthOfNeed</path>
+            <content>12</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="89832d75-b6f8-4c6a-b19b-2fe2188ac110" name="lengthOfNeed">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].lengthOfNeed</path>
+            <content>3</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="9ed26b12-9256-4258-ba3b-1f943f52c741" name="expirationDate">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].expirationDate</path>
+            <content>2020-05-10T00:00:00.000+0000</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="a378e484-d44c-4a77-aa46-81489d221558" name="medDocID">
+          <con:configuration>
+            <path>medicalDocumentsResponse[1].medDocID</path>
+            <content>M002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="e9a7179f-38ff-4958-91db-a795f89a07f4" name="physicianRestrictionLengthOfNeed ">
+          <con:configuration>
+            <path>medicalDocumentsResponse[1].physicianRestrictionLengthOfNeed</path>
+            <content>12</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="9f961c7d-71e9-4bd4-bc2a-44c2b9e37342" name="insuranceRestrictionLengthOfNeed">
+          <con:configuration>
+            <path>medicalDocumentsResponse[1].insuranceRestrictionLengthOfNeed</path>
+            <content>12</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="7180123c-edee-4dae-ae2c-0f3d62056af5" name="lengthOfNeed">
+          <con:configuration>
+            <path>medicalDocumentsResponse[1].lengthOfNeed</path>
+            <content>12</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="e9d36888-a2a2-4997-85e5-934267c394a3" name="expirationDate">
+          <con:configuration>
+            <path>medicalDocumentsResponse[1].expirationDate</path>
+            <content>2021-02-10T00:00:00.000+0000</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-49530" id="f62d7911-386d-4ca8-8ac0-58074f3ef934">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineExpirationDateOfMedicalDocumentation/DetermineExpirationDateOfMedicalDocumentation/WADL" methodName="DetermineExpirationDateOfMedicalDocumentation" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-49530" id="b8fb76b2-b393-42cc-893c-7c02e19c43fa" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "ABC",
+            "correlationID": "c123",
+            "from": "PCF",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "medicalDocuments": [
+                {
+                    "endDate": "2020-09-10",
+                    "lengthOfNeed": "2",
+                    "medDocID": "M001",
+                    "medDocType": "1",
+                    "startDate": "2020-05-10"
+                }
+            ],
+            "overLimit": "true",
+            "plans": [
+                {
+                    "planCode": "5001",
+                    "type": ""
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": "Insulin Pumps",
+            "productSubCategory3": "",
+            "productSubCategory4": ""
+        },
+        {
+            "lineItemID": "L002",
+            "medicalDocuments": [
+                {
+                    "endDate": "2024-04-03",
+                    "lengthOfNeed": "1",
+                    "medDocID": "M002",
+                    "medDocType": "2",
+                    "startDate": "2024-03-02"
+                }
+            ],
+            "overLimit": "",
+            "plans": [
+                {
+                    "planCode": "8095",
+                    "type": ""
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": "",
+            "productSubCategory3": "",
+            "productSubCategory4": ""
+        }
+    ],
+    "physicianState": "IA"
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineExpirationDateOfMedicalDocumentation/DetermineExpirationDateOfMedicalDocumentation/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="d04d6674-17c6-442b-b4dc-4805ea03dfa4" name="Valid HTTP Status Codes_5">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="3c17cb33-0cc3-40ae-8281-e4a50a2206a5" name="medDocID">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].medDocID</path>
+            <content>M001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="3c63dad0-b599-4b06-8a8a-e2fdefa327c6" name="physicianRestrictionLengthOfNeed ">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].physicianRestrictionLengthOfNeed</path>
+            <content>12</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="8a34c9b3-6bc2-4b12-84f6-5d4a4a9ccb4f" name="insuranceRestrictionLengthOfNeed">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].insuranceRestrictionLengthOfNeed</path>
+            <content>12</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="65acbcf4-49b4-4ee5-a84e-02438a6b85ff" name="lengthOfNeed">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].lengthOfNeed</path>
+            <content>2</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="41d88d76-9dcb-4dec-a42c-3f55842bdb11" name="expirationDate">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].expirationDate</path>
+            <content>2020-07-10T00:00:00.000+0000</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="04b0fe7c-d915-4334-866c-c81275c75955" name="medDocID">
+          <con:configuration>
+            <path>medicalDocumentsResponse[1].medDocID</path>
+            <content>M002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="f0b47b48-a44d-418b-8f2a-d5983b374f05" name="physicianRestrictionLengthOfNeed ">
+          <con:configuration>
+            <path>medicalDocumentsResponse[1].physicianRestrictionLengthOfNeed</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="197c8ea2-6c93-49d8-8dc1-176d6ea6d53e" name="insuranceRestrictionLengthOfNeed">
+          <con:configuration>
+            <path>medicalDocumentsResponse[1].insuranceRestrictionLengthOfNeed</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="79545f63-a02a-4a33-97ac-39c6b3ef0a42" name="lengthOfNeed">
+          <con:configuration>
+            <path>medicalDocumentsResponse[1].lengthOfNeed</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="922831c0-71f8-429b-b9da-5b95c45d4cd5" name="expirationDate">
+          <con:configuration>
+            <path>medicalDocumentsResponse[1].expirationDate</path>
+            <content>2024-04-03T00:00:00.000+0000</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-49531" id="53ca2d66-ad63-43d7-9e1c-213016f449de">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineExpirationDateOfMedicalDocumentation/DetermineExpirationDateOfMedicalDocumentation/WADL" methodName="DetermineExpirationDateOfMedicalDocumentation" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-49531" id="b8fb76b2-b393-42cc-893c-7c02e19c43fa" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "ABC",
+            "correlationID": "c123",
+            "from": "PCF",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "medicalDocuments": [
+                {
+                    "endDate": "2021-03-03",
+                    "lengthOfNeed": "30",
+                    "medDocID": "M001",
+                    "medDocType": "2",
+                    "startDate": "2021-02-02"
+                }
+            ],
+            "overLimit": "",
+            "plans": [
+                {
+                    "planCode": "",
+                    "type": "4"
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": "Continuous Glucose Monitors",
+            "productSubCategory3": "",
+            "productSubCategory4": ""
+        },
+        {
+            "lineItemID": "L002",
+            "medicalDocuments": [
+                {
+                    "endDate": "2020-09-10",
+                    "lengthOfNeed": "2",
+                    "medDocID": "M002",
+                    "medDocType": "4",
+                    "startDate": "2020-07-10"
+                }
+            ],
+            "overLimit": "",
+            "plans": [
+                {
+                    "planCode": "",
+                    "type": ""
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": "",
+            "productSubCategory3": "",
+            "productSubCategory4": ""
+        }
+    ],
+    "physicianState": ""
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineExpirationDateOfMedicalDocumentation/DetermineExpirationDateOfMedicalDocumentation/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="49ffb53a-c69d-45e7-9f9d-79d0779a7570" name="Valid HTTP Status Codes_6">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="023d6899-362f-4e2a-b9ed-f097645bd771" name="medDocID">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].medDocID</path>
+            <content>M001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="821beba5-3fed-47f1-8e19-e0425810d78e" name="physicianRestrictionLengthOfNeed ">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].physicianRestrictionLengthOfNeed</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="be98fc33-ee44-44db-9588-0867014f55d1" name="insuranceRestrictionLengthOfNeed">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].insuranceRestrictionLengthOfNeed</path>
+            <content>6</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="1c3a7f8d-6616-4eaf-8c00-a2d8db209b8e" name="lengthOfNeed">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].lengthOfNeed</path>
+            <content>6</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="e9bcc8a5-ab95-4a21-819a-3ac442c52ec7" name="expirationDate">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].expirationDate</path>
+            <content>2021-09-03T00:00:00.000+0000</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="2d55d6f7-ecb9-41c7-98e6-78f8e487c3cf" name="medDocID">
+          <con:configuration>
+            <path>medicalDocumentsResponse[1].medDocID</path>
+            <content>M002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="8660ae57-a745-4c1c-b20c-eb85311638b5" name="physicianRestrictionLengthOfNeed ">
+          <con:configuration>
+            <path>medicalDocumentsResponse[1].physicianRestrictionLengthOfNeed</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="361d6bc3-609a-454e-b782-32867fdb9c5c" name="insuranceRestrictionLengthOfNeed">
+          <con:configuration>
+            <path>medicalDocumentsResponse[1].insuranceRestrictionLengthOfNeed</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="f4d16065-2c48-4ca1-991f-a0a4beb347ed" name="lengthOfNeed">
+          <con:configuration>
+            <path>medicalDocumentsResponse[1].lengthOfNeed</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="27606ea5-009c-45bf-8932-59046ddbdc6c" name="expirationDate">
+          <con:configuration>
+            <path>medicalDocumentsResponse[1].expirationDate</path>
+            <content>2020-07-10T00:00:00.000+0000</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-49532" id="9d3e54c1-2658-4693-9bff-69d3aa600704">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineExpirationDateOfMedicalDocumentation/DetermineExpirationDateOfMedicalDocumentation/WADL" methodName="DetermineExpirationDateOfMedicalDocumentation" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-49532" id="b8fb76b2-b393-42cc-893c-7c02e19c43fa" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "ABC",
+            "correlationID": "c123",
+            "from": "PCF",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "medicalDocuments": [
+                {
+                    "endDate": "2020-09-10",
+                    "lengthOfNeed": "2",
+                    "medDocID": "M001",
+                    "medDocType": "4",
+                    "startDate": "2020-07-10"
+                }
+            ],
+            "overLimit": "",
+            "plans": [
+                {
+                    "planCode": "",
+                    "type": ""
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": "",
+            "productSubCategory3": "",
+            "productSubCategory4": ""
+        },
+        {
+            "lineItemID": "L002",
+            "medicalDocuments": [
+                {
+                    "endDate": "2021-03-02",
+                    "lengthOfNeed": "5",
+                    "medDocID": "M002",
+                    "medDocType": "1",
+                    "startDate": "2021-02-01"
+                }
+            ],
+            "overLimit": "",
+            "plans": [
+                {
+                    "planCode": "1907",
+                    "type": ""
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": "Insulin Pump Supplies",
+            "productSubCategory3": "",
+            "productSubCategory4": ""
+        }
+    ],
+    "physicianState": ""
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineExpirationDateOfMedicalDocumentation/DetermineExpirationDateOfMedicalDocumentation/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="1df2888b-fc91-405b-b846-cf1d9eb52254" name="Valid HTTP Status Codes_7">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="32510702-5018-462f-aff8-75c01b82979c" name="medDocID">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].medDocID</path>
+            <content>M001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="e91e2258-6fe9-4810-8baf-a96f82a18215" name="physicianRestrictionLengthOfNeed ">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].physicianRestrictionLengthOfNeed</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="ec46d59e-5059-4621-a0e0-076c7d0295eb" name="insuranceRestrictionLengthOfNeed">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].insuranceRestrictionLengthOfNeed</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="afa59579-3345-463e-9357-1ed4c7acd3b2" name="lengthOfNeed">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].lengthOfNeed</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="2e33def5-b71d-4398-a333-aa9c9e78d925" name="expirationDate">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].expirationDate</path>
+            <content>2020-07-10T00:00:00.000+0000</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="917e92f0-28da-4890-bba0-49c8ce752a10" name="medDocID">
+          <con:configuration>
+            <path>medicalDocumentsResponse[1].medDocID</path>
+            <content>M002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="1b3afee4-62a6-4037-90fd-a2ac5e47d0d3" name="physicianRestrictionLengthOfNeed ">
+          <con:configuration>
+            <path>medicalDocumentsResponse[1].physicianRestrictionLengthOfNeed</path>
+            <content>999</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="195e9b01-cccb-4a42-9b47-f4681cf0cc10" name="insuranceRestrictionLengthOfNeed">
+          <con:configuration>
+            <path>medicalDocumentsResponse[1].insuranceRestrictionLengthOfNeed</path>
+            <content>12</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="4e639518-ce31-40e4-9bf2-ab2c6720fa1c" name="lengthOfNeed">
+          <con:configuration>
+            <path>medicalDocumentsResponse[1].lengthOfNeed</path>
+            <content>5</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="d9c98d2a-b062-4cfc-a2a5-70db40aa2e13" name="expirationDate">
+          <con:configuration>
+            <path>medicalDocumentsResponse[1].expirationDate</path>
+            <content>2021-07-01T00:00:00.000+0000</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-49515" id="a5a8275b-babb-4f4d-abe3-b8c13ef1b4a5">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineExpirationDateOfMedicalDocumentation/DetermineExpirationDateOfMedicalDocumentation/WADL" methodName="DetermineExpirationDateOfMedicalDocumentation" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-49515" id="dd3ce318-ea40-4501-a50b-ad4e774e4145" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "ABC",
+            "correlationID": "c123",
+            "from": "PCF",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "medicalDocuments": [
+                {
+                    "endDate": "2020-09-10",
+                    "lengthOfNeed": "2",
+                    "medDocID": "M001",
+                    "medDocType": "1",
+                    "startDate": "2020-05-10"
+                }
+            ],
+            "overLimit": "true",
+            "plans": [
+                {
+                    "planCode": "5001",
+                    "type": ""
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": "Insulin Pumps",
+            "productSubCategory3": "",
+            "productSubCategory4": ""
+        }
+    ],
+    "physicianState": "IA"
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineExpirationDateOfMedicalDocumentation/DetermineExpirationDateOfMedicalDocumentation/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="76662cbc-46ce-455c-a611-480c18ac1a1d" name="Valid HTTP Status Codes_3">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="3f42d84a-796a-4d0a-926b-920411e3efca" name="medDocID">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].medDocID</path>
+            <content>M001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="8952db05-c200-4438-9c43-6b6d0ce62699" name="physicianRestrictionLengthOfNeed ">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].physicianRestrictionLengthOfNeed</path>
+            <content>12</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="eaba54cd-4dc0-42a0-8e4e-3dbcd9188758" name="insuranceRestrictionLengthOfNeed">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].insuranceRestrictionLengthOfNeed</path>
+            <content>12</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="81841ef0-6419-4d5f-bc9a-4378d2b69fda" name="lengthOfNeed">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].lengthOfNeed</path>
+            <content>2</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="29452004-1ac7-491d-9eff-d84a0c1d46c0" name="expirationDate">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].expirationDate</path>
+            <content>2020-07-10T00:00:00.000+0000</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-49516" id="e8ad990b-78c8-45be-9f02-e18fff3706e9">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineExpirationDateOfMedicalDocumentation/DetermineExpirationDateOfMedicalDocumentation/WADL" methodName="DetermineExpirationDateOfMedicalDocumentation" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-49516" id="dd3ce318-ea40-4501-a50b-ad4e774e4145" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "ABC",
+            "correlationID": "c123",
+            "from": "PCF",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "medicalDocuments": [
+                {
+                    "endDate": "2020-08-10",
+                    "lengthOfNeed": "4",
+                    "medDocID": "M001",
+                    "medDocType": "2",
+                    "startDate": "2020-06-10"
+                }
+            ],
+            "overLimit": "",
+            "plans": [
+                {
+                    "planCode": "4848",
+                    "type": ""
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": "",
+            "productSubCategory3": "",
+            "productSubCategory4": ""
+        }
+    ],
+    "physicianState": ""
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineExpirationDateOfMedicalDocumentation/DetermineExpirationDateOfMedicalDocumentation/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="38702eec-7c4c-478f-b824-b7bcbe60aa43" name="Valid HTTP Status Codes_4">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="f911a9b9-b482-46d0-bb6a-1a852ca18ec7" name="medDocID">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].medDocID</path>
+            <content>M001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="6d0cb0b6-6246-43b3-b78d-08fc7a266e84" name="physicianRestrictionLengthOfNeed ">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].physicianRestrictionLengthOfNeed</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="9dc26a10-f049-4012-b22c-932b195e0716" name="insuranceRestrictionLengthOfNeed">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].insuranceRestrictionLengthOfNeed</path>
+            <content>12</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="dce0a65b-8cf7-4b00-a27d-990b0450ff58" name="lengthOfNeed">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].lengthOfNeed</path>
+            <content>4</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="fbe61671-0a3e-4254-9543-2ab8534e6bd5" name="expirationDate">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].expirationDate</path>
+            <content>2020-12-10T00:00:00.000+0000</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-49517" id="33bb97b2-4959-4b14-9306-44d54c6a83d1">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineExpirationDateOfMedicalDocumentation/DetermineExpirationDateOfMedicalDocumentation/WADL" methodName="DetermineExpirationDateOfMedicalDocumentation" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-49517" id="dd3ce318-ea40-4501-a50b-ad4e774e4145" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "ABC",
+            "correlationID": "c123",
+            "from": "PCF",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "medicalDocuments": [
+                {
+                    "endDate": "2020-09-10",
+                    "lengthOfNeed": "3",
+                    "medDocID": "M001",
+                    "medDocType": "4",
+                    "startDate": "2020-07-10"
+                }
+            ],
+            "overLimit": "",
+            "plans": [
+                {
+                    "planCode": "",
+                    "type": ""
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": "",
+            "productSubCategory3": "",
+            "productSubCategory4": ""
+        }
+    ],
+    "physicianState": ""
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineExpirationDateOfMedicalDocumentation/DetermineExpirationDateOfMedicalDocumentation/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="5392eb93-0bff-4610-9ef3-69182e91e0bc" name="Valid HTTP Status Codes_5">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="c10b17ca-b10a-4390-b439-95a16288fd5b" name="medDocID">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].medDocID</path>
+            <content>M001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="7be912b1-dcdc-45b6-b22d-91fc3a1210d3" name="physicianRestrictionLengthOfNeed ">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].physicianRestrictionLengthOfNeed</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="3b5d9844-fa10-4c3b-a14e-c61b3eabd623" name="insuranceRestrictionLengthOfNeed">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].insuranceRestrictionLengthOfNeed</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="c5080355-6e6a-44bc-a13c-84527f1169d1" name="lengthOfNeed">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].lengthOfNeed</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="5512d631-3c6c-418c-924a-393dc35457e7" name="expirationDate">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].expirationDate</path>
+            <content>2020-07-10T00:00:00.000+0000</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-49518" id="1e4941fc-5e66-432e-ba4a-72d75b4f9034">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineExpirationDateOfMedicalDocumentation/DetermineExpirationDateOfMedicalDocumentation/WADL" methodName="DetermineExpirationDateOfMedicalDocumentation" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-49518" id="dd3ce318-ea40-4501-a50b-ad4e774e4145" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "ABC",
+            "correlationID": "c123",
+            "from": "PCF",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "medicalDocuments": [
+                {
+                    "endDate": "2021-03-02",
+                    "lengthOfNeed": "5",
+                    "medDocID": "M001",
+                    "medDocType": "1",
+                    "startDate": "2021-02-01"
+                }
+            ],
+            "overLimit": "",
+            "plans": [
+                {
+                    "planCode": "1907",
+                    "type": ""
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": "Insulin Pump Supplies",
+            "productSubCategory3": "",
+            "productSubCategory4": ""
+        }
+    ],
+    "physicianState": ""
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineExpirationDateOfMedicalDocumentation/DetermineExpirationDateOfMedicalDocumentation/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="1fae1b85-ffd8-4e9d-a124-8297d2c1da2b" name="Valid HTTP Status Codes_6">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="676bb42d-71f6-4a05-84ce-6d262ce842e1" name="medDocID">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].medDocID</path>
+            <content>M001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="1da452dc-05f9-4c4d-ab05-1c9f5a0be091" name="physicianRestrictionLengthOfNeed ">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].physicianRestrictionLengthOfNeed</path>
+            <content>999</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="42ff5e36-51e5-4c03-a8ad-fc69861015cc" name="insuranceRestrictionLengthOfNeed">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].insuranceRestrictionLengthOfNeed</path>
+            <content>12</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="6f799399-7ab3-4b93-a232-2dd13400caed" name="lengthOfNeed">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].lengthOfNeed</path>
+            <content>5</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="28f32dc9-0c04-49f5-8212-4d580a175fe3" name="expirationDate">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].expirationDate</path>
+            <content>2021-07-01T00:00:00.000+0000</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-49519" id="fde672e5-b154-45a1-b77c-653b91ec640c">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineExpirationDateOfMedicalDocumentation/DetermineExpirationDateOfMedicalDocumentation/WADL" methodName="DetermineExpirationDateOfMedicalDocumentation" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-49519" id="dd3ce318-ea40-4501-a50b-ad4e774e4145" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "ABC",
+            "correlationID": "c123",
+            "from": "PCF",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "medicalDocuments": [
+                {
+                    "endDate": "2021-03-03",
+                    "lengthOfNeed": "30",
+                    "medDocID": "M001",
+                    "medDocType": "2",
+                    "startDate": "2021-02-02"
+                }
+            ],
+            "overLimit": "",
+            "plans": [
+                {
+                    "planCode": "",
+                    "type": "4"
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": "Continuous Glucose Monitors",
+            "productSubCategory3": "",
+            "productSubCategory4": ""
+        }
+    ],
+    "physicianState": ""
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineExpirationDateOfMedicalDocumentation/DetermineExpirationDateOfMedicalDocumentation/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="8f2072bc-76db-441d-b7a0-c1fbb0f46729" name="Valid HTTP Status Codes_7">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="fe26440b-0c2b-4b39-84d4-20ceeaecdb66" name="medDocID">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].medDocID</path>
+            <content>M001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="193dccb0-0a95-47f7-a699-79239c5abc2e" name="physicianRestrictionLengthOfNeed ">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].physicianRestrictionLengthOfNeed</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="3a5abead-9c41-4892-a104-9f269a73ea10" name="insuranceRestrictionLengthOfNeed">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].insuranceRestrictionLengthOfNeed</path>
+            <content>6</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="d882fd45-fc3b-4e7a-983f-c8fbcbdbe8fc" name="lengthOfNeed">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].lengthOfNeed</path>
+            <content>6</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="91122996-15f9-4414-b04c-0c81abd79a0d" name="expirationDate">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].expirationDate</path>
+            <content>2021-09-03T00:00:00.000+0000</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-49520" id="ff7ce1a1-0b19-42d6-917f-51ac313b51d3">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineExpirationDateOfMedicalDocumentation/DetermineExpirationDateOfMedicalDocumentation/WADL" methodName="DetermineExpirationDateOfMedicalDocumentation" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-49520" id="dd3ce318-ea40-4501-a50b-ad4e774e4145" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "ABC",
+            "correlationID": "c123",
+            "from": "PCF",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "medicalDocuments": [
+                {
+                    "endDate": "2024-04-03",
+                    "lengthOfNeed": "20",
+                    "medDocID": "M001",
+                    "medDocType": "1",
+                    "startDate": "2024-03-02"
+                }
+            ],
+            "overLimit": "",
+            "plans": [
+                {
+                    "planCode": "1607",
+                    "type": ""
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": "Lancets",
+            "productSubCategory3": "",
+            "productSubCategory4": ""
+        }
+    ],
+    "physicianState": "MS"
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineExpirationDateOfMedicalDocumentation/DetermineExpirationDateOfMedicalDocumentation/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="6492ed86-8d21-4667-aee6-a25533d5c0c3" name="Valid HTTP Status Codes_8">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="17414847-349e-4928-a5cc-fa22507ab64a" name="medDocID">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].medDocID</path>
+            <content>M001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="01489d2d-47a2-47af-9d71-5f8c6c8f3d58" name="physicianRestrictionLengthOfNeed ">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].physicianRestrictionLengthOfNeed</path>
+            <content>12</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="9df3a7f2-2ea6-4d9b-bc63-76b271c797fa" name="insuranceRestrictionLengthOfNeed">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].insuranceRestrictionLengthOfNeed</path>
+            <content>999</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="51265968-ce4b-4d05-8933-db256aae4270" name="lengthOfNeed">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].lengthOfNeed</path>
+            <content>12</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="d0e272e4-7d51-408f-bc65-b331678e23d7" name="expirationDate">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].expirationDate</path>
+            <content>2025-03-02T00:00:00.000+0000</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-49521" id="82d79dad-18ce-49f7-af1e-26fed1739902">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineExpirationDateOfMedicalDocumentation/DetermineExpirationDateOfMedicalDocumentation/WADL" methodName="DetermineExpirationDateOfMedicalDocumentation" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-49521" id="dd3ce318-ea40-4501-a50b-ad4e774e4145" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "ABC",
+            "correlationID": "c123",
+            "from": "PCF",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "medicalDocuments": [
+                {
+                    "endDate": "2024-04-03",
+                    "lengthOfNeed": "1",
+                    "medDocID": "M001",
+                    "medDocType": "2",
+                    "startDate": "2024-03-02"
+                }
+            ],
+            "overLimit": "",
+            "plans": [
+                {
+                    "planCode": "8095",
+                    "type": ""
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": "",
+            "productSubCategory3": "",
+            "productSubCategory4": ""
+        }
+    ],
+    "physicianState": ""
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineExpirationDateOfMedicalDocumentation/DetermineExpirationDateOfMedicalDocumentation/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="59b89159-ecb6-4e56-8909-146de8204906" name="Valid HTTP Status Codes_9">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="3208cf2e-60ac-4941-8c5f-38dd0a735b86" name="medDocID">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].medDocID</path>
+            <content>M001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="ffa9ecd9-0ebc-4e4f-8925-97fa8648a5b8" name="physicianRestrictionLengthOfNeed ">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].physicianRestrictionLengthOfNeed</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="c603744e-c4fe-4bcc-8472-b1fa698969c0" name="insuranceRestrictionLengthOfNeed">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].insuranceRestrictionLengthOfNeed</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="fb0510f2-a5aa-44e7-898d-60f84c5164f6" name="lengthOfNeed">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].lengthOfNeed</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="c0f4ae5b-1082-430a-9323-b83af2d40940" name="expirationDate">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].expirationDate</path>
+            <content>2024-04-03T00:00:00.000+0000</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-49522" id="7b648354-ea20-456c-a310-e1cbe6a20a8c">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineExpirationDateOfMedicalDocumentation/DetermineExpirationDateOfMedicalDocumentation/WADL" methodName="DetermineExpirationDateOfMedicalDocumentation" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-49522" id="dd3ce318-ea40-4501-a50b-ad4e774e4145" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "ABC",
+            "correlationID": "c123",
+            "from": "PCF",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "medicalDocuments": [
+                {
+                    "endDate": "2021-03-03",
+                    "lengthOfNeed": "0",
+                    "medDocID": "M001",
+                    "medDocType": "1",
+                    "startDate": "2021-02-02"
+                }
+            ],
+            "overLimit": "",
+            "plans": [
+                {
+                    "planCode": "4228",
+                    "type": ""
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": "Continuous Glucose Monitors",
+            "productSubCategory3": "",
+            "productSubCategory4": ""
+        }
+    ],
+    "physicianState": "NH"
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineExpirationDateOfMedicalDocumentation/DetermineExpirationDateOfMedicalDocumentation/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="032f8c1b-e214-4ea6-9dbb-31fbef5ec6d1" name="Valid HTTP Status Codes_10">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="90af8942-2711-4c48-a443-af332955a80d" name="medDocID">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].medDocID</path>
+            <content>M001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="ff2d82b6-d2d9-4fb5-a890-118ff05919bb" name="physicianRestrictionLengthOfNeed ">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].physicianRestrictionLengthOfNeed</path>
+            <content>12</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="4e2ef52f-c895-4620-b547-e456197bc6f3" name="insuranceRestrictionLengthOfNeed">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].insuranceRestrictionLengthOfNeed</path>
+            <content>6</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="61096c57-a43a-4a6c-bb47-518209ad0c2b" name="lengthOfNeed">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].lengthOfNeed</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="5799f1eb-5a1c-4c28-b15d-99a8d11aeebc" name="expirationDate">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].expirationDate</path>
+            <content>2021-08-02T00:00:00.000+0000</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-49523" id="c035b634-590e-4fa8-9f38-1237ee1b888c">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineExpirationDateOfMedicalDocumentation/DetermineExpirationDateOfMedicalDocumentation/WADL" methodName="DetermineExpirationDateOfMedicalDocumentation" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-49523" id="dd3ce318-ea40-4501-a50b-ad4e774e4145" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "ABC",
+            "correlationID": "c123",
+            "from": "PCF",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "medicalDocuments": [
+                {
+                    "endDate": "2021-03-03",
+                    "lengthOfNeed": "30",
+                    "medDocID": "M001",
+                    "medDocType": "1",
+                    "startDate": "2021-02-02"
+                }
+            ],
+            "overLimit": "",
+            "plans": [
+                {
+                    "planCode": "4228",
+                    "type": ""
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": "",
+            "productSubCategory3": "",
+            "productSubCategory4": ""
+        }
+    ],
+    "physicianState": "OK"
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineExpirationDateOfMedicalDocumentation/DetermineExpirationDateOfMedicalDocumentation/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="0091a104-ec2d-4420-bd9b-8796d0430d4f" name="Valid HTTP Status Codes_11">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="6fb9d1f9-4e4a-4a82-8beb-1f09968ee06e" name="medDocID">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].medDocID</path>
+            <content>M001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="bcf6a9b9-a8a1-4164-b320-e5e9a76a83fc" name="physicianRestrictionLengthOfNeed ">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].physicianRestrictionLengthOfNeed</path>
+            <content>12</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="72c439a0-9010-4210-ac91-5c402fc8f6a8" name="insuranceRestrictionLengthOfNeed">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].insuranceRestrictionLengthOfNeed</path>
+            <content>6</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="abc5711f-72c3-4924-853e-8d23c09310ba" name="lengthOfNeed">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].lengthOfNeed</path>
+            <content>6</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="a4422148-3e8f-485a-ba0e-fb665adeccca" name="expirationDate">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].expirationDate</path>
+            <content>2021-08-02T00:00:00.000+0000</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-49524" id="d99099fd-1b97-4362-a9e8-882d68f4b418">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineExpirationDateOfMedicalDocumentation/DetermineExpirationDateOfMedicalDocumentation/WADL" methodName="DetermineExpirationDateOfMedicalDocumentation" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-49524" id="dd3ce318-ea40-4501-a50b-ad4e774e4145" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "ABC",
+            "correlationID": "c123",
+            "from": "PCF",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "medicalDocuments": [
+                {
+                    "endDate": "",
+                    "lengthOfNeed": "4",
+                    "medDocID": "M001",
+                    "medDocType": "2",
+                    "startDate": "2021-02-03"
+                }
+            ],
+            "overLimit": "",
+            "plans": [
+                {
+                    "planCode": "4848",
+                    "type": ""
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": "",
+            "productSubCategory3": "",
+            "productSubCategory4": ""
+        }
+    ],
+    "physicianState": ""
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineExpirationDateOfMedicalDocumentation/DetermineExpirationDateOfMedicalDocumentation/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="5ff96321-ac29-412c-af29-7200cae5fcd2" name="Valid HTTP Status Codes_12">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="31662433-46c3-4726-a59f-ad46385e65f4" name="medDocID">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].medDocID</path>
+            <content>M001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="354a94af-352e-4455-ac99-3e4300b21ef0" name="physicianRestrictionLengthOfNeed ">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].physicianRestrictionLengthOfNeed</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="3976d909-8d19-4249-b2bb-f99a77802f93" name="insuranceRestrictionLengthOfNeed">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].insuranceRestrictionLengthOfNeed</path>
+            <content>12</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="0491a950-158d-4329-aaaa-71efbd500875" name="lengthOfNeed">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].lengthOfNeed</path>
+            <content>4</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="7558db19-dd5a-4c20-b9ca-5abd668c73f5" name="expirationDate">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].expirationDate</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-49525" id="341a15c1-fec5-47ef-bdf7-ae45cbb0ad92">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineExpirationDateOfMedicalDocumentation/DetermineExpirationDateOfMedicalDocumentation/WADL" methodName="DetermineExpirationDateOfMedicalDocumentation" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-49525" id="dd3ce318-ea40-4501-a50b-ad4e774e4145" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "ABC",
+            "correlationID": "c123",
+            "from": "PCF",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "medicalDocuments": [
+                {
+                    "endDate": "2021-02-04",
+                    "lengthOfNeed": "2",
+                    "medDocID": "M001",
+                    "medDocType": "1",
+                    "startDate": ""
+                }
+            ],
+            "overLimit": "true",
+            "plans": [
+                {
+                    "planCode": "5001",
+                    "type": ""
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": "Insulin Pumps",
+            "productSubCategory3": "",
+            "productSubCategory4": ""
+        }
+    ],
+    "physicianState": "IA"
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineExpirationDateOfMedicalDocumentation/DetermineExpirationDateOfMedicalDocumentation/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="31700de5-53da-46a1-9200-d9e462440997" name="Valid HTTP Status Codes_13">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="509386de-5e27-4a87-8341-0c3bf328c73f" name="medDocID">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].medDocID</path>
+            <content>M001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="c4f970d7-907e-4fa8-ae9f-0638c09f3c2e" name="physicianRestrictionLengthOfNeed ">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].physicianRestrictionLengthOfNeed</path>
+            <content>12</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="45a8668d-4c7a-47db-bb76-e5b34eca1daa" name="insuranceRestrictionLengthOfNeed">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].insuranceRestrictionLengthOfNeed</path>
+            <content>12</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="fea33faa-7cdc-46a2-8923-f3742e52626c" name="lengthOfNeed">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].lengthOfNeed</path>
+            <content>2</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="428784b1-4c2c-44b5-88e7-023bdf69a2f0" name="expirationDate">
+          <con:configuration>
+            <path>medicalDocumentsResponse[0].expirationDate</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:properties/>
+  <con:reportParameters/>
+</con:testCase>

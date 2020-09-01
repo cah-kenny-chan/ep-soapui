@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<con:testSuite id="e3112c10-d0fa-424f-a261-4a7c674f1e43" name="DetermineBackOrderReprocessing" xmlns:con="http://eviware.com/soapui/config">
+  <con:settings>
+    <con:setting id="e3112c10-d0fa-424f-a261-4a7c674f1e43fileName">DetermineBackOrderReprocessing</con:setting>
+  </con:settings>
+  <con:runType>SEQUENTIAL</con:runType>
+  <con:properties/>
+  <con:reportParameters/>
+</con:testSuite>
