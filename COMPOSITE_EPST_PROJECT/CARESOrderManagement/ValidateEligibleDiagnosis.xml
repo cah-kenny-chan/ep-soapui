@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<con:resource name="ValidateEligibleDiagnosis" path="/DecisionService/rest/v1/ValidateEligibleDiagnosis/ValidateEligibleDiagnosis/WADL" id="789140a6-d841-4208-b065-f2dd2b5d4e3c" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:con="http://eviware.com/soapui/config">
+  <con:settings>
+    <con:setting id="789140a6-d841-4208-b065-f2dd2b5d4e3cfileName">ValidateEligibleDiagnosis</con:setting>
+  </con:settings>
+  <con:parameters/>
+  <con:method name="ValidateEligibleDiagnosis" id="92cb673c-9c5e-49c8-80fa-03f66fb5707b" method="POST">
+    <con:settings/>
+    <con:parameters/>
+    <con:representation type="REQUEST">
+      <con:mediaType>application/json</con:mediaType>
+      <con:params/>
+    </con:representation>
+    <con:representation type="RESPONSE">
+      <con:mediaType xsi:nil="true"/>
+      <con:status>0</con:status>
+      <con:params/>
+      <con:element>data</con:element>
+    </con:representation>
+    <con:representation type="RESPONSE">
+      <con:mediaType>application/json; charset=UTF-8</con:mediaType>
+      <con:status>200</con:status>
+      <con:params/>
+      <con:element xmlns:wadl="http://lqec5009c1ods02/DecisionService/rest/v1/ValidateEligibleDiagnosis/ValidateEligibleDiagnosis/WADL">wadl:Response</con:element>
+    </con:representation>
+    <con:representation type="FAULT">
+      <con:mediaType>text/html</con:mediaType>
+      <con:status>404</con:status>
+      <con:params/>
+      <con:element>html</con:element>
+    </con:representation>
+    <con:representation type="RESPONSE">
+      <con:mediaType xsi:nil="true"/>
+      <con:status>0</con:status>
+      <con:params/>
+      <con:element>data</con:element>
+    </con:representation>
+    <con:request name="ValidateEligibleDiagnosis" id="a4cdb487-d867-45be-a4ee-a5df8055ccb9" mediaType="application/json" postQueryString="false">
+      <con:settings>
+        <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+      </con:settings>
+      <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+      <con:request>{
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "hcpcsCode": "A4649",
+            "plans": [
+                {
+                    "id": "PA001",
+                    "planCode": "B187"
+                }
+            ]
+        }
+    ],
+    "diagnosis": [
+      {
+            "codeICD10": "E10"
+        },
+        {
+            "codeICD10": "E10.1"
+        },
+        {
+            "codeICD10": "E10.2"
+        }       
+    ],
+  "e2eMetadata": {
+    "serviceAddressing": {
+      "from": "string",
+      "callingFunction": "string",
+      "correlationID": "C1234",
+      "timestamp": "2019-08-26T00:00:00.000+0000"
+    }
+  },
+  "__DecisionID__": "string"
+}</con:request>
+      <con:originalUri>http://lqec5009c1ods02/DecisionService/rest/v1/ValidateEligibleDiagnosis/ValidateEligibleDiagnosis/WADL</con:originalUri>
+      <con:credentials>
+        <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+        <con:authType>No Authorization</con:authType>
+      </con:credentials>
+      <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+      <con:jmsPropertyConfig/>
+      <con:parameters/>
+    </con:request>
+  </con:method>
+</con:resource>

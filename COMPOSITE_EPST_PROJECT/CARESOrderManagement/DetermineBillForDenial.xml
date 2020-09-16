@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<con:resource name="DetermineBillForDenial" path="/DecisionService/rest/v1/DetermineBillForDenial/DetermineBillForDenial/WADL" id="b3e8e6fc-c9aa-496a-ac3d-754aceda5808" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:con="http://eviware.com/soapui/config">
+  <con:settings>
+    <con:setting id="b3e8e6fc-c9aa-496a-ac3d-754aceda5808fileName">DetermineBillForDenial</con:setting>
+  </con:settings>
+  <con:parameters/>
+  <con:method name="DetermineBillForDenial" id="dd8d882f-7839-400d-8df4-5d33a17972f6" method="POST">
+    <con:settings/>
+    <con:parameters/>
+    <con:representation type="REQUEST">
+      <con:mediaType>application/json</con:mediaType>
+      <con:params/>
+    </con:representation>
+    <con:representation type="RESPONSE">
+      <con:mediaType>application/json; charset=UTF-8</con:mediaType>
+      <con:status>200</con:status>
+      <con:params/>
+      <con:element xmlns:wadl="http://lqec5009c1ods01/DecisionService/rest/v1/DetermineBillForDenial/DetermineBillForDenial/WADL">wadl:Response</con:element>
+    </con:representation>
+    <con:request name="DetermineBillForDenial" id="f5548a4f-d52d-4326-9b97-03260f5dada3" mediaType="application/json" postQueryString="false">
+      <con:settings>
+        <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+      </con:settings>
+      <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+      <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "ABC",
+            "correlationID": "C123",
+            "from": "PCF",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "assignedOrder": "Primary",
+                    "id": "PA001",
+                    "planCode": "9436"
+                },
+                {
+                    "assignedOrder": "Secondary",
+                    "id": "PA002",
+                    "planCode": "9437"
+                }
+            ]
+        },
+        {
+            "hcpcsCode": "A9278",
+            "lineItemID": "L002",
+            "plans": [
+                {
+                    "assignedOrder": "Primary",
+                    "id": "PB001",
+                    "planCode": "9576"
+                },
+                {
+                    "assignedOrder": "Secondary",
+                    "id": "PB002",
+                    "planCode": "5002"
+                }
+            ]
+        }
+    ]
+}</con:request>
+      <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineBillForDenial/DetermineBillForDenial/WADL</con:originalUri>
+      <con:credentials>
+        <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+        <con:authType>No Authorization</con:authType>
+      </con:credentials>
+      <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+      <con:jmsPropertyConfig/>
+      <con:parameters/>
+    </con:request>
+  </con:method>
+</con:resource>

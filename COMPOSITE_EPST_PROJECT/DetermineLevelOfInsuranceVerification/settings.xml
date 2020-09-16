@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<con:testSuite id="667ff7c3-d55d-47fe-9a3f-a22d2ac503a2" name="DetermineLevelOfInsuranceVerification" xmlns:con="http://eviware.com/soapui/config">
+  <con:settings>
+    <con:setting id="667ff7c3-d55d-47fe-9a3f-a22d2ac503a2fileName">DetermineLevelOfInsuranceVerification</con:setting>
+  </con:settings>
+  <con:runType>SEQUENTIAL</con:runType>
+  <con:properties/>
+  <con:reportParameters/>
+</con:testSuite>

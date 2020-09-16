@@ -1,0 +1,912 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<con:testCase id="bf655bd5-ba2f-47da-9e5a-2749f3b45970" failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="DetermineShippingPriceForShippingMethod" searchProperties="true" xmlns:con="http://eviware.com/soapui/config">
+  <con:settings>
+    <con:setting id="bf655bd5-ba2f-47da-9e5a-2749f3b45970fileName">DetermineShippingPriceForShippingMethod</con:setting>
+  </con:settings>
+  <con:testStep type="groovy" name="DetermineShippingPriceForShippingMethod" id="22fda995-865a-4dc3-87c4-60491826de15">
+    <con:settings/>
+    <con:config>
+      <script>import jxl.*;
+import jxl.write.*
+import java.io.*
+import java.io.file.*
+import java.util.*
+import java.lang.*
+import jxl.read.biff.BiffException;
+import net.sf.*
+import net.sf.json.*
+import net.sf.json.groovy.*
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+import groovy.json.JsonBuilder
+import com.eviware.soapui.model.testsuite.TestStepResult.TestStepStatus
+import com.eviware.soapui.impl.wsdl.teststeps.RestTestRequestStep
+
+def groovyUtils = new com.eviware.soapui.support.GroovyUtils(context)
+def projectDir = groovyUtils.projectPath
+
+def inputfile =  projectDir + "/DetermineShippingPriceForShippingMethod/DetermineShippingPriceForShippingMethod_Input.xls"
+def outputfile = projectDir + "/DetermineShippingPriceForShippingMethod/DetermineShippingPriceForShippingMethod_Output.xls"
+
+
+//Creating workbook for reading value from Excel Sheet
+
+Workbook wb = Workbook.getWorkbook(new File(inputfile))
+Sheet sh = wb.getSheet("ExpectedResults")
+Sheet jsonInput = wb.getSheet("JSON")
+
+//reading data from input Excel sheet
+rc = sh.getRows();
+cc = sh.getColumns();
+Cell jreq = jsonInput.getCell(0,0)
+
+//Creating Workbook for writing value in Excel Sheet
+WritableWorkbook wb1= Workbook.createWorkbook(new File(outputfile));
+WritableSheet sheet1 = wb1.createSheet("ActualResults",0);
+
+//Header declaration for output file
+addCell(0,0,"methodCode",sheet1);
+addCell(1,0,"shippingPrice",sheet1);
+addCell(2,0,"methodCode",sheet1);
+addCell(3,0,"shippingPrice",sheet1);
+addCell(4,0,"methodCode",sheet1);
+addCell(5,0,"shippingPrice",sheet1);
+addCell(6,0,"methodCode",sheet1);
+addCell(7,0,"shippingPrice",sheet1);
+addCell(8,0,"PASS/FAIL",sheet1);
+addCell(9,0,"FAILED DUE TO",sheet1);
+ 
+//new testStepName
+def newTestStep=null
+
+try {
+
+   
+               def req = jreq.getContents()
+               //Assigning request value dynamically
+               //request
+               def slurper = new JsonSlurper().parseText(req);
+               def requestTemplet = new JsonBuilder(slurper);
+
+         
+               for (i=2;i&lt;rc;i++){
+
+                           // Input for TestCaseName
+                         Cell varTestCaseName = sh.getCell(0,i)
+                        def TestCaseName = varTestCaseName.getContents()
+
+                                                        
+                                 //Input for methodCode1                                                            
+                                requestTemplet.content.shippingMethods[0].methodCode = sh.getCell(1,i).getContents().toString()
+                                 //Input for methodCode2                                  
+                                requestTemplet.content.shippingMethods[1].methodCode = sh.getCell(2,i).getContents().toString()
+                                //Input for methodCode3                                 
+                                requestTemplet.content.shippingMethods[2].methodCode = sh.getCell(3,i).getContents().toString()
+                                //Input for methodCode4                                  
+                                requestTemplet.content.shippingMethods[3].methodCode = sh.getCell(4,i).getContents().toString()
+                                                                                                                                    
+                                                                                     
+                                  //Assign json request to variable
+                       def jsonReqAsString = requestTemplet.toPrettyString()
+                       def restRequest = testRunner.testCase.getTestStepByName('JSON Request');
+                       restRequest.setPropertyValue('Request',jsonReqAsString);
+
+                                //teststep cloned: Start
+                        def getTestCase = testRunner.testCase;
+                        def testst = testRunner.testCase.getTestStepByName("JSON Request");                 
+                            newTestStep = TestCaseName
+                            cleanUp(newTestStep)
+                            getTestCase.cloneStep(restRequest,newTestStep)
+                             
+                         //teststep cloned: End
+                         //Executing the testcase
+                        testRunner.runTestStepByName(newTestStep)
+ 
+                         //retrive response         
+                       def ResponseMessage = testRunner.testCase.testSteps[newTestStep].testRequest.response.contentAsString
+                    
+                         //new JsonSlurper to parse and get the response in Json format
+                        def slurper1 = new JsonSlurper()
+                        def json = slurper1.parseText(ResponseMessage)
+                    
+                                  
+                           // get methodcode1 from response json  
+                        addCell(0,i,json.shippingMethods[0].methodCode.toString(),sheet1);
+                          addCell(1,i,json.shippingMethods[0].shippingPrice.toString(),sheet1); 
+
+                            // get methodcode2 from response json 
+                        addCell(2,i,json.shippingMethods[1].methodCode.toString(),sheet1); 
+                          addCell(3,i,json.shippingMethods[1].shippingPrice.toString(),sheet1)
+
+                           // get methodcode3 from response json 
+                        addCell(4,i,json.shippingMethods[2].methodCode.toString(),sheet1);
+                          addCell(5,i,json.shippingMethods[2].shippingPrice.toString(),sheet1)
+
+                            // get methodcode4 from response json 
+                        addCell(6,i,json.shippingMethods[3].methodCode.toString(),sheet1); 
+                             addCell(7,i,json.shippingMethods[3].shippingPrice.toString(),sheet1)                                 
+                                            
+                                                       
+                      //dynamic asserstion :Start
+                   def testStepForAssertion = testRunner.testCase.getTestStepByName(newTestStep);
+                                //ValidHTTPStatusCodes 200 Assertion
+                  addAssertionValidHTTPStatusCodes(testStepForAssertion,"Valid HTTP Status Codes_"+i)
+            
+                             //get the expected values
+                          methodCode = sh.getCell(5,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,methodCode,"shippingMethods[0].methodCode","methodCode")
+
+                           shippingPrice = sh.getCell(6,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,shippingPrice,"shippingMethods[0].shippingPrice","shippingPrice")
+
+                                  methodCode = sh.getCell(7,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,methodCode,"shippingMethods[1].methodCode","methodCode")
+
+                           shippingPrice = sh.getCell(8,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,shippingPrice,"shippingMethods[1].shippingPrice","shippingPrice")
+
+              				methodCode = sh.getCell(9,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,methodCode,"shippingMethods[2].methodCode","methodCode")
+
+                           shippingPrice = sh.getCell(10,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,shippingPrice,"shippingMethods[2].shippingPrice","shippingPrice")
+
+					methodCode = sh.getCell(11,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,methodCode,"shippingMethods[3].methodCode","methodCode")
+
+                           shippingPrice = sh.getCell(12,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,shippingPrice,"shippingMethods[3].shippingPrice","shippingPrice")
+
+                               //dynamic asserstion :End
+                            assertionResult = testStepForAssertion.getAssertionStatus()
+             if(assertionResult.toString().equals("FAILED")){
+
+                                       addCell(8,i,"Fail",sheet1);
+                                   for( assertion in testStepForAssertion.assertionList ){
+                                  for( e in assertion.errors ){
+
+                                                     addCell(9,i,e.message,sheet1);
+
+                                                } 
+
+                                   }
+
+                                }
+
+
+                                else{
+
+                                   addCell(8,i,"PASS",sheet1);
+
+                                }
+
+ 
+       }
+
+      wb1.write();
+            log.info "TestCase Execution Completed successfull"
+
+ 
+
+            }             
+     
+catch(Exception e)
+{
+
+             log.info(e)                         
+}
+
+finally
+
+{
+    //close workbook
+     wb.close();
+     wb1.close();     
+
+}
+
+//Method code
+def addAssertionJsonPathMatch(RestTestRequestStep testStepForAssertion,String expectedContent,String xPath,String assertionName) {
+          def assertionType = testStepForAssertion.addAssertion("JsonPath Match")
+                                assertionType.name = assertionName
+                                assertionType.setPath(xPath)
+                                assertionType.setExpectedContent(expectedContent)
+                                assertionType.setAllowWildcards(true) 
+
+}
+
+//Method code
+def addAssertionValidHTTPStatusCodes(RestTestRequestStep testStepForAssertion,String assertionName) {
+
+         def StatusCodeAssertionxpath = testStepForAssertion.addAssertion("Valid HTTP Status Codes")
+             StatusCodeAssertionxpath.name = assertionName
+             StatusCodeAssertionxpath.codes=200
+
+}
+
+//method to delete
+def cleanUp(String requestName){
+
+                //remove the teststep::Start
+                def testCase = testRunner.testCase
+                def testStep = testCase.getTestStepByName(requestName)
+
+                if (testStep!=null){
+
+ 
+                                    testCase.removeTestStep(testStep)
+                }
+
+    
+            //remove the teststep::End
+
+}
+
+ 
+
+//method to add Cell to sheet1
+
+def addCell(int colmNum,int rowNum,String lblName,WritableSheet sheet1 ){
+
+                 Label header = new Label(colmNum,rowNum,lblName);
+                sheet1.addCell(header);               
+
+}</script>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="JSON Request" id="822b4415-9fe2-4aff-b2a6-effa370f4923">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineShippingPriceForShippingMethod/DetermineShippingPriceForShippingMethod/WADL" methodName="DetermineShippingPriceForShippingMethod" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="JSON Request" id="c960d397-b5ca-4b90-b4a5-b38d03215324" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "C123",
+            "from": "string",
+            "timestamp": "2020-02-24T04:48:33.000+0530"
+        }
+    },
+    "shippingMethods": [
+        {
+            "methodCode": ""
+        },
+        {
+            "methodCode": ""
+        },
+        {
+            "methodCode": ""
+        },
+        {
+            "methodCode": ""
+        }
+    ]
+}</con:request>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-36973" id="d5c48026-3736-482b-80b3-99b2bea091a1">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineShippingPriceForShippingMethod/DetermineShippingPriceForShippingMethod/WADL" methodName="DetermineShippingPriceForShippingMethod" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-36973" id="c960d397-b5ca-4b90-b4a5-b38d03215324" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "C123",
+            "from": "string",
+            "timestamp": "2020-02-24T04:48:33.000+0530"
+        }
+    },
+    "shippingMethods": [
+        {
+            "methodCode": "SDAR"
+        },
+        {
+            "methodCode": "NDSY"
+        },
+        {
+            "methodCode": "NDAR"
+        },
+        {
+            "methodCode": "NDAM"
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineShippingPriceForShippingMethod/DetermineShippingPriceForShippingMethod/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="7c5ce75b-5b14-4d05-977d-341e8c4ca9f9" name="Valid HTTP Status Codes_2">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="d618af01-3bd2-4295-8c6c-617e97f50bac" name="methodCode">
+          <con:configuration>
+            <path>shippingMethods[0].methodCode</path>
+            <content>SDAR</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="ed8abc0f-0161-4e5f-8e0f-031be5211ebc" name="shippingPrice">
+          <con:configuration>
+            <path>shippingMethods[0].shippingPrice</path>
+            <content>25.5</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="5bb6474a-ee70-45b4-b77a-34b93ff59a50" name="methodCode">
+          <con:configuration>
+            <path>shippingMethods[1].methodCode</path>
+            <content>NDSY</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="996bf0e2-2e44-488f-854a-a97474f89207" name="shippingPrice">
+          <con:configuration>
+            <path>shippingMethods[1].shippingPrice</path>
+            <content>37.0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="2bf7b609-f3ca-4805-b21b-2cf3ef774c60" name="methodCode">
+          <con:configuration>
+            <path>shippingMethods[2].methodCode</path>
+            <content>NDAR</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="44ff8c4b-c3f5-4aad-8140-61563023b0b8" name="shippingPrice">
+          <con:configuration>
+            <path>shippingMethods[2].shippingPrice</path>
+            <content>26.5</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="e2c913a9-86d1-4294-a6d0-262f0fa670fd" name="methodCode">
+          <con:configuration>
+            <path>shippingMethods[3].methodCode</path>
+            <content>NDAM</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="200420a3-2846-4713-8e14-60a55a211b6e" name="shippingPrice">
+          <con:configuration>
+            <path>shippingMethods[3].shippingPrice</path>
+            <content>31.5</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-36974" id="ddc46125-5dfd-4c96-870f-12184736afd5">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineShippingPriceForShippingMethod/DetermineShippingPriceForShippingMethod/WADL" methodName="DetermineShippingPriceForShippingMethod" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-36974" id="c960d397-b5ca-4b90-b4a5-b38d03215324" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "C123",
+            "from": "string",
+            "timestamp": "2020-02-24T04:48:33.000+0530"
+        }
+    },
+    "shippingMethods": [
+        {
+            "methodCode": "EE$$QQ"
+        },
+        {
+            "methodCode": "12355"
+        },
+        {
+            "methodCode": "A23P"
+        },
+        {
+            "methodCode": "XDE"
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineShippingPriceForShippingMethod/DetermineShippingPriceForShippingMethod/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="d6eb1ab3-3b72-4f42-aa4a-4afa674ad27f" name="Valid HTTP Status Codes_3">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="94568964-c4a6-4085-a3d4-a1f90223b611" name="methodCode">
+          <con:configuration>
+            <path>shippingMethods[0].methodCode</path>
+            <content>EE$$QQ</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="3478f78b-6d50-4c96-9710-a871fa7c5d7e" name="shippingPrice">
+          <con:configuration>
+            <path>shippingMethods[0].shippingPrice</path>
+            <content>0.0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="ed377252-10f1-456e-beb8-7965b150ebf9" name="methodCode">
+          <con:configuration>
+            <path>shippingMethods[1].methodCode</path>
+            <content>12355</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="7c029d74-0f63-440e-a650-51d5b5b08839" name="shippingPrice">
+          <con:configuration>
+            <path>shippingMethods[1].shippingPrice</path>
+            <content>0.0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="63825309-51bd-41f6-b47c-cb2ab34ba31a" name="methodCode">
+          <con:configuration>
+            <path>shippingMethods[2].methodCode</path>
+            <content>A23P</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="bfc79049-d1dd-49ad-802e-7ef3ad99b741" name="shippingPrice">
+          <con:configuration>
+            <path>shippingMethods[2].shippingPrice</path>
+            <content>0.0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="b795b327-d528-426f-ad05-ba34cc61651b" name="methodCode">
+          <con:configuration>
+            <path>shippingMethods[3].methodCode</path>
+            <content>XDE</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="dd16c031-9840-4957-99fa-d142842ec4b6" name="shippingPrice">
+          <con:configuration>
+            <path>shippingMethods[3].shippingPrice</path>
+            <content>0.0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-36975" id="aa7e3e4a-012d-476c-b062-09bc946ea23f">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineShippingPriceForShippingMethod/DetermineShippingPriceForShippingMethod/WADL" methodName="DetermineShippingPriceForShippingMethod" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-36975" id="c960d397-b5ca-4b90-b4a5-b38d03215324" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "C123",
+            "from": "string",
+            "timestamp": "2020-02-24T04:48:33.000+0530"
+        }
+    },
+    "shippingMethods": [
+        {
+            "methodCode": "STRE"
+        },
+        {
+            "methodCode": "GRND"
+        },
+        {
+            "methodCode": "##12"
+        },
+        {
+            "methodCode": "EE$$"
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineShippingPriceForShippingMethod/DetermineShippingPriceForShippingMethod/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="2b208dcb-1fa7-4c98-a4ef-5d87feb1d5d6" name="Valid HTTP Status Codes_4">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="edd6f026-618e-4b18-a865-ed320510c33b" name="methodCode">
+          <con:configuration>
+            <path>shippingMethods[0].methodCode</path>
+            <content>STRE</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="7c3289a3-cc42-43fa-a1e6-c0e8e67e4d13" name="shippingPrice">
+          <con:configuration>
+            <path>shippingMethods[0].shippingPrice</path>
+            <content>0.0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="9a4f604e-c470-4534-9388-d51183ad9bb1" name="methodCode">
+          <con:configuration>
+            <path>shippingMethods[1].methodCode</path>
+            <content>GRND</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="2c28490d-ace4-4855-9cb6-2b77ecbd3d2a" name="shippingPrice">
+          <con:configuration>
+            <path>shippingMethods[1].shippingPrice</path>
+            <content>0.0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="9a5bd1ed-807c-4b5d-961b-423291a2099e" name="methodCode">
+          <con:configuration>
+            <path>shippingMethods[2].methodCode</path>
+            <content>##12</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="b39cef6c-8fa1-48f8-ac07-ac0a2669e077" name="shippingPrice">
+          <con:configuration>
+            <path>shippingMethods[2].shippingPrice</path>
+            <content>0.0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="41e69f2c-ab25-4edd-93b4-097948ccb37a" name="methodCode">
+          <con:configuration>
+            <path>shippingMethods[3].methodCode</path>
+            <content>EE$$</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="5efe47ee-4500-4a4a-b361-1efb69cec8e6" name="shippingPrice">
+          <con:configuration>
+            <path>shippingMethods[3].shippingPrice</path>
+            <content>0.0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-36976" id="75dc65b7-730c-4510-bc67-2fd34c5e52fd">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineShippingPriceForShippingMethod/DetermineShippingPriceForShippingMethod/WADL" methodName="DetermineShippingPriceForShippingMethod" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-36976" id="c960d397-b5ca-4b90-b4a5-b38d03215324" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "C123",
+            "from": "string",
+            "timestamp": "2020-02-24T04:48:33.000+0530"
+        }
+    },
+    "shippingMethods": [
+        {
+            "methodCode": "DRVR"
+        },
+        {
+            "methodCode": ""
+        },
+        {
+            "methodCode": ""
+        },
+        {
+            "methodCode": ""
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineShippingPriceForShippingMethod/DetermineShippingPriceForShippingMethod/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="82b40a0f-a919-4907-ace9-a6da13f38e7f" name="Valid HTTP Status Codes_5">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="1878b716-0e28-4562-8fc0-c950c1537ce0" name="methodCode">
+          <con:configuration>
+            <path>shippingMethods[0].methodCode</path>
+            <content>DRVR</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="60028d2d-9546-4e59-aad4-f6549685df2e" name="shippingPrice">
+          <con:configuration>
+            <path>shippingMethods[0].shippingPrice</path>
+            <content>0.0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="9a7a2db8-982d-46f1-ad0f-aa1dfb2a840c" name="methodCode">
+          <con:configuration>
+            <path>shippingMethods[1].methodCode</path>
+            <content/>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="d8d9fcda-fed0-4fcf-998a-8cb021ba36c2" name="shippingPrice">
+          <con:configuration>
+            <path>shippingMethods[1].shippingPrice</path>
+            <content>0.0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="205f1f7a-4dac-4b0d-8b81-204414539a99" name="methodCode">
+          <con:configuration>
+            <path>shippingMethods[2].methodCode</path>
+            <content/>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="a2174b46-f7e4-4b54-a58a-03eb70498ae3" name="shippingPrice">
+          <con:configuration>
+            <path>shippingMethods[2].shippingPrice</path>
+            <content>0.0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="dce7eb5c-20ce-42dd-a7c4-9d975222e02a" name="methodCode">
+          <con:configuration>
+            <path>shippingMethods[3].methodCode</path>
+            <content/>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="d5aed6a6-2c19-45c3-99e5-529b864de6fc" name="shippingPrice">
+          <con:configuration>
+            <path>shippingMethods[3].shippingPrice</path>
+            <content>0.0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-36977" id="2b1f1585-1579-466a-aa76-e343042632e6">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineShippingPriceForShippingMethod/DetermineShippingPriceForShippingMethod/WADL" methodName="DetermineShippingPriceForShippingMethod" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-36977" id="c960d397-b5ca-4b90-b4a5-b38d03215324" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "C123",
+            "from": "string",
+            "timestamp": "2020-02-24T04:48:33.000+0530"
+        }
+    },
+    "shippingMethods": [
+        {
+            "methodCode": ""
+        },
+        {
+            "methodCode": ""
+        },
+        {
+            "methodCode": ""
+        },
+        {
+            "methodCode": ""
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineShippingPriceForShippingMethod/DetermineShippingPriceForShippingMethod/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="b35bcbe0-9443-46c6-b01c-37f7bf5fe27b" name="Valid HTTP Status Codes_6">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="8379a54a-2dde-4186-b91b-e2e732c81a91" name="methodCode">
+          <con:configuration>
+            <path>shippingMethods[0].methodCode</path>
+            <content/>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="d2b8b646-c409-4e09-8e55-bb506ca3cd2a" name="shippingPrice">
+          <con:configuration>
+            <path>shippingMethods[0].shippingPrice</path>
+            <content>0.0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="6940f69c-3376-414d-a438-ab60076cb4c2" name="methodCode">
+          <con:configuration>
+            <path>shippingMethods[1].methodCode</path>
+            <content/>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="5cd30bf5-c6c9-4d60-9fb7-de88692214c4" name="shippingPrice">
+          <con:configuration>
+            <path>shippingMethods[1].shippingPrice</path>
+            <content>0.0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="909b8ae8-e96b-426d-8e3f-e367ccbaf9fa" name="methodCode">
+          <con:configuration>
+            <path>shippingMethods[2].methodCode</path>
+            <content/>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="8bfa0889-6f6e-4841-b56d-99d5b6958e13" name="shippingPrice">
+          <con:configuration>
+            <path>shippingMethods[2].shippingPrice</path>
+            <content>0.0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="5d780f5a-07d6-40b6-a668-df922ab8d7d0" name="methodCode">
+          <con:configuration>
+            <path>shippingMethods[3].methodCode</path>
+            <content/>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="8251803e-d5ae-406a-a037-82dc7a72a460" name="shippingPrice">
+          <con:configuration>
+            <path>shippingMethods[3].shippingPrice</path>
+            <content>0.0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:properties/>
+  <con:reportParameters/>
+</con:testCase>

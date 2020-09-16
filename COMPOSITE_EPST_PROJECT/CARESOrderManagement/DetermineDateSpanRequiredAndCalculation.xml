@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<con:resource name="DetermineDateSpanRequiredAndCalculation" path="/DecisionService/rest/v1/DetermineDateSpanRequiredAndCalculation/DetermineDateSpanRequiredAndCalculation/WADL" id="3519a129-5af7-4953-85dd-97e5c040d099" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:con="http://eviware.com/soapui/config">
+  <con:settings>
+    <con:setting id="3519a129-5af7-4953-85dd-97e5c040d099fileName">DetermineDateSpanRequiredAndCalculation</con:setting>
+  </con:settings>
+  <con:parameters/>
+  <con:method name="DetermineDateSpanRequiredAndCalculation" id="e0b042ab-d8a9-4c6d-af84-757fd298aa6f" method="POST">
+    <con:settings/>
+    <con:parameters/>
+    <con:request name="DetermineDateSpanRequiredAndCalculation" id="98f9ed3b-f333-4780-b375-bae44bdfa0a0" mediaType="application/json" postQueryString="false">
+      <con:settings>
+        <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+      </con:settings>
+      <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+      <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "ABC",
+            "correlationID": " IrKi27e1lMYrHGqA5CZRGL6i ",
+            "from": "PCF",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "actualShipDate": "2020-11-02T00:00:00.000+0000",
+            "expectedShipDate": "2020-11-01T00:00:00.000+0000",
+            "extendedUnits": "1",
+            "hcpcsCode": "A9277",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA001",
+                    "planCode": "0019"
+                }
+            ],
+            "prescribedQuantityDays": "1",
+            "supplyPeriod": "5",
+            "unitsOfThePrescribedQuantity": "0"
+        },
+        {
+            "actualShipDate": "",
+            "expectedShipDate": "",
+            "extendedUnits": "3",
+            "hcpcsCode": "K0553",
+            "lineItemID": "L002",
+            "plans": [
+                {
+                    "id": "PB002",
+                    "planCode": "4130"
+                }
+            ],
+            "prescribedQuantityDays": "4",
+            "supplyPeriod": "2",
+            "unitsOfThePrescribedQuantity": "1"
+        }
+    ]
+}</con:request>
+      <con:credentials>
+        <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+        <con:authType>No Authorization</con:authType>
+      </con:credentials>
+      <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+      <con:jmsPropertyConfig/>
+      <con:parameters/>
+    </con:request>
+  </con:method>
+</con:resource>

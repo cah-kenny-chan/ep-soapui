@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<con:testSuite id="46aaef9c-fda1-41f0-b680-68ab9372896f" name="DetermineDefaultBenefitMapping" xmlns:con="http://eviware.com/soapui/config">
+  <con:settings>
+    <con:setting id="46aaef9c-fda1-41f0-b680-68ab9372896ffileName">DetermineDefaultBenefitMapping</con:setting>
+  </con:settings>
+  <con:runType>SEQUENTIAL</con:runType>
+  <con:properties/>
+  <con:reportParameters/>
+</con:testSuite>

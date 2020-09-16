@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<con:testSuite id="a5dde9e2-9087-463a-b59e-4c6ad2f08a20" name="DetermineBaseItemHcpcsCodes" xmlns:con="http://eviware.com/soapui/config">
+  <con:settings>
+    <con:setting id="a5dde9e2-9087-463a-b59e-4c6ad2f08a20fileName">DetermineBaseItemHcpcsCodes</con:setting>
+  </con:settings>
+  <con:runType>SEQUENTIAL</con:runType>
+  <con:properties/>
+  <con:reportParameters/>
+</con:testSuite>

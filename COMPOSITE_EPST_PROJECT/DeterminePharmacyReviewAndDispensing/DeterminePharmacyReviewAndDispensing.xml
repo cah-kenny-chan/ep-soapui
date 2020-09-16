@@ -1,0 +1,1479 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<con:testCase id="cb162393-b919-4da8-9b86-6c8c0f9cd4cc" failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="DeterminePharmacyReviewAndDispensing" searchProperties="true" xmlns:con="http://eviware.com/soapui/config">
+  <con:settings>
+    <con:setting id="cb162393-b919-4da8-9b86-6c8c0f9cd4ccfileName">DeterminePharmacyReviewAndDispensing</con:setting>
+  </con:settings>
+  <con:testStep type="restrequest" name="JSON Request" id="b0260938-c940-49b3-a59d-70d95e806bdb">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DeterminePharmacyReviewAndDispensing/DeterminePharmacyReviewAndDispensing/WADL" methodName="DeterminePharmacyReviewAndDispensing" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="JSON Request" id="19932dd2-d0ee-416a-9424-22c6c1f59735" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "B4208",
+            "itemNumber": "SRGHT123",
+            "lineItemID": "L001"
+        },
+        {
+            "hcpcsCode": "",
+            "itemNumber": "",
+            "lineItemID": "L002"
+        }
+    ],
+    "shipToAddress": {
+        "state": "88"
+    }
+}</con:request>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="groovy" name="DeterminePharmacistReviewAndDispencing-SingleLineItem" id="0f14bca0-4198-4eb1-9957-d7113b9037c4">
+    <con:settings/>
+    <con:config>
+      <script>import jxl.*;
+import jxl.write.*
+import java.io.*
+import java.io.file.*
+import java.util.*
+import java.lang.*
+import jxl.read.biff.BiffException;
+import net.sf.*
+import net.sf.json.*
+import net.sf.json.groovy.*
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+import groovy.json.JsonBuilder
+import com.eviware.soapui.model.testsuite.TestStepResult.TestStepStatus
+import com.eviware.soapui.impl.wsdl.teststeps.RestTestRequestStep
+
+def groovyUtils = new com.eviware.soapui.support.GroovyUtils(context)
+def projectDir = groovyUtils.projectPath
+
+def inputfile =  projectDir + "/DeterminePharmacistReviewAndDispencing/PharmacistReviewAndDispencing-SingleLineItem-Input.xls"
+def outputfile = projectDir + "/DeterminePharmacistReviewAndDispencing/PharmacistReviewAndDispencing-SingleLineItem-Output.xls"
+
+//Creating workbook for reading value from Excel Sheet
+
+Workbook wb = Workbook.getWorkbook(new File(inputfile))
+Sheet sh = wb.getSheet("ExpectedResults")
+Sheet jsonInput = wb.getSheet("JSON")
+
+//reading data from input Excel sheet
+rc = sh.getRows();
+cc = sh.getColumns();
+Cell jreq = jsonInput.getCell(0,0)
+
+//Creating Workbook for writing value in Excel Sheet
+WritableWorkbook wb1= Workbook.createWorkbook(new File(outputfile));
+WritableSheet sheet1 = wb1.createSheet("ActualResults",0);
+
+//Header declaration for output file
+addCell(0,0,"lineItemID",sheet1);
+addCell(1,0,"requiresPharmacyReview",sheet1);
+addCell(2,0,"requiresPharmacyDispensing",sheet1);
+addCell(3,0,"PASS/FAIL",sheet1);
+addCell(4,0,"FAILED DUE TO",sheet1);
+ 
+//new testStepName
+def newTestStep=null
+
+try {
+
+   
+               def req = jreq.getContents()
+               //Assigning request value dynamically
+               //request
+               def slurper = new JsonSlurper().parseText(req);
+               def requestTemplet = new JsonBuilder(slurper);
+
+         
+               for (i=2;i&lt;rc;i++){
+
+                           // Input for TestCaseName
+                         Cell varTestCaseName = sh.getCell(0,i)
+                        def TestCaseName = varTestCaseName.getContents()
+
+                                  //Input for State                                                     
+                                requestTemplet.content.shipToAddress.state = sh.getCell(1,i).getContents()                        
+                                 //Input for Line Item ID                                                             
+                                requestTemplet.content.lineItems[0].lineItemID = sh.getCell(2,i).getContents()
+                                 //Input for hcpcsCode                                   
+                                requestTemplet.content.lineItems[0].hcpcsCode = sh.getCell(3,i).getContents().toString()
+                                //Input for itemNumber                                  
+                                requestTemplet.content.lineItems[0].itemNumber = sh.getCell(4,i).getContents()                                                                                     
+                                                                                     
+                                 
+                              //Assign json request to variable
+                       def jsonReqAsString = requestTemplet.toPrettyString()
+                       def restRequest = testRunner.testCase.getTestStepByName('JSON Request');
+                       restRequest.setPropertyValue('Request',jsonReqAsString);
+
+                                //teststep cloned: Start
+                        def getTestCase = testRunner.testCase;
+                        def testst = testRunner.testCase.getTestStepByName("JSON Request");                 
+                            newTestStep = TestCaseName
+                            cleanUp(newTestStep)
+                            getTestCase.cloneStep(restRequest,newTestStep)
+                             
+                         //teststep cloned: End
+                         //Executing the testcase
+                        testRunner.runTestStepByName(newTestStep)
+ 
+                         //retrive response         
+                       def ResponseMessage = testRunner.testCase.testSteps[newTestStep].testRequest.response.contentAsString
+                    
+                         //new JsonSlurper to parse and get the response in Json format
+                        def slurper1 = new JsonSlurper()
+                        def json = slurper1.parseText(ResponseMessage)
+                    
+                                  
+                           // get lineItemID from response json                                 
+                        addCell(0,i,json.pharmacyReviewAndDispensingResponse[0].lineItemID,sheet1);                                   
+                          // get requiresPharmacyReview from response json                                   
+                        addCell(1,i,json.pharmacyReviewAndDispensingResponse[0].requiresPharmacyReview.toString(),sheet1);  
+                         // get requiresPharmacyDispensing from response json                                   
+                        addCell(2,i,json.pharmacyReviewAndDispensingResponse[0].requiresPharmacyDispensing.toString(),sheet1); 
+                          
+                                                    
+                                                           
+                      //dynamic asserstion :Start
+                   def testStepForAssertion = testRunner.testCase.getTestStepByName(newTestStep);
+                                //ValidHTTPStatusCodes 200 Assertion
+                  addAssertionValidHTTPStatusCodes(testStepForAssertion,"Valid HTTP Status Codes_"+i)
+            
+                             //get the expected values
+                          lineItemID = sh.getCell(5,i).getContents()
+                       addAssertionJsonPathMatch(testStepForAssertion,lineItemID,"pharmacyReviewAndDispensingResponse[0].lineItemID","lineItemID")
+
+                          requiresPharmacyReview = sh.getCell(6,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,requiresPharmacyReview,"pharmacyReviewAndDispensingResponse[0].requiresPharmacyReview","requiresPharmacyReview")
+
+                       requiresPharmacyDispensing = sh.getCell(7,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,requiresPharmacyDispensing,"pharmacyReviewAndDispensingResponse[0].requiresPharmacyDispensing","requiresPharmacyDispensing")
+
+                       
+                               //dynamic asserstion :End
+                            assertionResult = testStepForAssertion.getAssertionStatus()
+             if(assertionResult.toString().equals("FAILED")){
+
+                                       addCell(3,i,"Fail",sheet1);
+                                   for( assertion in testStepForAssertion.assertionList ){
+                                  for( e in assertion.errors ){
+
+                                                     addCell(4,i,e.message,sheet1);
+
+                                                } 
+
+                                   }
+
+                                }
+
+
+                                else{
+
+                                   addCell(3,i,"PASS",sheet1);
+
+                                }
+
+ 
+       }
+
+      wb1.write();
+            log.info "TestCase Execution Completed successfull"
+
+ 
+
+                }             
+     
+catch(Exception e)
+{
+
+                 log.info(e)                         
+}
+
+finally
+{
+
+    //close workbook
+     wb.close();
+     wb1.close();     
+
+}
+
+//Method code
+def addAssertionJsonPathMatch(RestTestRequestStep testStepForAssertion,String expectedContent,String xPath,String assertionName) {
+          def assertionType = testStepForAssertion.addAssertion("JsonPath Match")
+                                assertionType.name = assertionName
+                                assertionType.setPath(xPath)
+                                assertionType.setExpectedContent(expectedContent)
+                                assertionType.setAllowWildcards(true) 
+
+}
+
+//Method code
+def addAssertionValidHTTPStatusCodes(RestTestRequestStep testStepForAssertion,String assertionName) {
+
+         def StatusCodeAssertionxpath = testStepForAssertion.addAssertion("Valid HTTP Status Codes")
+             StatusCodeAssertionxpath.name = assertionName
+             StatusCodeAssertionxpath.codes=200
+
+}
+
+//method to delete
+def cleanUp(String requestName){
+
+                //remove the teststep::Start
+                def testCase = testRunner.testCase
+                def testStep = testCase.getTestStepByName(requestName)
+
+                if (testStep!=null){
+
+ 
+                                    testCase.removeTestStep(testStep)
+                }
+
+    
+            //remove the teststep::End
+
+}
+
+ 
+
+//method to add Cell to sheet1
+
+def addCell(int colmNum,int rowNum,String lblName,WritableSheet sheet1 ){
+
+                 Label header = new Label(colmNum,rowNum,lblName);
+                sheet1.addCell(header);               
+
+}</script>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="groovy" name="DeterminePharmacistReviewAndDispencing-MultiLineItem" id="91d2fcd5-5d4c-48ca-b364-c12ebec43ee6">
+    <con:settings/>
+    <con:config>
+      <script>import jxl.*;
+import jxl.write.*
+import java.io.*
+import java.io.file.*
+import java.util.*
+import java.lang.*
+import jxl.read.biff.BiffException;
+import net.sf.*
+import net.sf.json.*
+import net.sf.json.groovy.*
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+import groovy.json.JsonBuilder
+import com.eviware.soapui.model.testsuite.TestStepResult.TestStepStatus
+import com.eviware.soapui.impl.wsdl.teststeps.RestTestRequestStep
+
+def groovyUtils = new com.eviware.soapui.support.GroovyUtils(context)
+def projectDir = groovyUtils.projectPath
+
+def inputfile =  projectDir + "/DeterminePharmacistReviewAndDispencing/PharmacistReviewAndDispencing-MultiLineItem-Input.xls"
+def outputfile = projectDir + "/DeterminePharmacistReviewAndDispencing/PharmacistReviewAndDispencing-MultiLineItem-Output.xls"
+
+//Creating workbook for reading value from Excel Sheet
+
+Workbook wb = Workbook.getWorkbook(new File(inputfile))
+Sheet sh = wb.getSheet("ExpectedResults")
+Sheet jsonInput = wb.getSheet("JSON")
+
+//reading data from input Excel sheet
+rc = sh.getRows();
+cc = sh.getColumns();
+Cell jreq = jsonInput.getCell(0,0)
+
+//Creating Workbook for writing value in Excel Sheet
+WritableWorkbook wb1= Workbook.createWorkbook(new File(outputfile));
+WritableSheet sheet1 = wb1.createSheet("ActualResults",0);
+
+//Header declaration for output file
+addCell(0,0,"lineItemID",sheet1);
+addCell(1,0,"requiresPharmacyReview",sheet1);
+addCell(2,0,"requiresPharmacyDispensing",sheet1);
+addCell(3,0,"lineItemID1",sheet1);
+addCell(4,0,"requiresPharmacyReview1",sheet1);
+addCell(5,0,"requiresPharmacyDispensing1",sheet1);
+addCell(6,0,"PASS/FAIL",sheet1);
+addCell(7,0,"FAILED DUE TO",sheet1);
+ 
+//new testStepName
+def newTestStep=null
+
+try {
+
+   
+               def req = jreq.getContents()
+               //Assigning request value dynamically
+               //request
+               def slurper = new JsonSlurper().parseText(req);
+               def requestTemplet = new JsonBuilder(slurper);
+
+         
+               for (i=2;i&lt;rc;i++){
+
+                           // Input for TestCaseName
+                         Cell varTestCaseName = sh.getCell(0,i)
+                        def TestCaseName = varTestCaseName.getContents()
+                                 
+
+                                  //Input for State                                                  
+                                requestTemplet.content.shipToAddress.state = sh.getCell(1,i).getContents()                             
+                                  //Input for Line Item ID1                                                  
+                                requestTemplet.content.lineItems[0].lineItemID = sh.getCell(2,i).getContents()
+                                 //Input for hcpcsCode                                  
+                                requestTemplet.content.lineItems[0].hcpcsCode = sh.getCell(3,i).getContents().toString()
+                                //Input for itemNumber                                
+                                requestTemplet.content.lineItems[0].itemNumber = sh.getCell(4,i).getContents() 
+
+                                
+                               //Input for Line Item ID2                                                            
+                                requestTemplet.content.lineItems[1].lineItemID = sh.getCell(5,i).getContents()
+                                 //Input for hcpcsCode                                  
+                                requestTemplet.content.lineItems[1].hcpcsCode = sh.getCell(6,i).getContents().toString()
+                                //Input for itemNumber                                
+                                requestTemplet.content.lineItems[1].itemNumber = sh.getCell(7,i).getContents()                                                 
+                                                                                                                               
+                                 
+                              //Assign json request to variable
+                       def jsonReqAsString = requestTemplet.toPrettyString()
+                       def restRequest = testRunner.testCase.getTestStepByName('JSON Request');
+                       restRequest.setPropertyValue('Request',jsonReqAsString);
+
+                                //teststep cloned: Start
+                        def getTestCase = testRunner.testCase;
+                        def testst = testRunner.testCase.getTestStepByName("JSON Request");                 
+                            newTestStep = TestCaseName
+                            cleanUp(newTestStep)
+                            getTestCase.cloneStep(restRequest,newTestStep)
+                             
+                         //teststep cloned: End
+                         //Executing the testcase
+                        testRunner.runTestStepByName(newTestStep)
+ 
+                         //retrive response         
+                       def ResponseMessage = testRunner.testCase.testSteps[newTestStep].testRequest.response.contentAsString
+                    
+                         //new JsonSlurper to parse and get the response in Json format
+                        def slurper1 = new JsonSlurper()
+                        def json = slurper1.parseText(ResponseMessage)
+                    
+                                  
+                           // get lineItemID from response json                                 
+                        addCell(0,i,json.pharmacyReviewAndDispensingResponse[0].lineItemID,sheet1);                                   
+                          // get requiresPharmacyReview from response json                                   
+                        addCell(1,i,json.pharmacyReviewAndDispensingResponse[0].requiresPharmacyReview.toString(),sheet1);  
+                         // get requiresPharmacyDispensing from response json                                   
+                        addCell(2,i,json.pharmacyReviewAndDispensingResponse[0].requiresPharmacyDispensing.toString(),sheet1); 
+                        // get lineItemID from response json                                 
+                        addCell(3,i,json.pharmacyReviewAndDispensingResponse[1].lineItemID,sheet1);                                   
+                          // get requiresPharmacyReview from response json                                   
+                        addCell(4,i,json.pharmacyReviewAndDispensingResponse[1].requiresPharmacyReview.toString(),sheet1);  
+                         // get requiresPharmacyDispensing from response json                                   
+                        addCell(5,i,json.pharmacyReviewAndDispensingResponse[1].requiresPharmacyDispensing.toString(),sheet1);                         
+                          
+                                                   
+                                                           
+                      //dynamic asserstion :Start
+                   def testStepForAssertion = testRunner.testCase.getTestStepByName(newTestStep);
+                                //ValidHTTPStatusCodes 200 Assertion
+                  addAssertionValidHTTPStatusCodes(testStepForAssertion,"Valid HTTP Status Codes_"+i)
+            
+                             //get the expected values
+             
+                          lineItemID = sh.getCell(8,i).getContents()
+                       addAssertionJsonPathMatch(testStepForAssertion,lineItemID,"pharmacyReviewAndDispensingResponse[0].lineItemID","lineItemID")
+
+                          requiresPharmacyReview = sh.getCell(9,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,requiresPharmacyReview,"pharmacyReviewAndDispensingResponse[0].requiresPharmacyReview","requiresPharmacyReview")
+
+                       requiresPharmacyDispensing = sh.getCell(10,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,requiresPharmacyDispensing,"pharmacyReviewAndDispensingResponse[0].requiresPharmacyDispensing","requiresPharmacyDispensing")
+
+                       lineItemID1 = sh.getCell(11,i).getContents()
+                       addAssertionJsonPathMatch(testStepForAssertion,lineItemID1,"pharmacyReviewAndDispensingResponse[1].lineItemID","lineItemID")
+                       
+                       requiresPharmacyReview1 = sh.getCell(12,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,requiresPharmacyReview1,"pharmacyReviewAndDispensingResponse[1].requiresPharmacyReview","requiresPharmacyReview")
+
+                       requiresPharmacyDispensing1 = sh.getCell(13,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,requiresPharmacyDispensing1,"pharmacyReviewAndDispensingResponse[1].requiresPharmacyDispensing","requiresPharmacyDispensing")
+             
+
+                       
+                               //dynamic asserstion :End
+                            assertionResult = testStepForAssertion.getAssertionStatus()
+             if(assertionResult.toString().equals("FAILED")){
+
+                                       addCell(6,i,"Fail",sheet1);
+                                   for( assertion in testStepForAssertion.assertionList ){
+                                  for( e in assertion.errors ){
+
+                                                     addCell(7,i,e.message,sheet1);
+
+                                                } 
+
+                                   }
+
+                                }
+
+
+                                else{
+
+                                   addCell(6,i,"PASS",sheet1);
+
+                                }
+
+ 
+       }
+
+      wb1.write();
+            log.info "TestCase Execution Completed successfull"
+
+ 
+
+                }             
+     
+catch(Exception e)
+{
+
+                 log.info(e)                         
+}
+
+finally
+{
+
+    //close workbook
+     wb.close();
+     wb1.close();     
+
+}
+
+//Method code
+def addAssertionJsonPathMatch(RestTestRequestStep testStepForAssertion,String expectedContent,String xPath,String assertionName) {
+          def assertionType = testStepForAssertion.addAssertion("JsonPath Match")
+                                assertionType.name = assertionName
+                                assertionType.setPath(xPath)
+                                assertionType.setExpectedContent(expectedContent)
+                                assertionType.setAllowWildcards(true) 
+
+}
+
+//Method code
+def addAssertionValidHTTPStatusCodes(RestTestRequestStep testStepForAssertion,String assertionName) {
+
+         def StatusCodeAssertionxpath = testStepForAssertion.addAssertion("Valid HTTP Status Codes")
+             StatusCodeAssertionxpath.name = assertionName
+             StatusCodeAssertionxpath.codes=200
+
+}
+
+//method to delete
+def cleanUp(String requestName){
+
+                //remove the teststep::Start
+                def testCase = testRunner.testCase
+                def testStep = testCase.getTestStepByName(requestName)
+
+                if (testStep!=null){
+
+ 
+                                    testCase.removeTestStep(testStep)
+                }
+
+    
+            //remove the teststep::End
+
+}
+
+ 
+
+//method to add Cell to sheet1
+
+def addCell(int colmNum,int rowNum,String lblName,WritableSheet sheet1 ){
+
+                 Label header = new Label(colmNum,rowNum,lblName);
+                sheet1.addCell(header);               
+
+}</script>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-36180" id="965b6f47-00b1-42a3-8880-84665a17f1e0">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DeterminePharmacyReviewAndDispensing/DeterminePharmacyReviewAndDispensing/WADL" methodName="DeterminePharmacyReviewAndDispensing" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-36180" id="19932dd2-d0ee-416a-9424-22c6c1f59735" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "J1610",
+            "itemNumber": "DL21178924",
+            "lineItemID": "L001"
+        },
+        {
+            "hcpcsCode": "A4123",
+            "itemNumber": "PSKU01234",
+            "lineItemID": "L002"
+        }
+    ],
+    "shipToAddress": {
+        "state": "AK"
+    }
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DeterminePharmacyReviewAndDispensing/DeterminePharmacyReviewAndDispensing/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="15ab3f38-651e-485e-bac5-e4d40df03462" name="Valid HTTP Status Codes_2">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="3ce7d45f-2bb1-4269-9943-1f4c30fcd3c1" name="lineItemID">
+          <con:configuration>
+            <path>pharmacyReviewAndDispensingResponse[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="de37cdb8-f1d5-486e-be9d-53f596a1669c" name="requiresPharmacyReview">
+          <con:configuration>
+            <path>pharmacyReviewAndDispensingResponse[0].requiresPharmacyReview</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="77831f78-0d55-4bf5-87a7-e77a1b073e3c" name="requiresPharmacyDispensing">
+          <con:configuration>
+            <path>pharmacyReviewAndDispensingResponse[0].requiresPharmacyDispensing</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-36181" id="d486cb09-935d-4d4a-8caf-fb1760b7c4f9">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DeterminePharmacyReviewAndDispensing/DeterminePharmacyReviewAndDispensing/WADL" methodName="DeterminePharmacyReviewAndDispensing" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-36181" id="19932dd2-d0ee-416a-9424-22c6c1f59735" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "",
+            "itemNumber": "SC294599",
+            "lineItemID": "L001"
+        },
+        {
+            "hcpcsCode": "A4123",
+            "itemNumber": "PSKU01234",
+            "lineItemID": "L002"
+        }
+    ],
+    "shipToAddress": {
+        "state": "CA"
+    }
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DeterminePharmacyReviewAndDispensing/DeterminePharmacyReviewAndDispensing/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="24f86af4-b5e1-4af9-94af-375aaa589c09" name="Valid HTTP Status Codes_3">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="fe9bdd88-08ea-41b9-8994-f3f556050810" name="lineItemID">
+          <con:configuration>
+            <path>pharmacyReviewAndDispensingResponse[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="532bfbc3-9079-43aa-b742-3e9104166af6" name="requiresPharmacyReview">
+          <con:configuration>
+            <path>pharmacyReviewAndDispensingResponse[0].requiresPharmacyReview</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="653c07a6-f923-4b96-a750-97ce4a760ff8" name="requiresPharmacyDispensing">
+          <con:configuration>
+            <path>pharmacyReviewAndDispensingResponse[0].requiresPharmacyDispensing</path>
+            <content>false</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-36182" id="e5cf0a13-6e8b-467f-9390-5ed064ee8a64">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DeterminePharmacyReviewAndDispensing/DeterminePharmacyReviewAndDispensing/WADL" methodName="DeterminePharmacyReviewAndDispensing" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-36182" id="19932dd2-d0ee-416a-9424-22c6c1f59735" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "J1610",
+            "itemNumber": "",
+            "lineItemID": "L001"
+        },
+        {
+            "hcpcsCode": "A4123",
+            "itemNumber": "PSKU01234",
+            "lineItemID": "L002"
+        }
+    ],
+    "shipToAddress": {
+        "state": "WY"
+    }
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DeterminePharmacyReviewAndDispensing/DeterminePharmacyReviewAndDispensing/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="efb72df6-232b-404a-b10f-9664c175b26e" name="Valid HTTP Status Codes_4">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="41819d99-cb0d-4033-a07e-bec4b76022cd" name="lineItemID">
+          <con:configuration>
+            <path>pharmacyReviewAndDispensingResponse[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="8a6a9f83-a301-4e07-844a-55900aa6befd" name="requiresPharmacyReview">
+          <con:configuration>
+            <path>pharmacyReviewAndDispensingResponse[0].requiresPharmacyReview</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="cbb9f74f-bdac-4cd5-8b3b-74ac9c49a055" name="requiresPharmacyDispensing">
+          <con:configuration>
+            <path>pharmacyReviewAndDispensingResponse[0].requiresPharmacyDispensing</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-36183" id="798967cc-7da3-4c69-a649-42ea3b53ef48">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DeterminePharmacyReviewAndDispensing/DeterminePharmacyReviewAndDispensing/WADL" methodName="DeterminePharmacyReviewAndDispensing" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-36183" id="19932dd2-d0ee-416a-9424-22c6c1f59735" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "J1610",
+            "itemNumber": "",
+            "lineItemID": "L001"
+        },
+        {
+            "hcpcsCode": "A4123",
+            "itemNumber": "PSKU01234",
+            "lineItemID": "L002"
+        }
+    ],
+    "shipToAddress": {
+        "state": "TT"
+    }
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DeterminePharmacyReviewAndDispensing/DeterminePharmacyReviewAndDispensing/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="1ab4127f-5058-42e0-9268-230bfd9b2c35" name="Valid HTTP Status Codes_5">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="1d610d0c-ab62-42de-86bd-aca4be3ddefc" name="lineItemID">
+          <con:configuration>
+            <path>pharmacyReviewAndDispensingResponse[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="0fc79931-ca99-46f2-8340-b1d9b186f751" name="requiresPharmacyReview">
+          <con:configuration>
+            <path>pharmacyReviewAndDispensingResponse[0].requiresPharmacyReview</path>
+            <content>false</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="44f89188-8361-4308-ba62-6b85be8e67c9" name="requiresPharmacyDispensing">
+          <con:configuration>
+            <path>pharmacyReviewAndDispensingResponse[0].requiresPharmacyDispensing</path>
+            <content>false</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-36184" id="f228640c-135a-4270-b862-263d284fbd57">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DeterminePharmacyReviewAndDispensing/DeterminePharmacyReviewAndDispensing/WADL" methodName="DeterminePharmacyReviewAndDispensing" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-36184" id="19932dd2-d0ee-416a-9424-22c6c1f59735" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "K1678",
+            "itemNumber": "",
+            "lineItemID": "L001"
+        },
+        {
+            "hcpcsCode": "A4123",
+            "itemNumber": "PSKU01234",
+            "lineItemID": "L002"
+        }
+    ],
+    "shipToAddress": {
+        "state": "CA"
+    }
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DeterminePharmacyReviewAndDispensing/DeterminePharmacyReviewAndDispensing/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="338401c1-0b4e-40e5-90b5-7f62a9db4088" name="Valid HTTP Status Codes_6">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="ca8789f7-95b0-4930-947b-af191b88351a" name="lineItemID">
+          <con:configuration>
+            <path>pharmacyReviewAndDispensingResponse[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="ae543fc5-5e9b-4be0-9cca-078318a0667a" name="requiresPharmacyReview">
+          <con:configuration>
+            <path>pharmacyReviewAndDispensingResponse[0].requiresPharmacyReview</path>
+            <content>false</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="fb7824cf-48db-4f12-b914-23aef83c7a6b" name="requiresPharmacyDispensing">
+          <con:configuration>
+            <path>pharmacyReviewAndDispensingResponse[0].requiresPharmacyDispensing</path>
+            <content>false</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-36185" id="965a027a-5552-4384-8ee6-61a9482ff30f">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DeterminePharmacyReviewAndDispensing/DeterminePharmacyReviewAndDispensing/WADL" methodName="DeterminePharmacyReviewAndDispensing" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-36185" id="19932dd2-d0ee-416a-9424-22c6c1f59735" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "J1610",
+            "itemNumber": "HL21178924",
+            "lineItemID": "L001"
+        },
+        {
+            "hcpcsCode": "A4123",
+            "itemNumber": "PSKU01234",
+            "lineItemID": "L002"
+        }
+    ],
+    "shipToAddress": {
+        "state": "AK"
+    }
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DeterminePharmacyReviewAndDispensing/DeterminePharmacyReviewAndDispensing/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="eb816aac-4f72-4827-8f62-910e6a6488c1" name="Valid HTTP Status Codes_7">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="9c92839f-1032-458c-bfbb-003bbe7b0723" name="lineItemID">
+          <con:configuration>
+            <path>pharmacyReviewAndDispensingResponse[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="c90187bc-0286-4070-ab53-d45aa72c0b8b" name="requiresPharmacyReview">
+          <con:configuration>
+            <path>pharmacyReviewAndDispensingResponse[0].requiresPharmacyReview</path>
+            <content>false</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="46665b5d-b7c7-4c6c-ac75-b1434bb7fe33" name="requiresPharmacyDispensing">
+          <con:configuration>
+            <path>pharmacyReviewAndDispensingResponse[0].requiresPharmacyDispensing</path>
+            <content>false</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-36186" id="3565e4b0-d026-4621-b1fb-6c8070734c84">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DeterminePharmacyReviewAndDispensing/DeterminePharmacyReviewAndDispensing/WADL" methodName="DeterminePharmacyReviewAndDispensing" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-36186" id="19932dd2-d0ee-416a-9424-22c6c1f59735" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "G0249",
+            "itemNumber": "HL21178924",
+            "lineItemID": "L001"
+        },
+        {
+            "hcpcsCode": "A4123",
+            "itemNumber": "PSKU01234",
+            "lineItemID": "L002"
+        }
+    ],
+    "shipToAddress": {
+        "state": "CA"
+    }
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DeterminePharmacyReviewAndDispensing/DeterminePharmacyReviewAndDispensing/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="529a0286-aa58-4834-9df4-be8f9ae2486d" name="Valid HTTP Status Codes_8">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="e75beb38-c6b9-4fc7-a8a6-9f714209d415" name="lineItemID">
+          <con:configuration>
+            <path>pharmacyReviewAndDispensingResponse[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="72aa6d88-b0a1-4e66-8391-cdf57d8bc364" name="requiresPharmacyReview">
+          <con:configuration>
+            <path>pharmacyReviewAndDispensingResponse[0].requiresPharmacyReview</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="833238d0-475c-40ff-98f7-1431cb869487" name="requiresPharmacyDispensing">
+          <con:configuration>
+            <path>pharmacyReviewAndDispensingResponse[0].requiresPharmacyDispensing</path>
+            <content>false</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-36187" id="e0ea65b7-1407-4c0a-8349-58670de4cf8b">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DeterminePharmacyReviewAndDispensing/DeterminePharmacyReviewAndDispensing/WADL" methodName="DeterminePharmacyReviewAndDispensing" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-36187" id="19932dd2-d0ee-416a-9424-22c6c1f59735" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "J1610",
+            "itemNumber": "DL21178924",
+            "lineItemID": "L001"
+        },
+        {
+            "hcpcsCode": "J1610",
+            "itemNumber": "",
+            "lineItemID": "L002"
+        }
+    ],
+    "shipToAddress": {
+        "state": "AL"
+    }
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DeterminePharmacyReviewAndDispensing/DeterminePharmacyReviewAndDispensing/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="6d11e37c-1950-4a5b-889c-d89d10f75201" name="Valid HTTP Status Codes_2">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="fd4e287c-f5a7-42f8-9073-1283cd4fb1c9" name="lineItemID">
+          <con:configuration>
+            <path>pharmacyReviewAndDispensingResponse[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="5b1068a0-1485-4a49-a9a0-d98ab3261834" name="requiresPharmacyReview">
+          <con:configuration>
+            <path>pharmacyReviewAndDispensingResponse[0].requiresPharmacyReview</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="ca11728e-4226-4dc9-b7a5-3e02bc4b9024" name="requiresPharmacyDispensing">
+          <con:configuration>
+            <path>pharmacyReviewAndDispensingResponse[0].requiresPharmacyDispensing</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="b76e6d91-bea2-4a57-a766-adfe89416c05" name="lineItemID">
+          <con:configuration>
+            <path>pharmacyReviewAndDispensingResponse[1].lineItemID</path>
+            <content>L002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="a3a3bc97-c5a9-44c2-a456-80c59b20d40d" name="requiresPharmacyReview">
+          <con:configuration>
+            <path>pharmacyReviewAndDispensingResponse[1].requiresPharmacyReview</path>
+            <content>false</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="3c412831-2178-4a6f-8a86-910441123dfa" name="requiresPharmacyDispensing">
+          <con:configuration>
+            <path>pharmacyReviewAndDispensingResponse[1].requiresPharmacyDispensing</path>
+            <content>false</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-36188" id="7382a1a6-9d39-4dd6-932e-22d7e12cf398">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DeterminePharmacyReviewAndDispensing/DeterminePharmacyReviewAndDispensing/WADL" methodName="DeterminePharmacyReviewAndDispensing" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-36188" id="19932dd2-d0ee-416a-9424-22c6c1f59735" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "",
+            "itemNumber": "MNMMT395",
+            "lineItemID": "L001"
+        },
+        {
+            "hcpcsCode": "A4208",
+            "itemNumber": "",
+            "lineItemID": "L002"
+        }
+    ],
+    "shipToAddress": {
+        "state": "CA"
+    }
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DeterminePharmacyReviewAndDispensing/DeterminePharmacyReviewAndDispensing/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="6b89c6e7-1031-457f-8f4a-878a2760751a" name="Valid HTTP Status Codes_3">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="d28a481a-59b8-4c8f-a0ea-3ccd8bfa23df" name="lineItemID">
+          <con:configuration>
+            <path>pharmacyReviewAndDispensingResponse[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="0d1653a8-cc8a-4bcb-8963-cbb314431601" name="requiresPharmacyReview">
+          <con:configuration>
+            <path>pharmacyReviewAndDispensingResponse[0].requiresPharmacyReview</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="6c8287bc-7440-4fbe-80af-c577dd2e9a08" name="requiresPharmacyDispensing">
+          <con:configuration>
+            <path>pharmacyReviewAndDispensingResponse[0].requiresPharmacyDispensing</path>
+            <content>false</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="8caa67a9-3d16-463a-bdc6-587594dd4c75" name="lineItemID">
+          <con:configuration>
+            <path>pharmacyReviewAndDispensingResponse[1].lineItemID</path>
+            <content>L002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="ae170019-6850-46ea-93d1-88027e5c2ef3" name="requiresPharmacyReview">
+          <con:configuration>
+            <path>pharmacyReviewAndDispensingResponse[1].requiresPharmacyReview</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="899e0ce6-9dcd-40b6-bc62-da36d9646d15" name="requiresPharmacyDispensing">
+          <con:configuration>
+            <path>pharmacyReviewAndDispensingResponse[1].requiresPharmacyDispensing</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-36189" id="7f510b22-3cb9-418e-81bd-55777d8248b3">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DeterminePharmacyReviewAndDispensing/DeterminePharmacyReviewAndDispensing/WADL" methodName="DeterminePharmacyReviewAndDispensing" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-36189" id="19932dd2-d0ee-416a-9424-22c6c1f59735" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "A4208",
+            "itemNumber": "",
+            "lineItemID": "L001"
+        },
+        {
+            "hcpcsCode": "B4208",
+            "itemNumber": "",
+            "lineItemID": "L002"
+        }
+    ],
+    "shipToAddress": {
+        "state": "%T"
+    }
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DeterminePharmacyReviewAndDispensing/DeterminePharmacyReviewAndDispensing/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="469d4430-3887-45fb-a0a3-c91da3f92d8e" name="Valid HTTP Status Codes_4">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="9be76ebd-4736-4638-95fb-13e84965a2ff" name="lineItemID">
+          <con:configuration>
+            <path>pharmacyReviewAndDispensingResponse[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="caa15f89-9e5f-4960-9aac-5063ffe323ba" name="requiresPharmacyReview">
+          <con:configuration>
+            <path>pharmacyReviewAndDispensingResponse[0].requiresPharmacyReview</path>
+            <content>false</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="e96a14d7-c2fe-4dbf-afef-40a792238956" name="requiresPharmacyDispensing">
+          <con:configuration>
+            <path>pharmacyReviewAndDispensingResponse[0].requiresPharmacyDispensing</path>
+            <content>false</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="8a5c0c62-e00d-4ac4-80f5-72499dc9e240" name="lineItemID">
+          <con:configuration>
+            <path>pharmacyReviewAndDispensingResponse[1].lineItemID</path>
+            <content>L002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="b54f1f21-873e-477c-888a-af5781b6626f" name="requiresPharmacyReview">
+          <con:configuration>
+            <path>pharmacyReviewAndDispensingResponse[1].requiresPharmacyReview</path>
+            <content>false</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="aa70aa84-3333-4f50-a249-5f41c6a020a0" name="requiresPharmacyDispensing">
+          <con:configuration>
+            <path>pharmacyReviewAndDispensingResponse[1].requiresPharmacyDispensing</path>
+            <content>false</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-36190" id="d8cfb339-81c1-45df-951b-c955a815e5a2">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DeterminePharmacyReviewAndDispensing/DeterminePharmacyReviewAndDispensing/WADL" methodName="DeterminePharmacyReviewAndDispensing" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-36190" id="19932dd2-d0ee-416a-9424-22c6c1f59735" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "B4208",
+            "itemNumber": "SRGHT123",
+            "lineItemID": "L001"
+        },
+        {
+            "hcpcsCode": "",
+            "itemNumber": "",
+            "lineItemID": "L002"
+        }
+    ],
+    "shipToAddress": {
+        "state": "88"
+    }
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DeterminePharmacyReviewAndDispensing/DeterminePharmacyReviewAndDispensing/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="7025d0fe-2783-4e8e-ad75-e26f195b873e" name="Valid HTTP Status Codes_5">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="aa787886-3002-491d-be0f-3cdd80508a46" name="lineItemID">
+          <con:configuration>
+            <path>pharmacyReviewAndDispensingResponse[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="aa3ca289-9040-4e03-bfc2-f1510a7c9a00" name="requiresPharmacyReview">
+          <con:configuration>
+            <path>pharmacyReviewAndDispensingResponse[0].requiresPharmacyReview</path>
+            <content>false</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="d5b8e690-a114-47e5-b571-66abfc924916" name="requiresPharmacyDispensing">
+          <con:configuration>
+            <path>pharmacyReviewAndDispensingResponse[0].requiresPharmacyDispensing</path>
+            <content>false</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="6c6550ba-3f80-4d3c-9927-aad14c6c673a" name="lineItemID">
+          <con:configuration>
+            <path>pharmacyReviewAndDispensingResponse[1].lineItemID</path>
+            <content>L002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="e7e0b11c-4163-4a66-8ea0-7f7b34b2ad56" name="requiresPharmacyReview">
+          <con:configuration>
+            <path>pharmacyReviewAndDispensingResponse[1].requiresPharmacyReview</path>
+            <content>false</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="75f83bed-9920-4001-8c61-eae576f375b3" name="requiresPharmacyDispensing">
+          <con:configuration>
+            <path>pharmacyReviewAndDispensingResponse[1].requiresPharmacyDispensing</path>
+            <content>false</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:properties/>
+  <con:reportParameters/>
+</con:testCase>

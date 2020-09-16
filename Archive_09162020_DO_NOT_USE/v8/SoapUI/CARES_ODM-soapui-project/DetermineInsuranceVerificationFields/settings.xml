@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<con:testSuite id="62554a74-90e4-4385-bd76-452da0289ffa" name="DetermineInsuranceVerificationFields" xmlns:con="http://eviware.com/soapui/config">
+  <con:settings>
+    <con:setting id="62554a74-90e4-4385-bd76-452da0289ffafileName">DetermineInsuranceVerificationFields</con:setting>
+  </con:settings>
+  <con:runType>SEQUENTIAL</con:runType>
+  <con:properties/>
+  <con:reportParameters/>
+</con:testSuite>

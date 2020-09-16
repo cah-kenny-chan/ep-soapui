@@ -1,0 +1,1119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<con:testCase id="fd0144f0-13e1-4d33-be69-74801f163490" failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="DetermineSampleLimits" searchProperties="true" xmlns:con="http://eviware.com/soapui/config">
+  <con:settings>
+    <con:setting id="fd0144f0-13e1-4d33-be69-74801f163490fileName">DetermineSampleLimits</con:setting>
+  </con:settings>
+  <con:testStep type="restrequest" name="JSON Request" id="b59d0d11-e3f3-4945-9545-1bf3be0099d5">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineSampleLimits/DetermineSampleLimits/WADL" methodName="DetermineSampleLimits" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="JSON Request" id="bd7c84ea-b130-4f8c-805d-b5d4e9aa42db" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "123",
+            "from": "string",
+            "timestamp": "2008-09-29T07:19:45.000+0530"
+        }
+    },
+    "lineItems": [
+        {
+            "itemNumber": "DD9DX1113",
+            "lineItemID": "L001"
+        },
+        {
+            "itemNumber": "DD9DX1113",
+            "lineItemID": "L002"
+        }
+    ]
+}</con:request>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="groovy" name="DetermineSampleLimits-SingleLineItem" id="668ccc0c-5914-4d9f-9a19-98a113326817">
+    <con:settings/>
+    <con:config>
+      <script>import jxl.*;
+import jxl.write.*
+import java.io.*
+import java.io.file.*
+import java.util.*
+import java.lang.*
+import jxl.read.biff.BiffException;
+import net.sf.*
+import net.sf.json.*
+import net.sf.json.groovy.*
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+import groovy.json.JsonBuilder
+import com.eviware.soapui.model.testsuite.TestStepResult.TestStepStatus
+import com.eviware.soapui.impl.wsdl.teststeps.RestTestRequestStep
+
+def groovyUtils = new com.eviware.soapui.support.GroovyUtils(context)
+def projectDir = groovyUtils.projectPath
+
+def inputfile =  projectDir + "/DetermineSampleLimits/DetermineSampleLimits-Input.xls"
+def outputfile = projectDir + "/DetermineSampleLimits/DetermineSampleLimits-SingleLineItem-Output.xls"
+
+//Creating workbook for reading value from Excel Sheet
+
+Workbook wb = Workbook.getWorkbook(new File(inputfile))
+Sheet sh = wb.getSheet("ExpectedResults_SingleLineItem")
+Sheet jsonInput = wb.getSheet("JSON_SingleLineItem")
+
+//reading data from input Excel sheet
+rc = sh.getRows();
+cc = sh.getColumns();
+Cell jreq = jsonInput.getCell(0,0)
+
+//Creating Workbook for writing value in Excel Sheet
+WritableWorkbook wb1= Workbook.createWorkbook(new File(outputfile));
+WritableSheet sheet1 = wb1.createSheet("ActualResults",0);
+
+//Header declaration for output file
+addCell(0,0,"lineItemID",sheet1);
+addCell(1,0,"limitQuantity",sheet1);
+addCell(2,0,"limitsValid",sheet1);
+addCell(3,0,"PASS/FAIL",sheet1);
+addCell(4,0,"FAILED DUE TO",sheet1);
+ 
+//new testStepName
+def newTestStep=null
+
+try {
+
+   
+               def req = jreq.getContents()
+               //Assigning request value dynamically
+               //request
+               def slurper = new JsonSlurper().parseText(req);
+               def requestTemplet = new JsonBuilder(slurper);
+
+         
+               for (i=2;i&lt;rc;i++){
+
+                           // Input for TestCaseName
+                         Cell varTestCaseName = sh.getCell(0,i)
+                        def TestCaseName = varTestCaseName.getContents()
+                        
+                                 //Input for Line Item ID                               
+                                requestTemplet.content.lineItems[0].lineItemID = sh.getCell(1,i).getContents()
+                                 //Input for hcpcsCode  
+                                requestTemplet.content.lineItems[0].itemNumber = sh.getCell(2,i).getContents()                                                                                     
+                                 
+
+                              //Assign json request to variable
+                       def jsonReqAsString = requestTemplet.toPrettyString()
+                       def restRequest = testRunner.testCase.getTestStepByName('JSON Request');
+                       restRequest.setPropertyValue('Request',jsonReqAsString);
+
+                                //teststep cloned: Start
+                        def getTestCase = testRunner.testCase;
+                        def testst = testRunner.testCase.getTestStepByName("JSON Request");                 
+                            newTestStep = TestCaseName
+                            cleanUp(newTestStep)
+                            getTestCase.cloneStep(restRequest,newTestStep)
+                             
+                         //teststep cloned: End
+                         //Executing the testcase
+                        testRunner.runTestStepByName(newTestStep)
+ 
+                         //retrive response         
+                       def ResponseMessage = testRunner.testCase.testSteps[newTestStep].testRequest.response.contentAsString
+                    
+                         //new JsonSlurper to parse and get the response in Json format
+                        def slurper1 = new JsonSlurper()
+                        def json = slurper1.parseText(ResponseMessage)
+                    
+                                  
+                           // get lineItemID from response json                                 
+                        addCell(0,i,json.limitsResponse[0].lineItemID,sheet1);                                   
+                          // get limitQuantity from response json                                   
+                        addCell(1,i,json.limitsResponse[0].limitQuantity.toString(),sheet1);  
+                          // get limitsValid from response json                                   
+                        addCell(2,i,json.limitsResponse[0].limitsValid.toString(),sheet1);                           
+                                                    
+                                                           
+                      //dynamic asserstion :Start
+                   def testStepForAssertion = testRunner.testCase.getTestStepByName(newTestStep);
+                                //ValidHTTPStatusCodes 200 Assertion
+                  addAssertionValidHTTPStatusCodes(testStepForAssertion,"Valid HTTP Status Codes_"+i)
+            
+                             //get the expected values
+                          lineItemID = sh.getCell(3,i).getContents()
+                       addAssertionJsonPathMatch(testStepForAssertion,lineItemID,"limitsResponse[0].lineItemID","lineItemID")
+
+                          limitQuantity = sh.getCell(4,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,limitQuantity,"limitsResponse[0].limitQuantity","limitQuantity")
+
+                          limitsValid = sh.getCell(5,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,limitsValid,"limitsResponse[0].limitsValid","limitsValid")                     
+                                      
+             
+                            //dynamic asserstion :End
+                            assertionResult = testStepForAssertion.getAssertionStatus()
+             if(assertionResult.toString().equals("FAILED")){
+
+                                       addCell(3,i,"Fail",sheet1);
+                                   for( assertion in testStepForAssertion.assertionList ){
+                                  for( e in assertion.errors ){
+
+                                                     addCell(4,i,e.message,sheet1);
+
+                                                } 
+
+                                   }
+
+                                }
+
+
+                                else{
+
+                                   addCell(3,i,"PASS",sheet1);
+
+                                }
+
+ 
+       }
+
+      wb1.write();
+            log.info "TestCase Execution Completed successfull"
+
+ 
+
+                }             
+     
+catch(Exception e)
+{
+
+                 log.info(e)                         
+}
+
+finally
+{
+
+    //close workbook
+     wb.close();
+     wb1.close();     
+
+}
+
+//Method code
+def addAssertionJsonPathMatch(RestTestRequestStep testStepForAssertion,String expectedContent,String xPath,String assertionName) {
+          def assertionType = testStepForAssertion.addAssertion("JsonPath Match")
+                                assertionType.name = assertionName
+                                assertionType.setPath(xPath)
+                                assertionType.setExpectedContent(expectedContent)
+                                assertionType.setAllowWildcards(true) 
+
+}
+
+//Method code
+def addAssertionValidHTTPStatusCodes(RestTestRequestStep testStepForAssertion,String assertionName) {
+
+         def StatusCodeAssertionxpath = testStepForAssertion.addAssertion("Valid HTTP Status Codes")
+             StatusCodeAssertionxpath.name = assertionName
+             StatusCodeAssertionxpath.codes=200
+
+}
+
+//method to delete
+def cleanUp(String requestName){
+
+                //remove the teststep::Start
+                def testCase = testRunner.testCase
+                def testStep = testCase.getTestStepByName(requestName)
+
+                if (testStep!=null){
+
+ 
+                                    testCase.removeTestStep(testStep)
+                }
+
+    
+            //remove the teststep::End
+
+}
+
+ 
+
+//method to add Cell to sheet1
+
+def addCell(int colmNum,int rowNum,String lblName,WritableSheet sheet1 ){
+
+                 Label header = new Label(colmNum,rowNum,lblName);
+                sheet1.addCell(header);               
+
+}</script>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="groovy" name="DetermineSampleLimits-MultiLineItem" id="cb1a4baa-0312-462e-85d8-22c2baf385a6">
+    <con:settings/>
+    <con:config>
+      <script>import jxl.*;
+import jxl.write.*
+import java.io.*
+import java.io.file.*
+import java.util.*
+import java.lang.*
+import jxl.read.biff.BiffException;
+import net.sf.*
+import net.sf.json.*
+import net.sf.json.groovy.*
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+import groovy.json.JsonBuilder
+import com.eviware.soapui.model.testsuite.TestStepResult.TestStepStatus
+import com.eviware.soapui.impl.wsdl.teststeps.RestTestRequestStep
+
+def groovyUtils = new com.eviware.soapui.support.GroovyUtils(context)
+def projectDir = groovyUtils.projectPath
+
+def inputfile =  projectDir + "/DetermineSampleLimits/DetermineSampleLimits-Input.xls"
+def outputfile = projectDir + "/DetermineSampleLimits/DetermineSampleLimits-MultiLineItem-Output.xls"
+
+//Creating workbook for reading value from Excel Sheet
+
+Workbook wb = Workbook.getWorkbook(new File(inputfile))
+Sheet sh = wb.getSheet("ExpectedResults_MultiLineItem")
+Sheet jsonInput = wb.getSheet("JSON_MultiLineItem")
+
+//reading data from input Excel sheet
+rc = sh.getRows();
+cc = sh.getColumns();
+Cell jreq = jsonInput.getCell(0,0)
+
+//Creating Workbook for writing value in Excel Sheet
+WritableWorkbook wb1= Workbook.createWorkbook(new File(outputfile));
+WritableSheet sheet1 = wb1.createSheet("ActualResults",0);
+
+//Header declaration for output file
+addCell(0,0,"lineItemID",sheet1);
+addCell(1,0,"limitQuantity",sheet1);
+addCell(2,0,"limitsValid",sheet1);
+addCell(3,0,"lineItemID1",sheet1);
+addCell(4,0,"limitQuantity1",sheet1);
+addCell(5,0,"limitsValid1",sheet1);
+addCell(6,0,"PASS/FAIL",sheet1);
+addCell(7,0,"FAILED DUE TO",sheet1);
+ 
+//new testStepName
+def newTestStep=null
+
+try {
+
+   
+               def req = jreq.getContents()
+               //Assigning request value dynamically
+               //request
+               def slurper = new JsonSlurper().parseText(req);
+               def requestTemplet = new JsonBuilder(slurper);
+
+         
+               for (i=2;i&lt;rc;i++){
+
+                           // Input for TestCaseName
+                         Cell varTestCaseName = sh.getCell(0,i)
+                        def TestCaseName = varTestCaseName.getContents()
+
+                                               
+                                 //Input for LineItemID for LineItem1                               
+                                requestTemplet.content.lineItems[0].lineItemID = sh.getCell(1,i).getContents()
+                                 //Input for ancillaryHcpcsCode for LineItem1    
+                                requestTemplet.content.lineItems[0].itemNumber = sh.getCell(2,i).getContents()
+                        
+                        
+                               //Input for LineItemID for LineItem2                             
+                                requestTemplet.content.lineItems[1].lineItemID = sh.getCell(3,i).getContents()
+                                 //Input for ancillaryHcpcsCode for LineItem2
+                                requestTemplet.content.lineItems[1].itemNumber = sh.getCell(4,i).getContents()                                                                                                                   
+                                 
+
+                              //Assign json request to variable
+                       def jsonReqAsString = requestTemplet.toPrettyString()
+                       def restRequest = testRunner.testCase.getTestStepByName('JSON Request');
+                       restRequest.setPropertyValue('Request',jsonReqAsString);
+
+                                //teststep cloned: Start
+                        def getTestCase = testRunner.testCase;
+                        def testst = testRunner.testCase.getTestStepByName("JSON Request");                 
+                            newTestStep = TestCaseName
+                            cleanUp(newTestStep)
+                            getTestCase.cloneStep(restRequest,newTestStep)
+                             
+                         //teststep cloned: End
+                         //Executing the testcase
+                        testRunner.runTestStepByName(newTestStep)
+ 
+                         //retrive response         
+                       def ResponseMessage = testRunner.testCase.testSteps[newTestStep].testRequest.response.contentAsString
+                    
+                         //new JsonSlurper to parse and get the response in Json format
+                        def slurper1 = new JsonSlurper()
+                        def json = slurper1.parseText(ResponseMessage)
+
+                                      
+                            // json response for LineItem1      
+                           // get lineItemID from response json                                 
+                        addCell(0,i,json.limitsResponse[0].lineItemID,sheet1);                                   
+                          // get limitQuantity from response json                                   
+                        addCell(1,i,json.limitsResponse[0].limitQuantity.toString(),sheet1);                          
+                        // get limitsValid from response json                                  
+                        addCell(2,i,json.limitsResponse[0].limitsValid.toString(),sheet1); 
+                        
+                         // json response for LineItem2 
+                        // get lineItemID from response json                                 
+                        addCell(3,i,json.limitsResponse[1].lineItemID,sheet1);                                   
+                          // get limitQuantity from response json                                   
+                        addCell(4,i,json.limitsResponse[1].limitQuantity.toString(),sheet1);                            
+                         // get limitsValid from response json                                  
+                        addCell(5,i,json.limitsResponse[1].limitsValid.toString(),sheet1);      
+                          
+                                                                        
+                                                      
+                      //dynamic asserstion :Start
+                   def testStepForAssertion = testRunner.testCase.getTestStepByName(newTestStep);
+                                //ValidHTTPStatusCodes 200 Assertion
+                  addAssertionValidHTTPStatusCodes(testStepForAssertion,"Valid HTTP Status Codes_"+i)
+
+                            
+                             //get the expected values for LineItem1
+                          lineItemID = sh.getCell(5,i).getContents()
+                       addAssertionJsonPathMatch(testStepForAssertion,lineItemID,"limitsResponse[0].lineItemID","lineItemID")
+
+                          limitQuantity = sh.getCell(6,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,limitQuantity,"limitsResponse[0].limitQuantity","limitQuantity")
+                
+                        limitsValid = sh.getCell(7,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,limitsValid,"limitsResponse[0].limitsValid","limitsValid")
+
+                       //get the expected values for LineItem2
+                          lineItemID1 = sh.getCell(8,i).getContents()
+                       addAssertionJsonPathMatch(testStepForAssertion,lineItemID1,"limitsResponse[1].lineItemID","lineItemID")
+
+                          limitQuantity1 = sh.getCell(9,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,limitQuantity1,"limitsResponse[1].limitQuantity","limitQuantity")
+
+                          limitsValid1 = sh.getCell(10,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,limitsValid1,"limitsResponse[1].limitsValid","limitsValid")                 
+                                                                
+                     
+                            //dynamic asserstion :End
+                            assertionResult = testStepForAssertion.getAssertionStatus()
+             if(assertionResult.toString().equals("FAILED")){
+
+                                       addCell(6,i,"Fail",sheet1);
+                                   for( assertion in testStepForAssertion.assertionList ){
+                                  for( e in assertion.errors ){
+
+                                                     addCell(7,i,e.message,sheet1);
+
+                                                } 
+
+                                   }
+
+                                }
+
+
+                                else{
+
+                                   addCell(6,i,"PASS",sheet1);
+
+                                }
+
+ 
+       }
+
+      wb1.write();
+            log.info "TestCase Execution Completed successfull"
+
+ 
+
+                }             
+     
+catch(Exception e)
+{
+
+                 log.info(e)                         
+}
+
+finally
+{
+
+    //close workbook
+     wb.close();
+     wb1.close();     
+
+}
+
+//Method code
+def addAssertionJsonPathMatch(RestTestRequestStep testStepForAssertion,String expectedContent,String xPath,String assertionName) {
+          def assertionType = testStepForAssertion.addAssertion("JsonPath Match")
+                                assertionType.name = assertionName
+                                assertionType.setPath(xPath)
+                                assertionType.setExpectedContent(expectedContent)
+                                assertionType.setAllowWildcards(true) 
+
+}
+
+//Method code
+def addAssertionValidHTTPStatusCodes(RestTestRequestStep testStepForAssertion,String assertionName) {
+
+         def StatusCodeAssertionxpath = testStepForAssertion.addAssertion("Valid HTTP Status Codes")
+             StatusCodeAssertionxpath.name = assertionName
+             StatusCodeAssertionxpath.codes=200
+
+}
+
+//method to delete
+def cleanUp(String requestName){
+
+                //remove the teststep::Start
+                def testCase = testRunner.testCase
+                def testStep = testCase.getTestStepByName(requestName)
+
+                if (testStep!=null){
+
+ 
+                                    testCase.removeTestStep(testStep)
+                }
+
+    
+            //remove the teststep::End
+
+}
+
+ 
+
+//method to add Cell to sheet1
+
+def addCell(int colmNum,int rowNum,String lblName,WritableSheet sheet1 ){
+
+                 Label header = new Label(colmNum,rowNum,lblName);
+                sheet1.addCell(header);               
+
+}</script>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-39963" id="b78f8856-9e0a-4d48-95ad-55b9f3e525b5">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineSampleLimits/DetermineSampleLimits/WADL" methodName="DetermineSampleLimits" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-39963" id="bd7c84ea-b130-4f8c-805d-b5d4e9aa42db" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "123",
+            "from": "string",
+            "timestamp": "2008-09-29T07:19:45.000+0530"
+        }
+    },
+    "lineItems": [
+        {
+            "itemNumber": "S958320149",
+            "lineItemID": "L001"
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineSampleLimits/DetermineSampleLimits/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="b483ef0b-d694-4cbe-a5cb-c05bbfddfea6" name="Valid HTTP Status Codes_2">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="7c7e962f-171f-420f-87b2-95881247ab54" name="lineItemID">
+          <con:configuration>
+            <path>limitsResponse[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="d315c981-f5f1-42a5-b5be-ab2a25fda89f" name="limitQuantity">
+          <con:configuration>
+            <path>limitsResponse[0].limitQuantity</path>
+            <content>6</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="e9843cf8-249a-4163-8d3d-b63a0ce2a492" name="limitsValid">
+          <con:configuration>
+            <path>limitsResponse[0].limitsValid</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-39964" id="b050f21e-3d01-4f98-9429-171cec616122">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineSampleLimits/DetermineSampleLimits/WADL" methodName="DetermineSampleLimits" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-39964" id="bd7c84ea-b130-4f8c-805d-b5d4e9aa42db" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "123",
+            "from": "string",
+            "timestamp": "2008-09-29T07:19:45.000+0530"
+        }
+    },
+    "lineItems": [
+        {
+            "itemNumber": "11D2314",
+            "lineItemID": "L001"
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineSampleLimits/DetermineSampleLimits/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="f55de809-d7ca-4f23-b1a9-e090b2701493" name="Valid HTTP Status Codes_3">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="cfe0f2c5-57cc-4d9d-ada9-b4854e335a39" name="lineItemID">
+          <con:configuration>
+            <path>limitsResponse[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="43a5c5bf-d148-4177-95a9-68910142d62b" name="limitQuantity">
+          <con:configuration>
+            <path>limitsResponse[0].limitQuantity</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="a20f1521-6762-4373-bbf3-e37c77437db2" name="limitsValid">
+          <con:configuration>
+            <path>limitsResponse[0].limitsValid</path>
+            <content>false</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-39965" id="c4ec90c0-e281-41c3-b9fa-89fe8f9795d9">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineSampleLimits/DetermineSampleLimits/WADL" methodName="DetermineSampleLimits" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-39965" id="bd7c84ea-b130-4f8c-805d-b5d4e9aa42db" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "123",
+            "from": "string",
+            "timestamp": "2008-09-29T07:19:45.000+0530"
+        }
+    },
+    "lineItems": [
+        {
+            "itemNumber": "",
+            "lineItemID": "L001"
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineSampleLimits/DetermineSampleLimits/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="b65434e5-24fa-44b7-b4de-4154cb474b91" name="Valid HTTP Status Codes_4">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="352b6d61-2b74-489c-b527-a8ab6530c5e2" name="lineItemID">
+          <con:configuration>
+            <path>limitsResponse[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="fce1197a-697a-4c2f-a0b1-316e41465ec7" name="limitQuantity">
+          <con:configuration>
+            <path>limitsResponse[0].limitQuantity</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="814f3cad-0bcf-4fe3-bd74-abd0dde88bca" name="limitsValid">
+          <con:configuration>
+            <path>limitsResponse[0].limitsValid</path>
+            <content>false</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-39966" id="9b168f25-48da-433f-bc6b-3f5eb88004cb">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineSampleLimits/DetermineSampleLimits/WADL" methodName="DetermineSampleLimits" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-39966" id="bd7c84ea-b130-4f8c-805d-b5d4e9aa42db" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "123",
+            "from": "string",
+            "timestamp": "2008-09-29T07:19:45.000+0530"
+        }
+    },
+    "lineItems": [
+        {
+            "itemNumber": "S9ZPL10000F",
+            "lineItemID": "L001"
+        },
+        {
+            "itemNumber": "S9MNMMT7020A",
+            "lineItemID": "L002"
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineSampleLimits/DetermineSampleLimits/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="48de6ab2-33b4-474f-b04e-352166f03ede" name="Valid HTTP Status Codes_2">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="12abd76f-b7a4-4af7-84b8-dee81a7fbee7" name="lineItemID">
+          <con:configuration>
+            <path>limitsResponse[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="aafb1184-9ef6-4e2a-9280-8f7aa9c2f2b5" name="limitQuantity">
+          <con:configuration>
+            <path>limitsResponse[0].limitQuantity</path>
+            <content>1</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="12344758-79d6-403d-aa71-e64a3c8886d3" name="limitsValid">
+          <con:configuration>
+            <path>limitsResponse[0].limitsValid</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="de87b116-f8fe-4b52-ad30-5321e533e993" name="lineItemID">
+          <con:configuration>
+            <path>limitsResponse[1].lineItemID</path>
+            <content>L002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="9230b3d7-5d97-45c1-ac80-e934b056fa14" name="limitQuantity">
+          <con:configuration>
+            <path>limitsResponse[1].limitQuantity</path>
+            <content>2</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="431eaa88-aa0f-4644-b041-068835aa4e0f" name="limitsValid">
+          <con:configuration>
+            <path>limitsResponse[1].limitsValid</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-39967" id="5a99bf36-3515-4ccc-845d-615db57edc93">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineSampleLimits/DetermineSampleLimits/WADL" methodName="DetermineSampleLimits" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-39967" id="bd7c84ea-b130-4f8c-805d-b5d4e9aa42db" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "123",
+            "from": "string",
+            "timestamp": "2008-09-29T07:19:45.000+0530"
+        }
+    },
+    "lineItems": [
+        {
+            "itemNumber": "S9ZPAP100CCS",
+            "lineItemID": "L001"
+        },
+        {
+            "itemNumber": "H0607",
+            "lineItemID": "L002"
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineSampleLimits/DetermineSampleLimits/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="69110938-bd18-46c7-b7b0-1963444adad0" name="Valid HTTP Status Codes_3">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="a0b9b887-b6a4-48dc-b08c-a08fbf0edb46" name="lineItemID">
+          <con:configuration>
+            <path>limitsResponse[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="fac3e6f0-36f2-4b7a-b9aa-228b6cf06aaa" name="limitQuantity">
+          <con:configuration>
+            <path>limitsResponse[0].limitQuantity</path>
+            <content>30</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="73b62fde-d26e-4e2b-8b87-8bb9aa677729" name="limitsValid">
+          <con:configuration>
+            <path>limitsResponse[0].limitsValid</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="eaff1a02-9d3a-40ac-a70a-88eb84dd3efe" name="lineItemID">
+          <con:configuration>
+            <path>limitsResponse[1].lineItemID</path>
+            <content>L002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="2144c31e-899a-43ee-9e33-ba9f2a3747bc" name="limitQuantity">
+          <con:configuration>
+            <path>limitsResponse[1].limitQuantity</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="cb602209-0ed8-4514-8bf7-11fe34dae934" name="limitsValid">
+          <con:configuration>
+            <path>limitsResponse[1].limitsValid</path>
+            <content>false</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-39968" id="0dde7a88-3593-4cbc-ac41-d24c7592e66c">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineSampleLimits/DetermineSampleLimits/WADL" methodName="DetermineSampleLimits" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-39968" id="bd7c84ea-b130-4f8c-805d-b5d4e9aa42db" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "123",
+            "from": "string",
+            "timestamp": "2008-09-29T07:19:45.000+0530"
+        }
+    },
+    "lineItems": [
+        {
+            "itemNumber": "null",
+            "lineItemID": "L001"
+        },
+        {
+            "itemNumber": "S9ZPL30028S",
+            "lineItemID": "L002"
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineSampleLimits/DetermineSampleLimits/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="6317acb3-143a-4599-b0cd-307face60fd5" name="Valid HTTP Status Codes_4">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="58364f9f-4aa8-47cf-8f10-362d65d2d84c" name="lineItemID">
+          <con:configuration>
+            <path>limitsResponse[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="ce972426-f09c-40ba-8304-8740c893154f" name="limitQuantity">
+          <con:configuration>
+            <path>limitsResponse[0].limitQuantity</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="ee119448-6c3a-4631-be56-40ce2e21d4c7" name="limitsValid">
+          <con:configuration>
+            <path>limitsResponse[0].limitsValid</path>
+            <content>false</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="a6ff0910-6234-476d-8c49-a879fae1cba8" name="lineItemID">
+          <con:configuration>
+            <path>limitsResponse[1].lineItemID</path>
+            <content>L002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="e20ad993-d013-4bd4-91f1-3dd85f3fa6a3" name="limitQuantity">
+          <con:configuration>
+            <path>limitsResponse[1].limitQuantity</path>
+            <content>1</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="d53dae7a-3955-4736-b1c8-23d73453e3a7" name="limitsValid">
+          <con:configuration>
+            <path>limitsResponse[1].limitsValid</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-39969" id="d38591a8-848f-4587-95c1-3478c532268d">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineSampleLimits/DetermineSampleLimits/WADL" methodName="DetermineSampleLimits" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-39969" id="bd7c84ea-b130-4f8c-805d-b5d4e9aa42db" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "123",
+            "from": "string",
+            "timestamp": "2008-09-29T07:19:45.000+0530"
+        }
+    },
+    "lineItems": [
+        {
+            "itemNumber": "DD9DX1113",
+            "lineItemID": "L001"
+        },
+        {
+            "itemNumber": "DD9DX1113",
+            "lineItemID": "L002"
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineSampleLimits/DetermineSampleLimits/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="60f690f6-9735-4a02-a645-4d363d893719" name="Valid HTTP Status Codes_5">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="333057ea-4a78-4199-a070-79014cdb2bbf" name="lineItemID">
+          <con:configuration>
+            <path>limitsResponse[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="060ba38c-f175-41e3-a97c-444a2fb1fec2" name="limitQuantity">
+          <con:configuration>
+            <path>limitsResponse[0].limitQuantity</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="97d656c3-060b-4b3b-aba5-8ddc2ed3f5fd" name="limitsValid">
+          <con:configuration>
+            <path>limitsResponse[0].limitsValid</path>
+            <content>false</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="8ffa453e-f116-438f-9220-045ada7ae966" name="lineItemID">
+          <con:configuration>
+            <path>limitsResponse[1].lineItemID</path>
+            <content>L002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="e3948784-43e2-4336-93f6-3def701d17a3" name="limitQuantity">
+          <con:configuration>
+            <path>limitsResponse[1].limitQuantity</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="1e5e1592-78e6-4fbc-8ad4-c925f8c33822" name="limitsValid">
+          <con:configuration>
+            <path>limitsResponse[1].limitsValid</path>
+            <content>false</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:properties/>
+  <con:reportParameters/>
+</con:testCase>

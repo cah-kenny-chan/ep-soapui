@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<con:resource name="DetermineExpirationDateOfMedicalDocumentation" path="/DecisionService/rest/v1/DetermineExpirationDateOfMedicalDocumentation/DetermineExpirationDateOfMedicalDocumentation/WADL" id="bee24b47-abae-4432-b552-19f592ecfabc" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:con="http://eviware.com/soapui/config">
+  <con:settings>
+    <con:setting id="bee24b47-abae-4432-b552-19f592ecfabcfileName">DetermineExpirationDateOfMedicalDocumentation</con:setting>
+  </con:settings>
+  <con:parameters/>
+  <con:method name="DetermineExpirationDateOfMedicalDocumentation" id="4774d210-1a92-4c69-b889-412a161f7d4c" method="POST">
+    <con:settings/>
+    <con:parameters/>
+    <con:representation type="REQUEST">
+      <con:mediaType>application/json</con:mediaType>
+      <con:params/>
+    </con:representation>
+    <con:representation type="RESPONSE">
+      <con:mediaType xsi:nil="true"/>
+      <con:status>0</con:status>
+      <con:params/>
+      <con:element>data</con:element>
+    </con:representation>
+    <con:request name="DetermineExpirationDateOfMedicalDocumentation" id="f5a6d62e-191f-4976-add1-7887f84ca4da" mediaType="application/json" postQueryString="false">
+      <con:settings>
+        <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+      </con:settings>
+      <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+      <con:request/>
+      <con:credentials>
+        <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+        <con:authType>No Authorization</con:authType>
+      </con:credentials>
+      <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+      <con:jmsPropertyConfig/>
+      <con:parameters/>
+    </con:request>
+  </con:method>
+</con:resource>

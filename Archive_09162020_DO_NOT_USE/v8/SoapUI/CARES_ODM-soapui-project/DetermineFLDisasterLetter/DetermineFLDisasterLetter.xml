@@ -1,0 +1,427 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<con:testCase id="ef27289f-8c4b-4769-a8ab-8e868c02d711" failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="DetermineFLDisasterLetter" searchProperties="true" xmlns:con="http://eviware.com/soapui/config">
+  <con:settings>
+    <con:setting id="ef27289f-8c4b-4769-a8ab-8e868c02d711fileName">DetermineFLDisasterLetter</con:setting>
+  </con:settings>
+  <con:testStep type="groovy" name="DetermineFLDisasterLetter" id="9fdddc1f-d3dc-4cd9-b381-573ac44f516f">
+    <con:settings/>
+    <con:config>
+      <script>import jxl.*;
+import jxl.write.*
+import java.io.*
+import java.io.file.*
+import java.util.*
+import java.lang.*
+import jxl.read.biff.BiffException;
+import net.sf.*
+import net.sf.json.*
+import net.sf.json.groovy.*
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+import groovy.json.JsonBuilder
+import com.eviware.soapui.model.testsuite.TestStepResult.TestStepStatus
+import com.eviware.soapui.impl.wsdl.teststeps.RestTestRequestStep
+
+def groovyUtils = new com.eviware.soapui.support.GroovyUtils(context)
+def projectDir = groovyUtils.projectPath
+
+def inputfile =  projectDir + "/DetermineFLDisasterLetter/DetermineFLDisasterLetter_Input.xls"
+def outputfile = projectDir + "/DetermineFLDisasterLetter/DetermineFLDisasterLetter_Output.xls"
+
+//Creating workbook for reading value from Excel Sheet
+Workbook wb = Workbook.getWorkbook(new File(inputfile))
+Sheet sh = wb.getSheet("LineItem")
+Sheet jsonInput = wb.getSheet("JSON")
+
+//reading data from input Excel sheet
+rc = sh.getRows();
+cc = sh.getColumns();
+Cell jreq = jsonInput.getCell(0,0)
+
+//Creating Workbook for writing value in Excel Sheet
+WritableWorkbook wb1= Workbook.createWorkbook(new File(outputfile));
+WritableSheet sheet1 = wb1.createSheet("ActualResults",0);
+
+//Header declaration for output file
+addCell(0,0,"FLDisasterLetters",sheet1);
+addCell(4,0,"PASS/FAIL",sheet1);
+addCell(5,0,"FAILED DUE TO",sheet1);
+
+//new testStepName
+def newTestStep=null
+
+//try {   
+               def req = jreq.getContents()
+               //Assigning request value dynamically
+               //request
+               def slurper = new JsonSlurper().parseText(req);
+               def requestTemplet = new JsonBuilder(slurper);
+         
+               for (i=2;i&lt;rc;i++){
+                           // Input for TestCaseName
+                         Cell varTestCaseName = sh.getCell(0,i)
+                        def TestCaseName = varTestCaseName.getContents()
+                                                        
+                                //Input for lineitem                                                          
+                                requestTemplet.content.shipToAddress.zipCode = sh.getCell(1,i).getContents().toString()
+                                requestTemplet.content.shipToAddress.state = sh.getCell(2,i).getContents().toString()
+                                				                                                                                                                    
+              	        //Assign json request to variable
+                       def jsonReqAsString = requestTemplet.toPrettyString()
+                       def restRequest = testRunner.testCase.getTestStepByName('JSON Request');
+                       restRequest.setPropertyValue('Request',jsonReqAsString);
+
+                        //teststep cloned: Start
+                        def getTestCase = testRunner.testCase;
+                        def testst = testRunner.testCase.getTestStepByName("JSON Request");                 
+                            newTestStep = TestCaseName
+                            cleanUp(newTestStep)
+                            getTestCase.cloneStep(restRequest,newTestStep)                             
+                         //teststep cloned: End
+                         
+                         //Executing the testcase
+                        testRunner.runTestStepByName(newTestStep)
+ 
+                         //retrive response         
+                       def ResponseMessage = testRunner.testCase.testSteps[newTestStep].testRequest.response.contentAsString
+                    
+                         //new JsonSlurper to parse and get the response in Json format
+                        def slurper1 = new JsonSlurper()
+                        def json = slurper1.parseText(ResponseMessage)               
+
+                          //get response                                      
+                         //Check the existence of the array: order
+                          if (json.FLDisasterLetters!= null)
+                         {
+		                       	for(int DisasterLetters=0; DisasterLetters&lt;json.FLDisasterLetters.size(); DisasterLetters++)  
+		                       	{                		
+                     			addCell(DisasterLetters,i,json.FLDisasterLetters[DisasterLetters].toString(),sheet1);                                	                                                     
+		                       	}                     			                						     						    						   							     
+		                }  					                     
+			            			    
+
+                      //dynamic asserstion :Start
+             def testStepForAssertion = testRunner.testCase.getTestStepByName(newTestStep);
+                    //ValidHTTPStatusCodes 200 Assertion
+                  addAssertionValidHTTPStatusCodes(testStepForAssertion,"Valid HTTP Status Codes_"+i)
+            
+                          //get the expected values				 
+		                        			                       		
+                  		//check the existence of array lineItems
+                  		if (json.FLDisasterLetters!= null)  
+                  			{    
+                  				 int AFLDisasterLetters=3;                  				
+                  				                
+	                        		String FLDisasterLetters = sh.getCell(AFLDisasterLetters,i).getContents().toString()
+                     			addAssertionJsonPathMatch(testStepForAssertion,FLDisasterLetters,"FLDisasterLetters[0]","FLDisasterLetters")                       
+                      			AFLDisasterLetters=AFLDisasterLetters+1;	                     			
+
+                  			}			                    
+			                              						
+                                //dynamic asserstion :End
+                            assertionResult = testStepForAssertion.getAssertionStatus()
+             if(assertionResult.toString().equals("FAILED")){
+
+                                       addCell(4,i,"Fail",sheet1);
+                                   for( assertion in testStepForAssertion.assertionList ){
+                                  for( e in assertion.errors ){
+
+                                                     addCell(5,i,e.message,sheet1);
+
+                                                } 
+                                   }
+
+                                }
+
+                                else{
+                                   addCell(4,i,"PASS",sheet1);
+                               	 }
+ 
+       }
+
+      wb1.write();
+      log.info "TestCase Execution Completed successfully"
+          
+/*}
+     
+catch(Exception e)
+{
+
+       log.info(e)                         
+}
+
+finally
+
+{*/
+    //close workbook
+     wb.close();
+     wb1.close();   
+//}
+
+//Method code
+def addAssertionJsonPathMatch(RestTestRequestStep testStepForAssertion,String expectedContent,String xPath,String assertionName) {
+          def assertionType = testStepForAssertion.addAssertion("JsonPath Match")
+                                assertionType.name = assertionName
+                                assertionType.setPath(xPath)
+                                assertionType.setExpectedContent(expectedContent)
+                                assertionType.setAllowWildcards(true) 
+
+}
+
+//Method code
+def addAssertionValidHTTPStatusCodes(RestTestRequestStep testStepForAssertion,String assertionName) {
+
+         def StatusCodeAssertionxpath = testStepForAssertion.addAssertion("Valid HTTP Status Codes")
+             StatusCodeAssertionxpath.name = assertionName
+             StatusCodeAssertionxpath.codes=200
+										}
+
+//method to delete
+def cleanUp(String requestName){
+
+                //remove the teststep::Start
+                def testCase = testRunner.testCase
+                def testStep = testCase.getTestStepByName(requestName)
+
+                if (testStep!=null){ 
+                                    testCase.removeTestStep(testStep)
+               				 }
+
+//remove the teststep::End
+} 
+
+//method to add Cell to sheet1
+def addCell(int colmNum,int rowNum,String lblName,WritableSheet sheet1 ){
+                 Label header = new Label(colmNum,rowNum,lblName);
+                sheet1.addCell(header);             
+}</script>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="JSON Request" id="ae3c49f8-b08a-4252-bf44-1ae17f698d86">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineFLDisasterLetter/DetermineFLDisasterLetter/WADL" methodName="DetermineFLDisasterLetter" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="JSON Request" id="24a59553-4d53-4e91-bdbe-adbdbe296131" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "ABC",
+            "correlationID": "C123",
+            "from": "PCF",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "shipToAddress": {
+        "state": "",
+        "zipCode": "32438"
+    }
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineFLDisasterLetter/DetermineFLDisasterLetter/WADL</con:originalUri>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-74952" id="5cabacba-c73a-4657-bfcd-fb53f2472864">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineFLDisasterLetter/DetermineFLDisasterLetter/WADL" methodName="DetermineFLDisasterLetter" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-74952" id="24a59553-4d53-4e91-bdbe-adbdbe296131" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "ABC",
+            "correlationID": "C123",
+            "from": "PCF",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "shipToAddress": {
+        "state": "",
+        "zipCode": "32920"
+    }
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineFLDisasterLetter/DetermineFLDisasterLetter/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="19caaa6d-b644-438d-b270-6e4b591ecfc0" name="Valid HTTP Status Codes_2">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="ffd88071-967f-4158-9739-a23ba83a9bdf" name="FLDisasterLetters">
+          <con:configuration>
+            <path>FLDisasterLetters[0]</path>
+            <content>Brevard County</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-74953" id="c28e49e2-3c7b-45d9-a44e-1600640d0476">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineFLDisasterLetter/DetermineFLDisasterLetter/WADL" methodName="DetermineFLDisasterLetter" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-74953" id="24a59553-4d53-4e91-bdbe-adbdbe296131" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "ABC",
+            "correlationID": "C123",
+            "from": "PCF",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "shipToAddress": {
+        "state": "",
+        "zipCode": "34990"
+    }
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineFLDisasterLetter/DetermineFLDisasterLetter/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="cef3a580-3394-4093-a115-89e60d650d89" name="Valid HTTP Status Codes_3">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="d8f904a1-aec8-4770-8bef-db259f54bd37" name="FLDisasterLetters">
+          <con:configuration>
+            <path>FLDisasterLetters[0]</path>
+            <content>Martin County</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-74954" id="6d735adb-b2a2-44d1-96e0-a71784aa3ffc">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineFLDisasterLetter/DetermineFLDisasterLetter/WADL" methodName="DetermineFLDisasterLetter" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-74954" id="24a59553-4d53-4e91-bdbe-adbdbe296131" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "ABC",
+            "correlationID": "C123",
+            "from": "PCF",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "shipToAddress": {
+        "state": "",
+        "zipCode": "32428"
+    }
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineFLDisasterLetter/DetermineFLDisasterLetter/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="a7fe51ec-7c06-4bab-ba5b-e7b8f6f9aa8d" name="Valid HTTP Status Codes_4">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="4efa5a97-d62d-4551-9103-876f2bf851ab" name="FLDisasterLetters">
+          <con:configuration>
+            <path>FLDisasterLetters[0]</path>
+            <content>Washington County</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-74955" id="2680624c-73a1-4c4e-b685-73e23a6143ef">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineFLDisasterLetter/DetermineFLDisasterLetter/WADL" methodName="DetermineFLDisasterLetter" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-74955" id="24a59553-4d53-4e91-bdbe-adbdbe296131" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "ABC",
+            "correlationID": "C123",
+            "from": "PCF",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "shipToAddress": {
+        "state": "",
+        "zipCode": "32438"
+    }
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineFLDisasterLetter/DetermineFLDisasterLetter/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="8b520413-462c-4ff5-8304-beca2bb0bab2" name="Valid HTTP Status Codes_5">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="da650bae-829d-4b55-b297-d2713c3bf0b9" name="FLDisasterLetters">
+          <con:configuration>
+            <path>FLDisasterLetters[0]</path>
+            <content>Calhoun County</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:properties/>
+  <con:reportParameters/>
+</con:testCase>

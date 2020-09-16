@@ -1,0 +1,3153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<con:testCase id="ffc1313a-4bea-42b4-95a4-4917cf1f1d7a" failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="DeterminePhysicianSpecialtyAndPrimaryCareRequired" searchProperties="true" xmlns:con="http://eviware.com/soapui/config">
+  <con:settings>
+    <con:setting id="ffc1313a-4bea-42b4-95a4-4917cf1f1d7afileName">DeterminePhysicianSpecialtyAndPrimaryCareRequired</con:setting>
+  </con:settings>
+  <con:testStep type="groovy" name="DeterminePhysicianSpecialtyAndPrimaryCareRequired_Single LineItem" id="69d1de29-419d-4675-bd50-4eaf976232dc">
+    <con:settings/>
+    <con:config>
+      <script>import jxl.*;
+import jxl.write.*
+import java.io.*
+import java.io.file.*
+import java.util.*
+import java.lang.*
+import jxl.read.biff.BiffException;
+import net.sf.*
+import net.sf.json.*
+import net.sf.json.groovy.*
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+import groovy.json.JsonBuilder
+import com.eviware.soapui.model.testsuite.TestStepResult.TestStepStatus
+import com.eviware.soapui.impl.wsdl.teststeps.RestTestRequestStep
+
+def groovyUtils = new com.eviware.soapui.support.GroovyUtils(context)
+def projectDir = groovyUtils.projectPath
+
+def inputfile =  projectDir + "/DeterminePhysicianSpecialtyandPrimaryCareRequired/DeterminePhysicianSpecialtyandPrimaryCareRequired-SingleLineItem-Input.xls"
+def outputfile = projectDir + "/DeterminePhysicianSpecialtyandPrimaryCareRequired/DeterminePhysicianSpecialtyandPrimaryCareRequired-SingleLineItem-Output.xls"
+
+
+//Creating workbook for reading value from Excel Sheet
+
+Workbook wb = Workbook.getWorkbook(new File(inputfile))
+Sheet sh = wb.getSheet("ExpectedResults")
+Sheet jsonInput = wb.getSheet("JSON")
+
+//reading data from input Excel sheet
+rc = sh.getRows();
+cc = sh.getColumns();
+Cell jreq = jsonInput.getCell(0,0)
+
+//Creating Workbook for writing value in Excel Sheet
+WritableWorkbook wb1= Workbook.createWorkbook(new File(outputfile));
+WritableSheet sheet1 = wb1.createSheet("ActualResults",0);
+
+//Header declaration for output file
+addCell(0,0,"lineItemID",sheet1);
+addCell(1,0,"messageCode",sheet1);
+addCell(2,0,"description",sheet1);
+addCell(3,0,"physicianID",sheet1);
+addCell(4,0,"PASS/FAIL",sheet1);
+addCell(5,0,"FAILED DUE TO",sheet1);
+ 
+//new testStepName
+def newTestStep=null
+
+try {
+
+   
+               def req = jreq.getContents()
+               //Assigning request value dynamically
+               //request
+               def slurper = new JsonSlurper().parseText(req);
+               def requestTemplet = new JsonBuilder(slurper);
+
+         
+               for (i=2;i&lt;rc;i++){
+
+                           // Input for TestCaseName
+                         Cell varTestCaseName = sh.getCell(0,i)
+                        def TestCaseName = varTestCaseName.getContents()
+
+                                                        
+                                 //Input for Line Item ID                                                             
+                                requestTemplet.content.lineItems[0].lineItemID = sh.getCell(1,i).getContents().toString()
+                                 //Input for product category                                   
+                                requestTemplet.content.lineItems[0].productCategory = sh.getCell(2,i).getContents().toString()
+                                //Input for productSubCategory1                                  
+                                requestTemplet.content.lineItems[0].productSubCategory1 = sh.getCell(3,i).getContents().toString()
+                                //Input for productSubCategory2                                  
+                                requestTemplet.content.lineItems[0].productSubCategory2 = sh.getCell(4,i).getContents().toString()
+                                //Input for id                                  
+                                requestTemplet.content.lineItems[0].plans[0].id = sh.getCell(5,i).getContents().toString()
+                                //Input for planName                                  
+                                requestTemplet.content.lineItems[0].plans[0].planCode = sh.getCell(6,i).getContents().toString()
+                                //Input for physicianID                                  
+                                requestTemplet.content.lineItems[0].physician.physicianID = sh.getCell(7,i).getContents().toString()
+                                //Input for taxonomyCode                                  
+                                requestTemplet.content.lineItems[0].physician.taxonomyCode = sh.getCell(9,i).getContents().toString()
+                                //Input for specialityCode                                  
+                                requestTemplet.content.lineItems[0].physician.specialityCode = sh.getCell(8,i).getContents().toString()                                                                                 
+                                 //Input for primaryCarePhysician                                  
+                                requestTemplet.content.lineItems[0].physician.primaryCarePhysician = sh.getCell(10,i).getContents().toString()
+                                                                                    
+                                 
+                              //Assign json request to variable
+                       def jsonReqAsString = requestTemplet.toPrettyString()
+                       def restRequest = testRunner.testCase.getTestStepByName('JSON Request');
+                       restRequest.setPropertyValue('Request',jsonReqAsString);
+
+                                //teststep cloned: Start
+                        def getTestCase = testRunner.testCase;
+                        def testst = testRunner.testCase.getTestStepByName("JSON Request");                 
+                            newTestStep = TestCaseName
+                            cleanUp(newTestStep)
+                            getTestCase.cloneStep(restRequest,newTestStep)
+                             
+                         //teststep cloned: End
+                         //Executing the testcase
+                        testRunner.runTestStepByName(newTestStep)
+ 
+                         //retrive response         
+                       def ResponseMessage = testRunner.testCase.testSteps[newTestStep].testRequest.response.contentAsString
+                    
+                         //new JsonSlurper to parse and get the response in Json format
+                        def slurper1 = new JsonSlurper()
+                        def json = slurper1.parseText(ResponseMessage)
+                    
+                                  
+                           // get lineItemID from response json  
+                        addCell(0,i,json.lineItems[0].lineItemID.toString(),sheet1);                                   
+                          // get messageCode from response json                               
+                        addCell(1,i,json.lineItems[0].messages[0].messageCode.toString(),sheet1);                                   
+                          // get description from response json                                   
+                        addCell(2,i,json.lineItems[0].messages[0].description.toString(),sheet1); 
+                        // get applyToDeductableFlag from response json                                 
+                        addCell(3,i,json.lineItems[0].physician.physicianID.toString(),sheet1); 
+                                                
+                      //dynamic asserstion :Start
+                   def testStepForAssertion = testRunner.testCase.getTestStepByName(newTestStep);
+                                //ValidHTTPStatusCodes 200 Assertion
+                  addAssertionValidHTTPStatusCodes(testStepForAssertion,"Valid HTTP Status Codes_"+i)
+            
+                             //get the expected values
+                          lineItemID = sh.getCell(11,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,lineItemID,"lineItems[0].lineItemID","lineItemID")
+
+                          messageCode = sh.getCell(12,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,messageCode,"lineItems[0].messages[0].messageCode","messageCode")
+
+                          description = sh.getCell(13,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,description,"lineItems[0].messages[0].description","description")
+
+                       physicianID = sh.getCell(14,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,physicianID,"lineItems[0].physician.physicianID","physicianID")
+
+        
+                               //dynamic asserstion :End
+                            assertionResult = testStepForAssertion.getAssertionStatus()
+             if(assertionResult.toString().equals("FAILED")){
+
+                                       addCell(4,i,"Fail",sheet1);
+                                   for( assertion in testStepForAssertion.assertionList ){
+                                  for( e in assertion.errors ){
+
+                                                     addCell(5,i,e.message,sheet1);
+
+                                                } 
+
+                                   }
+
+                                }
+
+
+                                else{
+
+                                   addCell(4,i,"PASS",sheet1);
+
+                                }
+
+ 
+       }
+
+      wb1.write();
+            log.info "TestCase Execution Completed successfully"
+
+ 
+
+                }             
+     
+catch(Exception e)
+{
+
+                 log.info(e)                         
+}
+
+finally
+{
+
+    //close workbook
+     wb.close();
+     wb1.close();     
+
+}
+
+//Method code
+def addAssertionJsonPathMatch(RestTestRequestStep testStepForAssertion,String expectedContent,String xPath,String assertionName) {
+          def assertionType = testStepForAssertion.addAssertion("JsonPath Match")
+                                assertionType.name = assertionName
+                                assertionType.setPath(xPath)
+                                assertionType.setExpectedContent(expectedContent)
+                                assertionType.setAllowWildcards(true) 
+
+}
+
+//Method code
+def addAssertionValidHTTPStatusCodes(RestTestRequestStep testStepForAssertion,String assertionName) {
+
+         def StatusCodeAssertionxpath = testStepForAssertion.addAssertion("Valid HTTP Status Codes")
+             StatusCodeAssertionxpath.name = assertionName
+             StatusCodeAssertionxpath.codes=200
+
+}
+
+//method to delete
+def cleanUp(String requestName){
+
+                //remove the teststep::Start
+                def testCase = testRunner.testCase
+                def testStep = testCase.getTestStepByName(requestName)
+
+                if (testStep!=null){
+
+ 
+                                    testCase.removeTestStep(testStep)
+                }
+
+    
+            //remove the teststep::End
+
+}
+
+ 
+
+//method to add Cell to sheet1
+
+def addCell(int colmNum,int rowNum,String lblName,WritableSheet sheet1 ){
+
+                 Label header = new Label(colmNum,rowNum,lblName);
+                sheet1.addCell(header);               
+
+}</script>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="groovy" name="DeterminePhysicianSpecialtyAndPrimaryCareRequired_Multi LineItem" id="337804ce-0233-43bb-8bae-2197c28c8e57">
+    <con:settings/>
+    <con:config>
+      <script>import jxl.*;
+import jxl.write.*
+import java.io.*
+import java.io.file.*
+import java.util.*
+import java.lang.*
+import jxl.read.biff.BiffException;
+import net.sf.*
+import net.sf.json.*
+import net.sf.json.groovy.*
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+import groovy.json.JsonBuilder
+import com.eviware.soapui.model.testsuite.TestStepResult.TestStepStatus
+import com.eviware.soapui.impl.wsdl.teststeps.RestTestRequestStep
+
+def groovyUtils = new com.eviware.soapui.support.GroovyUtils(context)
+def projectDir = groovyUtils.projectPath
+
+def inputfile =  projectDir + "/DeterminePhysicianSpecialtyandPrimaryCareRequired/DeterminePhysicianSpecialtyandPrimaryCareRequired-MultiLineItem-Input.xls"
+def outputfile = projectDir + "/DeterminePhysicianSpecialtyandPrimaryCareRequired/DeterminePhysicianSpecialtyandPrimaryCareRequired-MultiLineItem-Output.xls"
+
+//Creating workbook for reading value from Excel Sheet
+
+Workbook wb = Workbook.getWorkbook(new File(inputfile))
+Sheet sh = wb.getSheet("ExpectedResults")
+Sheet jsonInput = wb.getSheet("JSON")
+
+//reading data from input Excel sheet
+rc = sh.getRows();
+cc = sh.getColumns();
+Cell jreq = jsonInput.getCell(0,0)
+
+//Creating Workbook for writing value in Excel Sheet
+WritableWorkbook wb1= Workbook.createWorkbook(new File(outputfile));
+WritableSheet sheet1 = wb1.createSheet("ActualResults",0);
+
+//Header declaration for output file
+addCell(0,0,"lineItemID",sheet1);
+addCell(1,0,"messageCode",sheet1);
+addCell(2,0,"description",sheet1);
+addCell(3,0,"physicianID",sheet1);
+
+addCell(4,0,"lineItemID1",sheet1);
+addCell(5,0,"messageCode1",sheet1);
+addCell(6,0,"description1",sheet1);
+addCell(7,0,"physicianID1",sheet1);
+
+addCell(8,0,"PASS/FAIL",sheet1);
+addCell(9,0,"FAILED DUE TO",sheet1);
+ 
+//new testStepName
+def newTestStep=null
+
+try {
+
+   
+               def req = jreq.getContents()
+               //Assigning request value dynamically
+               //request
+               def slurper = new JsonSlurper().parseText(req);
+               def requestTemplet = new JsonBuilder(slurper);
+
+         
+               for (i=2;i&lt;rc;i++){
+
+                           // Input for TestCaseName
+                         Cell varTestCaseName = sh.getCell(0,i)
+                        def TestCaseName = varTestCaseName.getContents()
+
+                                                        
+                                 //Input for Line Item ID 1                                                                                                                        
+                                requestTemplet.content.lineItems[0].lineItemID = sh.getCell(1,i).getContents().toString()
+                                 //Input for product category                                   
+                                requestTemplet.content.lineItems[0].productCategory = sh.getCell(2,i).getContents().toString()
+                                //Input for productSubCategory1                                  
+                                requestTemplet.content.lineItems[0].productSubCategory1 = sh.getCell(3,i).getContents().toString()
+                                //Input for productSubCategory2                                  
+                                requestTemplet.content.lineItems[0].productSubCategory2 = sh.getCell(4,i).getContents().toString()
+                                //Input for id                                  
+                                requestTemplet.content.lineItems[0].plans[0].id = sh.getCell(5,i).getContents().toString()
+                                //Input for planName                                  
+                                requestTemplet.content.lineItems[0].plans[0].planCode = sh.getCell(6,i).getContents().toString()
+                                //Input for physicianID                                  
+                                requestTemplet.content.lineItems[0].physician.physicianID = sh.getCell(7,i).getContents().toString()
+                                //Input for taxonomyCode                                  
+                                requestTemplet.content.lineItems[0].physician.taxonomyCode = sh.getCell(9,i).getContents().toString()
+                                //Input for specialityCode                                  
+                                requestTemplet.content.lineItems[0].physician.specialityCode = sh.getCell(8,i).getContents().toString()                                                                                 
+                                 //Input for primaryCarePhysician                                  
+                                requestTemplet.content.lineItems[0].physician.primaryCarePhysician = sh.getCell(10,i).getContents().toString() 
+
+                                //Input for Line Item ID 2                                                                                                                        
+                                requestTemplet.content.lineItems[1].lineItemID = sh.getCell(11,i).getContents().toString()
+                                 //Input for product category                                   
+                                requestTemplet.content.lineItems[1].productCategory = sh.getCell(12,i).getContents().toString()
+                                //Input for productSubCategory1                                  
+                                requestTemplet.content.lineItems[1].productSubCategory1 = sh.getCell(13,i).getContents().toString()
+                                //Input for productSubCategory2                                  
+                                requestTemplet.content.lineItems[1].productSubCategory2 = sh.getCell(14,i).getContents().toString()
+                                //Input for id                                  
+                                requestTemplet.content.lineItems[1].plans[0].id = sh.getCell(15,i).getContents().toString()
+                                //Input for planName                                  
+                                requestTemplet.content.lineItems[1].plans[0].planCode = sh.getCell(16,i).getContents().toString()
+                                //Input for physicianID                                  
+                                requestTemplet.content.lineItems[1].physician.physicianID = sh.getCell(17,i).getContents().toString()
+                                //Input for taxonomyCode                                  
+                                requestTemplet.content.lineItems[1].physician.taxonomyCode = sh.getCell(19,i).getContents().toString()
+                                //Input for specialityCode                                  
+                                requestTemplet.content.lineItems[1].physician.specialityCode = sh.getCell(18,i).getContents().toString()                                                                                 
+                                 //Input for primaryCarePhysician                                  
+                                requestTemplet.content.lineItems[1].physician.primaryCarePhysician = sh.getCell(20,i).getContents().toString()                                                        
+                                                       
+                                 
+                              //Assign json request to variable
+                       def jsonReqAsString = requestTemplet.toPrettyString()
+                       def restRequest = testRunner.testCase.getTestStepByName('JSON Request');
+                       restRequest.setPropertyValue('Request',jsonReqAsString);
+
+                                //teststep cloned: Start
+                        def getTestCase = testRunner.testCase;
+                        def testst = testRunner.testCase.getTestStepByName("JSON Request");                 
+                            newTestStep = TestCaseName
+                            cleanUp(newTestStep)
+                            getTestCase.cloneStep(restRequest,newTestStep)
+                             
+                         //teststep cloned: End
+                         //Executing the testcase
+                        testRunner.runTestStepByName(newTestStep)
+ 
+                         //retrive response         
+                       def ResponseMessage = testRunner.testCase.testSteps[newTestStep].testRequest.response.contentAsString
+                    
+                         //new JsonSlurper to parse and get the response in Json format
+                        def slurper1 = new JsonSlurper()
+                        def json = slurper1.parseText(ResponseMessage)
+                    
+                                  
+                           // get lineItemID from response json  
+                        addCell(0,i,json.lineItems[0].lineItemID.toString(),sheet1);                                   
+                          // get messageCode from response json                               
+                        addCell(1,i,json.lineItems[0].messages[0].messageCode.toString(),sheet1);                                   
+                          // get description from response json                                   
+                        addCell(2,i,json.lineItems[0].messages[0].description.toString(),sheet1); 
+                        // get applyToDeductableFlag from response json                                 
+                        addCell(3,i,json.lineItems[0].physician.physicianID.toString(),sheet1); 
+                        
+                         // get lineItemID2 from response json  
+                        addCell(4,i,json.lineItems[1].lineItemID.toString(),sheet1);                                   
+                          // get messageCode2 from response json                               
+                        addCell(5,i,json.lineItems[1].messages[0].messageCode.toString(),sheet1);                                   
+                          // get description2 from response json                                   
+                        addCell(6,i,json.lineItems[1].messages[0].description.toString(),sheet1); 
+                        // get physicianID2 from response json                                 
+                        addCell(7,i,json.lineItems[1].physician.physicianID.toString(),sheet1);  
+                                                    
+                                                           
+                      //dynamic asserstion :Start
+                   def testStepForAssertion = testRunner.testCase.getTestStepByName(newTestStep);
+                                //ValidHTTPStatusCodes 200 Assertion
+                  addAssertionValidHTTPStatusCodes(testStepForAssertion,"Valid HTTP Status Codes_"+i)
+            
+                             //get the expected values
+                          lineItemID = sh.getCell(21,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,lineItemID,"lineItems[0].lineItemID","lineItemID")
+
+                          messageCode = sh.getCell(22,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,messageCode,"lineItems[0].messages[0].messageCode","messageCode")
+
+                          description = sh.getCell(23,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,description,"lineItems[0].messages[0].description","description")
+
+                       physicianID = sh.getCell(24,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,physicianID,"lineItems[0].physician.physicianID","physicianID")
+
+                       //get the expected values
+                          lineItemID1 = sh.getCell(25,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,lineItemID1,"lineItems[1].lineItemID","lineItemID")
+
+                          messageCode1 = sh.getCell(26,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,messageCode1,"lineItems[1].messages[0].messageCode","messageCode")
+
+                          description1 = sh.getCell(27,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,description1,"lineItems[1].messages[0].description","description")
+
+                       physicianID1 = sh.getCell(28,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,physicianID1,"lineItems[1].physician.physicianID","physicianID")
+
+
+
+                               //dynamic asserstion :End
+                            assertionResult = testStepForAssertion.getAssertionStatus()
+             if(assertionResult.toString().equals("FAILED")){
+
+                                       addCell(8,i,"Fail",sheet1);
+                                   for( assertion in testStepForAssertion.assertionList ){
+                                  for( e in assertion.errors ){
+
+                                                     addCell(9,i,e.message,sheet1);
+
+                                                } 
+
+                                   }
+
+                                }
+
+
+                                else{
+
+                                   addCell(8,i,"PASS",sheet1);
+
+                                }
+
+ 
+       }
+
+      wb1.write();
+            log.info "TestCase Execution Completed successfully"
+
+ 
+
+                }             
+     
+catch(Exception e)
+{
+
+                 log.info(e)                         
+}
+
+finally
+{
+
+    //close workbook
+     wb.close();
+     wb1.close();     
+
+}
+
+//Method code
+def addAssertionJsonPathMatch(RestTestRequestStep testStepForAssertion,String expectedContent,String xPath,String assertionName) {
+          def assertionType = testStepForAssertion.addAssertion("JsonPath Match")
+                                assertionType.name = assertionName
+                                assertionType.setPath(xPath)
+                                assertionType.setExpectedContent(expectedContent)
+                                assertionType.setAllowWildcards(true) 
+
+}
+
+//Method code
+def addAssertionValidHTTPStatusCodes(RestTestRequestStep testStepForAssertion,String assertionName) {
+
+         def StatusCodeAssertionxpath = testStepForAssertion.addAssertion("Valid HTTP Status Codes")
+             StatusCodeAssertionxpath.name = assertionName
+             StatusCodeAssertionxpath.codes=200
+
+}
+
+//method to delete
+def cleanUp(String requestName){
+
+                //remove the teststep::Start
+                def testCase = testRunner.testCase
+                def testStep = testCase.getTestStepByName(requestName)
+
+                if (testStep!=null){
+
+ 
+                                    testCase.removeTestStep(testStep)
+                }
+
+    
+            //remove the teststep::End
+
+}
+
+ 
+
+//method to add Cell to sheet1
+
+def addCell(int colmNum,int rowNum,String lblName,WritableSheet sheet1 ){
+
+                 Label header = new Label(colmNum,rowNum,lblName);
+                sheet1.addCell(header);               
+
+}</script>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="JSON Request" id="52f3dd06-0f0c-4507-977b-d1c0f17e2eaa">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DeterminePhysicianSpecialtyAndPrimaryCareRequired/DeterminePhysicianSpecialtyAndPrimaryCareRequired/WADL" methodName="DeterminePhysicianSpecialtyAndPrimaryCareRequired" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="JSON Request" id="4cc0062e-fee2-44e1-8964-69274685cef6" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2004-02-15T00:14:14.000+0530"
+        }
+    },
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "physician": {
+                "physicianID": "P0001",
+                "primaryCarePhysician": "false",
+                "specialityCode": "",
+                "taxonomyCode": ""
+            },
+            "plans": [
+                {
+                    "id": "513942563DD75A34E0532C97F4A150EF",
+                    "planCode": "8095"
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": ""
+        },
+        {
+            "lineItemID": "L002",
+            "physician": {
+                "physicianID": "P0002",
+                "primaryCarePhysician": "true",
+                "specialityCode": "Surgery",
+                "taxonomyCode": "207RE0101X"
+            },
+            "plans": [
+                {
+                    "id": "513942563DD75A34E0532C97F4A150EF",
+                    "planCode": "6513"
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": "Continuous Glucose Monitors"
+        }
+    ]
+}</con:request>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-55898" id="3fa0e501-880b-45e5-90aa-01e8773a26ed">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DeterminePhysicianSpecialtyAndPrimaryCareRequired/DeterminePhysicianSpecialtyAndPrimaryCareRequired/WADL" methodName="DeterminePhysicianSpecialtyAndPrimaryCareRequired" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-55898" id="4cc0062e-fee2-44e1-8964-69274685cef6" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "physician": {
+                "physicianID": "P0001",
+                "primaryCarePhysician": "true",
+                "specialityCode": "",
+                "taxonomyCode": ""
+            },
+            "plans": [
+                {
+                    "id": "513942563DD75A34E0532C97F4A150EF",
+                    "planCode": "8095"
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": ""
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DeterminePhysicianSpecialtyAndPrimaryCareRequired/DeterminePhysicianSpecialtyAndPrimaryCareRequired/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="1945ed8b-4914-4dce-bcd2-577a69582a25" name="Valid HTTP Status Codes_2">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="777547f0-aebb-4b52-bf59-30795bc94c4b" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="2192f883-2a11-40cf-bc0a-f6c1c07a5c09" name="messageCode">
+          <con:configuration>
+            <path>lineItems[0].messages[0].messageCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="0b152437-f2c1-4c6b-9079-46f3b88d6f9f" name="description">
+          <con:configuration>
+            <path>lineItems[0].messages[0].description</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="bf505c46-1dac-426a-81b4-c846049e9318" name="physicianID">
+          <con:configuration>
+            <path>lineItems[0].physician.physicianID</path>
+            <content>P0001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-55899" id="bd854764-cb95-4e30-bfba-daefa18f35a3">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DeterminePhysicianSpecialtyAndPrimaryCareRequired/DeterminePhysicianSpecialtyAndPrimaryCareRequired/WADL" methodName="DeterminePhysicianSpecialtyAndPrimaryCareRequired" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-55899" id="4cc0062e-fee2-44e1-8964-69274685cef6" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "physician": {
+                "physicianID": "P0001",
+                "primaryCarePhysician": "false",
+                "specialityCode": "",
+                "taxonomyCode": ""
+            },
+            "plans": [
+                {
+                    "id": "513942563DD75A34E0532C97F4A150EF",
+                    "planCode": "8095"
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": ""
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DeterminePhysicianSpecialtyAndPrimaryCareRequired/DeterminePhysicianSpecialtyAndPrimaryCareRequired/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="07903e35-943b-4888-91a1-7e053a6455c1" name="Valid HTTP Status Codes_3">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="776421b6-4d23-4fd5-9929-82b9f4b4a3d4" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="ff87a358-00d3-49fb-853d-3dd3f0d96a8b" name="messageCode">
+          <con:configuration>
+            <path>lineItems[0].messages[0].messageCode</path>
+            <content>OVPV14</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="f716202d-0d4d-47d2-8f1d-87dff7305a28" name="description">
+          <con:configuration>
+            <path>lineItems[0].messages[0].description</path>
+            <content>Physician must be Primary Care</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="92fdc552-24b3-4fef-8fe5-2bf12cd7401a" name="physicianID">
+          <con:configuration>
+            <path>lineItems[0].physician.physicianID</path>
+            <content>P0001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-55900" id="0892ab89-7348-4e61-a876-7bfb00064f09">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DeterminePhysicianSpecialtyAndPrimaryCareRequired/DeterminePhysicianSpecialtyAndPrimaryCareRequired/WADL" methodName="DeterminePhysicianSpecialtyAndPrimaryCareRequired" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-55900" id="4cc0062e-fee2-44e1-8964-69274685cef6" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "physician": {
+                "physicianID": "P0001",
+                "primaryCarePhysician": "true",
+                "specialityCode": "",
+                "taxonomyCode": ""
+            },
+            "plans": [
+                {
+                    "id": "513942563DD75A34E0532C97F4A150EF",
+                    "planCode": "7122"
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": "Continuous Glucose Monitors"
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DeterminePhysicianSpecialtyAndPrimaryCareRequired/DeterminePhysicianSpecialtyAndPrimaryCareRequired/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="70f8a2cf-ce57-45f7-8a81-e17bc4b46ec4" name="Valid HTTP Status Codes_4">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="e32f5a86-dff9-4147-a033-99a6124319a0" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="e46b0211-a67c-4cc0-a307-e66761470d23" name="messageCode">
+          <con:configuration>
+            <path>lineItems[0].messages[0].messageCode</path>
+            <content>OVPV15</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="1293fe41-0661-4ce1-a722-db7f56da8dbc" name="description">
+          <con:configuration>
+            <path>lineItems[0].messages[0].description</path>
+            <content>Physician must have Specialty</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="a5fff02b-38b5-42d2-ba3e-91af675fdb10" name="physicianID">
+          <con:configuration>
+            <path>lineItems[0].physician.physicianID</path>
+            <content>P0001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-55901" id="d716bbd9-9049-4081-836a-a724811a804e">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DeterminePhysicianSpecialtyAndPrimaryCareRequired/DeterminePhysicianSpecialtyAndPrimaryCareRequired/WADL" methodName="DeterminePhysicianSpecialtyAndPrimaryCareRequired" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-55901" id="4cc0062e-fee2-44e1-8964-69274685cef6" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "physician": {
+                "physicianID": "P0001",
+                "primaryCarePhysician": "false",
+                "specialityCode": "",
+                "taxonomyCode": ""
+            },
+            "plans": [
+                {
+                    "id": "513942563DD75A34E0532C97F4A150EF",
+                    "planCode": "7201"
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": "Continuous Glucose Monitors"
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DeterminePhysicianSpecialtyAndPrimaryCareRequired/DeterminePhysicianSpecialtyAndPrimaryCareRequired/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="4f772df8-8624-4168-a1f9-97f29c0a64c8" name="Valid HTTP Status Codes_5">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="9d5755cf-1631-4ec9-bd92-0cb2503a4a62" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="74ad0080-f32b-4e98-b17b-9f9fe2cc7c15" name="messageCode">
+          <con:configuration>
+            <path>lineItems[0].messages[0].messageCode</path>
+            <content>OVPV15</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="93476aba-6370-404c-92e8-96d296d0efcb" name="description">
+          <con:configuration>
+            <path>lineItems[0].messages[0].description</path>
+            <content>Physician must have Specialty</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="a30d455d-24b3-47a5-885e-952cdc793fa8" name="physicianID">
+          <con:configuration>
+            <path>lineItems[0].physician.physicianID</path>
+            <content>P0001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-55902" id="c8b06945-f66d-4f01-959e-7706fc580a97">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DeterminePhysicianSpecialtyAndPrimaryCareRequired/DeterminePhysicianSpecialtyAndPrimaryCareRequired/WADL" methodName="DeterminePhysicianSpecialtyAndPrimaryCareRequired" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-55902" id="4cc0062e-fee2-44e1-8964-69274685cef6" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "physician": {
+                "physicianID": "P0001",
+                "primaryCarePhysician": "true",
+                "specialityCode": "46",
+                "taxonomyCode": ""
+            },
+            "plans": [
+                {
+                    "id": "513942563DD75A34E0532C97F4A150EF",
+                    "planCode": "7132"
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": "Continuous Glucose Monitors"
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DeterminePhysicianSpecialtyAndPrimaryCareRequired/DeterminePhysicianSpecialtyAndPrimaryCareRequired/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="70329c99-991f-4509-bb8d-15a6ad0ba735" name="Valid HTTP Status Codes_6">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="57c3b566-457b-4fc3-8975-44d57c225b15" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="1d46f30e-2140-4e5c-af56-736e22308530" name="messageCode">
+          <con:configuration>
+            <path>lineItems[0].messages[0].messageCode</path>
+            <content>OVPV15</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="82010807-3583-4d22-b413-7ac2b8425bb5" name="description">
+          <con:configuration>
+            <path>lineItems[0].messages[0].description</path>
+            <content>Physician must have Specialty</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="81e65447-f39e-4322-93c7-9bafdc340f88" name="physicianID">
+          <con:configuration>
+            <path>lineItems[0].physician.physicianID</path>
+            <content>P0001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-55903" id="c35b1bb8-1339-40de-ad45-b98558f2cd93">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DeterminePhysicianSpecialtyAndPrimaryCareRequired/DeterminePhysicianSpecialtyAndPrimaryCareRequired/WADL" methodName="DeterminePhysicianSpecialtyAndPrimaryCareRequired" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-55903" id="4cc0062e-fee2-44e1-8964-69274685cef6" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "physician": {
+                "physicianID": "P0001",
+                "primaryCarePhysician": "false",
+                "specialityCode": "46",
+                "taxonomyCode": ""
+            },
+            "plans": [
+                {
+                    "id": "513942563DD75A34E0532C97F4A150EF",
+                    "planCode": "4121"
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": "Continuous Glucose Monitors"
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DeterminePhysicianSpecialtyAndPrimaryCareRequired/DeterminePhysicianSpecialtyAndPrimaryCareRequired/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="a2d8f985-b186-4f22-a2af-f139e9830811" name="Valid HTTP Status Codes_7">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="48b55ee0-054b-40aa-8a68-f7d88e38c957" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="bcf81b44-0f01-421e-8a1f-211bf5b073cf" name="messageCode">
+          <con:configuration>
+            <path>lineItems[0].messages[0].messageCode</path>
+            <content>OVPV15</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="889b557d-1f76-47a5-a291-dcdbca3e9398" name="description">
+          <con:configuration>
+            <path>lineItems[0].messages[0].description</path>
+            <content>Physician must have Specialty</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="f3059ca4-f320-4222-b8b0-631b12ef211d" name="physicianID">
+          <con:configuration>
+            <path>lineItems[0].physician.physicianID</path>
+            <content>P0001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-55904" id="26a5f214-017f-42a2-8af0-b6158b799324">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DeterminePhysicianSpecialtyAndPrimaryCareRequired/DeterminePhysicianSpecialtyAndPrimaryCareRequired/WADL" methodName="DeterminePhysicianSpecialtyAndPrimaryCareRequired" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-55904" id="4cc0062e-fee2-44e1-8964-69274685cef6" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "physician": {
+                "physicianID": "P0001",
+                "primaryCarePhysician": "true",
+                "specialityCode": "",
+                "taxonomyCode": "2080P0205X"
+            },
+            "plans": [
+                {
+                    "id": "513942563DD75A34E0532C97F4A150EF",
+                    "planCode": "7100"
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": "Continuous Glucose Monitors"
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DeterminePhysicianSpecialtyAndPrimaryCareRequired/DeterminePhysicianSpecialtyAndPrimaryCareRequired/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="1023d219-ad53-4206-a14e-4440ec606b1b" name="Valid HTTP Status Codes_8">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="56d48590-3f0d-4bd4-a15b-bb2233869e75" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="d06d8a72-cd56-4261-b3bc-3ca68c06c803" name="messageCode">
+          <con:configuration>
+            <path>lineItems[0].messages[0].messageCode</path>
+            <content>OVPV15</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="50818df0-34ac-430d-a1cf-8226b8476302" name="description">
+          <con:configuration>
+            <path>lineItems[0].messages[0].description</path>
+            <content>Physician must have Specialty</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="cb189faa-3a0d-4f33-a2aa-eef0f2309478" name="physicianID">
+          <con:configuration>
+            <path>lineItems[0].physician.physicianID</path>
+            <content>P0001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-55905" id="268549a0-ac38-43b5-91d1-66a28b6d662e">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DeterminePhysicianSpecialtyAndPrimaryCareRequired/DeterminePhysicianSpecialtyAndPrimaryCareRequired/WADL" methodName="DeterminePhysicianSpecialtyAndPrimaryCareRequired" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-55905" id="4cc0062e-fee2-44e1-8964-69274685cef6" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "physician": {
+                "physicianID": "P0001",
+                "primaryCarePhysician": "false",
+                "specialityCode": "",
+                "taxonomyCode": "207RE0101X"
+            },
+            "plans": [
+                {
+                    "id": "513942563DD75A34E0532C97F4A150EF",
+                    "planCode": "2483"
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": "Continuous Glucose Monitors"
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DeterminePhysicianSpecialtyAndPrimaryCareRequired/DeterminePhysicianSpecialtyAndPrimaryCareRequired/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="2864bffd-439d-48bc-b6b9-3b88e5ca458d" name="Valid HTTP Status Codes_9">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="082d43a6-f2dd-4149-9417-def66acd3c69" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="f370b88a-4027-4618-8bf8-42b2f0b41c81" name="messageCode">
+          <con:configuration>
+            <path>lineItems[0].messages[0].messageCode</path>
+            <content>OVPV15</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="26b87d36-3a2b-47a9-b476-068a055e69e8" name="description">
+          <con:configuration>
+            <path>lineItems[0].messages[0].description</path>
+            <content>Physician must have Specialty</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="b3dd5421-2518-422b-a342-300303b46623" name="physicianID">
+          <con:configuration>
+            <path>lineItems[0].physician.physicianID</path>
+            <content>P0001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-55906" id="a64d7eeb-e027-42b9-93cd-886cc8b84f23">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DeterminePhysicianSpecialtyAndPrimaryCareRequired/DeterminePhysicianSpecialtyAndPrimaryCareRequired/WADL" methodName="DeterminePhysicianSpecialtyAndPrimaryCareRequired" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-55906" id="4cc0062e-fee2-44e1-8964-69274685cef6" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "physician": {
+                "physicianID": "P0001",
+                "primaryCarePhysician": "true",
+                "specialityCode": "Surgery",
+                "taxonomyCode": "207RE0101X"
+            },
+            "plans": [
+                {
+                    "id": "513942563DD75A34E0532C97F4A150EF",
+                    "planCode": "6513"
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": "Continuous Glucose Monitors"
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DeterminePhysicianSpecialtyAndPrimaryCareRequired/DeterminePhysicianSpecialtyAndPrimaryCareRequired/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="2b0ca6ce-2327-4580-9c95-8df2ee977fa8" name="Valid HTTP Status Codes_10">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="c17ff84d-d7be-4212-84de-074db641ed29" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="bf5d19c9-bb46-4820-88db-2de92ec288c4" name="messageCode">
+          <con:configuration>
+            <path>lineItems[0].messages[0].messageCode</path>
+            <content>OVPV15</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="5ac1db25-780d-449c-87a6-1b6869280c8a" name="description">
+          <con:configuration>
+            <path>lineItems[0].messages[0].description</path>
+            <content>Physician must have Specialty</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="c1fdf8a0-e7fb-4571-9cc4-318efd070566" name="physicianID">
+          <con:configuration>
+            <path>lineItems[0].physician.physicianID</path>
+            <content>P0001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-55907" id="7e7b2174-2ae2-4d88-a8b7-6dd57545c59f">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DeterminePhysicianSpecialtyAndPrimaryCareRequired/DeterminePhysicianSpecialtyAndPrimaryCareRequired/WADL" methodName="DeterminePhysicianSpecialtyAndPrimaryCareRequired" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-55907" id="4cc0062e-fee2-44e1-8964-69274685cef6" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "physician": {
+                "physicianID": "P0001",
+                "primaryCarePhysician": "false",
+                "specialityCode": "Surgery",
+                "taxonomyCode": "207VE0102X"
+            },
+            "plans": [
+                {
+                    "id": "513942563DD75A34E0532C97F4A150EF",
+                    "planCode": "7122"
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": "Continuous Glucose Monitors"
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DeterminePhysicianSpecialtyAndPrimaryCareRequired/DeterminePhysicianSpecialtyAndPrimaryCareRequired/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="d81c00ae-5e43-4324-863d-a987ccf30b8e" name="Valid HTTP Status Codes_11">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="574b13ab-104a-4a6a-b320-6c69e8ee122e" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="a7e18673-27b0-43b4-acb4-44b6ca3818b5" name="messageCode">
+          <con:configuration>
+            <path>lineItems[0].messages[0].messageCode</path>
+            <content>OVPV15</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="9e5536ee-042c-4681-8b31-84852ad6e2c9" name="description">
+          <con:configuration>
+            <path>lineItems[0].messages[0].description</path>
+            <content>Physician must have Specialty</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="712aea4b-99ed-43ce-90f1-8f8408b70705" name="physicianID">
+          <con:configuration>
+            <path>lineItems[0].physician.physicianID</path>
+            <content>P0001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-55908" id="9a146e3d-fdb4-458f-bfd1-f20065a1f8fd">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DeterminePhysicianSpecialtyAndPrimaryCareRequired/DeterminePhysicianSpecialtyAndPrimaryCareRequired/WADL" methodName="DeterminePhysicianSpecialtyAndPrimaryCareRequired" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-55908" id="4cc0062e-fee2-44e1-8964-69274685cef6" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "physician": {
+                "physicianID": "P0001",
+                "primaryCarePhysician": "true",
+                "specialityCode": "46",
+                "taxonomyCode": "Surgery"
+            },
+            "plans": [
+                {
+                    "id": "513942563DD75A34E0532C97F4A150EF",
+                    "planCode": "7201"
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": "Continuous Glucose Monitors"
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DeterminePhysicianSpecialtyAndPrimaryCareRequired/DeterminePhysicianSpecialtyAndPrimaryCareRequired/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="00a24ae7-819b-4f64-8d97-71f93597c3f5" name="Valid HTTP Status Codes_12">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="f656f188-65b4-4b8b-aac5-2454389cd01d" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="17c4ebc2-d323-4627-8565-73e5e3850e98" name="messageCode">
+          <con:configuration>
+            <path>lineItems[0].messages[0].messageCode</path>
+            <content>OVPV15</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="579bf66b-bd8d-4040-8319-d3c2d04cf35c" name="description">
+          <con:configuration>
+            <path>lineItems[0].messages[0].description</path>
+            <content>Physician must have Specialty</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="8131ab96-c0ed-44c8-aaee-e3c57d06d06f" name="physicianID">
+          <con:configuration>
+            <path>lineItems[0].physician.physicianID</path>
+            <content>P0001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-55909" id="bae7b43b-66df-4477-8e56-7f171bd06ddf">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DeterminePhysicianSpecialtyAndPrimaryCareRequired/DeterminePhysicianSpecialtyAndPrimaryCareRequired/WADL" methodName="DeterminePhysicianSpecialtyAndPrimaryCareRequired" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-55909" id="4cc0062e-fee2-44e1-8964-69274685cef6" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "physician": {
+                "physicianID": "P0001",
+                "primaryCarePhysician": "false",
+                "specialityCode": "46",
+                "taxonomyCode": "Surgery"
+            },
+            "plans": [
+                {
+                    "id": "513942563DD75A34E0532C97F4A150EF",
+                    "planCode": "7132"
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": "Continuous Glucose Monitors"
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DeterminePhysicianSpecialtyAndPrimaryCareRequired/DeterminePhysicianSpecialtyAndPrimaryCareRequired/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="a0c17b25-e945-4763-925d-5fe51c5cb2d1" name="Valid HTTP Status Codes_13">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="6c00347f-8efa-4483-b603-1cdb4f8bd721" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="0fc5708a-5e8f-4a01-b3a2-eaaca2c28235" name="messageCode">
+          <con:configuration>
+            <path>lineItems[0].messages[0].messageCode</path>
+            <content>OVPV15</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="05fc5e0c-10f3-49ab-93d0-c7e591669fe9" name="description">
+          <con:configuration>
+            <path>lineItems[0].messages[0].description</path>
+            <content>Physician must have Specialty</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="2d9ba832-a4e9-4fdf-bb1c-f644b684e409" name="physicianID">
+          <con:configuration>
+            <path>lineItems[0].physician.physicianID</path>
+            <content>P0001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-55910" id="656b8836-5f3a-4ffb-ae1f-45a3ae651c82">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DeterminePhysicianSpecialtyAndPrimaryCareRequired/DeterminePhysicianSpecialtyAndPrimaryCareRequired/WADL" methodName="DeterminePhysicianSpecialtyAndPrimaryCareRequired" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-55910" id="4cc0062e-fee2-44e1-8964-69274685cef6" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "physician": {
+                "physicianID": "P0001",
+                "primaryCarePhysician": "true",
+                "specialityCode": "46",
+                "taxonomyCode": "2080P0205X"
+            },
+            "plans": [
+                {
+                    "id": "513942563DD75A34E0532C97F4A150EF",
+                    "planCode": "4121"
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": "Glucose"
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DeterminePhysicianSpecialtyAndPrimaryCareRequired/DeterminePhysicianSpecialtyAndPrimaryCareRequired/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="c68ac588-286f-4c0c-95f3-e24815f2aada" name="Valid HTTP Status Codes_14">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="3f4e6b51-7e2e-469d-8c40-3448aed90ed3" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="d2c71229-4696-42ba-a1bc-2031500c260f" name="messageCode">
+          <con:configuration>
+            <path>lineItems[0].messages[0].messageCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="094d8f3d-4913-449d-b26d-2e56f7a28ddf" name="description">
+          <con:configuration>
+            <path>lineItems[0].messages[0].description</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="0c0520d8-b924-4388-a11d-7afca9b30d80" name="physicianID">
+          <con:configuration>
+            <path>lineItems[0].physician.physicianID</path>
+            <content>P0001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-55911" id="b79351b3-1cd2-4779-86fa-95ede209ae4e">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DeterminePhysicianSpecialtyAndPrimaryCareRequired/DeterminePhysicianSpecialtyAndPrimaryCareRequired/WADL" methodName="DeterminePhysicianSpecialtyAndPrimaryCareRequired" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-55911" id="4cc0062e-fee2-44e1-8964-69274685cef6" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "physician": {
+                "physicianID": "P0001",
+                "primaryCarePhysician": "false",
+                "specialityCode": "46",
+                "taxonomyCode": "2080P0205X"
+            },
+            "plans": [
+                {
+                    "id": "513942563DD75A34E0532C97F4A150EF",
+                    "planCode": "7100"
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": "Glucose"
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DeterminePhysicianSpecialtyAndPrimaryCareRequired/DeterminePhysicianSpecialtyAndPrimaryCareRequired/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="5e5fd04a-1b40-4ef6-a102-91edf34c0f3a" name="Valid HTTP Status Codes_15">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="32eb9c70-75ea-41e0-bdb7-04bc3ee5d3a4" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="f705db97-1531-486c-a220-23787dc4a1ad" name="messageCode">
+          <con:configuration>
+            <path>lineItems[0].messages[0].messageCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="a39cfeb2-b483-4169-836a-5f979b3e28ad" name="description">
+          <con:configuration>
+            <path>lineItems[0].messages[0].description</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="ccee0c96-c9c7-4fe7-b062-9910bb335f6f" name="physicianID">
+          <con:configuration>
+            <path>lineItems[0].physician.physicianID</path>
+            <content>P0001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-55912" id="36a6e892-5302-4c0d-88bf-f766280ad151">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DeterminePhysicianSpecialtyAndPrimaryCareRequired/DeterminePhysicianSpecialtyAndPrimaryCareRequired/WADL" methodName="DeterminePhysicianSpecialtyAndPrimaryCareRequired" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-55912" id="4cc0062e-fee2-44e1-8964-69274685cef6" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "physician": {
+                "physicianID": "P0001",
+                "primaryCarePhysician": "false",
+                "specialityCode": "",
+                "taxonomyCode": ""
+            },
+            "plans": [
+                {
+                    "id": "513942563DD75A34E0532C97F4A150EF",
+                    "planCode": "1000"
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": "Continuous Glucose Monitors"
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DeterminePhysicianSpecialtyAndPrimaryCareRequired/DeterminePhysicianSpecialtyAndPrimaryCareRequired/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="eee157d5-0e8e-4b6d-b063-e493a4d3ce37" name="Valid HTTP Status Codes_16">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="6433c505-36d2-4b4b-a503-471255943249" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="61cf9eb0-4ee5-4cee-a46d-5c0eea2a41e9" name="messageCode">
+          <con:configuration>
+            <path>lineItems[0].messages[0].messageCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="5d6be2e6-df6b-44e6-a000-7bfa54c7d62c" name="description">
+          <con:configuration>
+            <path>lineItems[0].messages[0].description</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="5bee4403-99b4-4a60-9779-02480b2a0c22" name="physicianID">
+          <con:configuration>
+            <path>lineItems[0].physician.physicianID</path>
+            <content>P0001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-55913" id="0d8143f1-05f1-4a34-833e-1ec53c9112e0">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DeterminePhysicianSpecialtyAndPrimaryCareRequired/DeterminePhysicianSpecialtyAndPrimaryCareRequired/WADL" methodName="DeterminePhysicianSpecialtyAndPrimaryCareRequired" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-55913" id="4cc0062e-fee2-44e1-8964-69274685cef6" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2004-02-15T00:14:14.000+0530"
+        }
+    },
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "physician": {
+                "physicianID": "P0001",
+                "primaryCarePhysician": "true",
+                "specialityCode": "",
+                "taxonomyCode": ""
+            },
+            "plans": [
+                {
+                    "id": "513942563DD75A34E0532C97F4A150EF",
+                    "planCode": "8095"
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": ""
+        },
+        {
+            "lineItemID": "L002",
+            "physician": {
+                "physicianID": "P0002",
+                "primaryCarePhysician": "true",
+                "specialityCode": "",
+                "taxonomyCode": ""
+            },
+            "plans": [
+                {
+                    "id": "513942563DD75A34E0532C97F4A150EF",
+                    "planCode": "6513"
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": ""
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DeterminePhysicianSpecialtyAndPrimaryCareRequired/DeterminePhysicianSpecialtyAndPrimaryCareRequired/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="0956a20d-1b8e-4cd7-b4e1-c45b9e1c2e9c" name="Valid HTTP Status Codes_2">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="79e1fb6b-4be5-4ada-9026-0a70e813fd3c" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="196a535b-bb2b-4542-8909-17158c108835" name="messageCode">
+          <con:configuration>
+            <path>lineItems[0].messages[0].messageCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="477cf804-4e16-4fba-a184-289d3cdbec1a" name="description">
+          <con:configuration>
+            <path>lineItems[0].messages[0].description</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="75d57de6-3a9e-4e13-9035-66e73e99fa04" name="physicianID">
+          <con:configuration>
+            <path>lineItems[0].physician.physicianID</path>
+            <content>P0001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="8b062f29-2676-4ddf-83fc-933ab983c2f7" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[1].lineItemID</path>
+            <content>L002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="ae373e0c-cb39-4831-bbdc-c4bb915246cd" name="messageCode">
+          <con:configuration>
+            <path>lineItems[1].messages[0].messageCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="cf7e517a-6841-4053-9617-18c4bda3671d" name="description">
+          <con:configuration>
+            <path>lineItems[1].messages[0].description</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="7b930ac3-d87d-42ef-bbe3-31010d3becb2" name="physicianID">
+          <con:configuration>
+            <path>lineItems[1].physician.physicianID</path>
+            <content>P0002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-55914" id="0d495705-0353-4273-a181-6e788d29eaf6">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DeterminePhysicianSpecialtyAndPrimaryCareRequired/DeterminePhysicianSpecialtyAndPrimaryCareRequired/WADL" methodName="DeterminePhysicianSpecialtyAndPrimaryCareRequired" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-55914" id="4cc0062e-fee2-44e1-8964-69274685cef6" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2004-02-15T00:14:14.000+0530"
+        }
+    },
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "physician": {
+                "physicianID": "P0001",
+                "primaryCarePhysician": "false",
+                "specialityCode": "",
+                "taxonomyCode": ""
+            },
+            "plans": [
+                {
+                    "id": "513942563DD75A34E0532C97F4A150EF",
+                    "planCode": "8095"
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": ""
+        },
+        {
+            "lineItemID": "L002",
+            "physician": {
+                "physicianID": "P0002",
+                "primaryCarePhysician": "false",
+                "specialityCode": "",
+                "taxonomyCode": ""
+            },
+            "plans": [
+                {
+                    "id": "513942563DD75A34E0532C97F4A150EF",
+                    "planCode": "8095"
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": ""
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DeterminePhysicianSpecialtyAndPrimaryCareRequired/DeterminePhysicianSpecialtyAndPrimaryCareRequired/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="8d31bc40-7255-41dd-a6b6-8d0b8582786f" name="Valid HTTP Status Codes_3">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="c649e4f9-a7c7-48eb-abfa-ec76b777e82c" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="e89a8591-2580-4ad6-9b6d-e279a5daba01" name="messageCode">
+          <con:configuration>
+            <path>lineItems[0].messages[0].messageCode</path>
+            <content>OVPV14</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="51b97fc0-a5d3-44e5-959d-a8bb9f1fe97b" name="description">
+          <con:configuration>
+            <path>lineItems[0].messages[0].description</path>
+            <content>Physician must be Primary Care</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="b1454497-ae80-4d1b-bbaa-4e6ed0a910fd" name="physicianID">
+          <con:configuration>
+            <path>lineItems[0].physician.physicianID</path>
+            <content>P0001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="cf8ec45d-712b-4050-8691-81026cd7525e" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[1].lineItemID</path>
+            <content>L002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="1a317700-641d-418b-8c93-f25ea7905dd7" name="messageCode">
+          <con:configuration>
+            <path>lineItems[1].messages[0].messageCode</path>
+            <content>OVPV14</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="1552ef41-c1bb-43e3-8df8-f8bff6c20467" name="description">
+          <con:configuration>
+            <path>lineItems[1].messages[0].description</path>
+            <content>Physician must be Primary Care</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="42195baf-a9e6-49bd-823f-817eecad01e6" name="physicianID">
+          <con:configuration>
+            <path>lineItems[1].physician.physicianID</path>
+            <content>P0002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-55915" id="f7dc2ac8-de02-4578-9e72-ff731828b39c">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DeterminePhysicianSpecialtyAndPrimaryCareRequired/DeterminePhysicianSpecialtyAndPrimaryCareRequired/WADL" methodName="DeterminePhysicianSpecialtyAndPrimaryCareRequired" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-55915" id="4cc0062e-fee2-44e1-8964-69274685cef6" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2004-02-15T00:14:14.000+0530"
+        }
+    },
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "physician": {
+                "physicianID": "P0001",
+                "primaryCarePhysician": "true",
+                "specialityCode": "Surgery",
+                "taxonomyCode": "2080P0205X"
+            },
+            "plans": [
+                {
+                    "id": "513942563DD75A34E0532C97F4A150EF",
+                    "planCode": "7122"
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": "Continuous Glucose Monitors"
+        },
+        {
+            "lineItemID": "L002",
+            "physician": {
+                "physicianID": "P0002",
+                "primaryCarePhysician": "true",
+                "specialityCode": "46",
+                "taxonomyCode": "Surgery"
+            },
+            "plans": [
+                {
+                    "id": "513942563DD75A34E0532C97F4A150EF",
+                    "planCode": "7201"
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": "Continuous Glucose Monitors"
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DeterminePhysicianSpecialtyAndPrimaryCareRequired/DeterminePhysicianSpecialtyAndPrimaryCareRequired/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="1bcaee07-6190-4f51-897f-d5871f2c655b" name="Valid HTTP Status Codes_4">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="3a8cc24a-e1fc-4219-8df7-011679c960a5" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="0ba750aa-2801-4cdf-b0ff-72dc04c7af8a" name="messageCode">
+          <con:configuration>
+            <path>lineItems[0].messages[0].messageCode</path>
+            <content>OVPV15</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="f8732247-0f79-4315-b832-67ca08963f6d" name="description">
+          <con:configuration>
+            <path>lineItems[0].messages[0].description</path>
+            <content>Physician must have Specialty</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="1f6322a7-c213-430f-b240-1987849eee30" name="physicianID">
+          <con:configuration>
+            <path>lineItems[0].physician.physicianID</path>
+            <content>P0001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="d16e9967-1a4b-4daa-aa47-95ae1bcb9364" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[1].lineItemID</path>
+            <content>L002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="44aa8538-adec-4156-b653-048a11a2e8e7" name="messageCode">
+          <con:configuration>
+            <path>lineItems[1].messages[0].messageCode</path>
+            <content>OVPV15</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="637aa89b-fabb-42d4-a3af-525f499d4843" name="description">
+          <con:configuration>
+            <path>lineItems[1].messages[0].description</path>
+            <content>Physician must have Specialty</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="f067b4b9-b488-4f4e-8653-5b5ad5438956" name="physicianID">
+          <con:configuration>
+            <path>lineItems[1].physician.physicianID</path>
+            <content>P0002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-55916" id="047b0eca-dd28-4d9f-b11c-81b9bd6f91e8">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DeterminePhysicianSpecialtyAndPrimaryCareRequired/DeterminePhysicianSpecialtyAndPrimaryCareRequired/WADL" methodName="DeterminePhysicianSpecialtyAndPrimaryCareRequired" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-55916" id="4cc0062e-fee2-44e1-8964-69274685cef6" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2004-02-15T00:14:14.000+0530"
+        }
+    },
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "physician": {
+                "physicianID": "P0001",
+                "primaryCarePhysician": "false",
+                "specialityCode": "46",
+                "taxonomyCode": ""
+            },
+            "plans": [
+                {
+                    "id": "513942563DD75A34E0532C97F4A150EF",
+                    "planCode": "7201"
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": "Continuous Glucose Monitors"
+        },
+        {
+            "lineItemID": "L002",
+            "physician": {
+                "physicianID": "P0002",
+                "primaryCarePhysician": "true",
+                "specialityCode": "",
+                "taxonomyCode": "207VE0102X"
+            },
+            "plans": [
+                {
+                    "id": "513942563DD75A34E0532C97F4A150EF",
+                    "planCode": "7132"
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": "Continuous Glucose Monitors"
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DeterminePhysicianSpecialtyAndPrimaryCareRequired/DeterminePhysicianSpecialtyAndPrimaryCareRequired/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="899d8d32-7cf0-49f5-8119-22700e92dc35" name="Valid HTTP Status Codes_5">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="c87d2906-03aa-4737-bbbb-7644921d3c86" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="15b72de6-16c5-40a5-b818-d410d2b55469" name="messageCode">
+          <con:configuration>
+            <path>lineItems[0].messages[0].messageCode</path>
+            <content>OVPV15</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="75e3a4e4-aa53-422a-ada3-06decd929fe7" name="description">
+          <con:configuration>
+            <path>lineItems[0].messages[0].description</path>
+            <content>Physician must have Specialty</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="4c33c2cd-6230-48ef-a356-0dee6ea5391b" name="physicianID">
+          <con:configuration>
+            <path>lineItems[0].physician.physicianID</path>
+            <content>P0001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="1adf3abc-c936-4aa4-8ade-abf2e98bc08c" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[1].lineItemID</path>
+            <content>L002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="c7e119f3-39d6-46a1-bcd2-3798fb7ae254" name="messageCode">
+          <con:configuration>
+            <path>lineItems[1].messages[0].messageCode</path>
+            <content>OVPV15</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="5314ec3f-3115-4db4-bf80-9970b894bd5a" name="description">
+          <con:configuration>
+            <path>lineItems[1].messages[0].description</path>
+            <content>Physician must have Specialty</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="bb75d7ab-f430-45c3-9bad-95a38c1b66aa" name="physicianID">
+          <con:configuration>
+            <path>lineItems[1].physician.physicianID</path>
+            <content>P0002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-55917" id="4855ddb2-8917-44f9-9bdb-50900aaeac7a">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DeterminePhysicianSpecialtyAndPrimaryCareRequired/DeterminePhysicianSpecialtyAndPrimaryCareRequired/WADL" methodName="DeterminePhysicianSpecialtyAndPrimaryCareRequired" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-55917" id="4cc0062e-fee2-44e1-8964-69274685cef6" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2004-02-15T00:14:14.000+0530"
+        }
+    },
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "physician": {
+                "physicianID": "P0001",
+                "primaryCarePhysician": "true",
+                "specialityCode": "Surgery",
+                "taxonomyCode": "Surgery"
+            },
+            "plans": [
+                {
+                    "id": "513942563DD75A34E0532C97F4A150EF",
+                    "planCode": "7132"
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": "Continuous Glucose Monitors"
+        },
+        {
+            "lineItemID": "L002",
+            "physician": {
+                "physicianID": "P0002",
+                "primaryCarePhysician": "true",
+                "specialityCode": "Surgery",
+                "taxonomyCode": "Surgery"
+            },
+            "plans": [
+                {
+                    "id": "513942563DD75A34E0532C97F4A150EF",
+                    "planCode": "4121"
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": "Continuous Glucose Monitors"
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DeterminePhysicianSpecialtyAndPrimaryCareRequired/DeterminePhysicianSpecialtyAndPrimaryCareRequired/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="b0a7e89a-463a-48ba-b5c8-6f771e70c946" name="Valid HTTP Status Codes_6">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="2d283241-5f39-46ce-8e50-2857b79ae518" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="06295684-201d-489a-a891-59a2e04e578e" name="messageCode">
+          <con:configuration>
+            <path>lineItems[0].messages[0].messageCode</path>
+            <content>OVPV15</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="f647688a-fb19-40b5-85f4-d805a566dce2" name="description">
+          <con:configuration>
+            <path>lineItems[0].messages[0].description</path>
+            <content>Physician must have Specialty</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="ad9f9eb2-7b1b-4312-acd9-e09d4e8d7263" name="physicianID">
+          <con:configuration>
+            <path>lineItems[0].physician.physicianID</path>
+            <content>P0001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="dc2d3b4d-b12c-4042-ab90-807925ffe52b" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[1].lineItemID</path>
+            <content>L002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="621d06e0-ce2a-437c-871c-c7b0710464a4" name="messageCode">
+          <con:configuration>
+            <path>lineItems[1].messages[0].messageCode</path>
+            <content>OVPV15</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="b01be744-dc9e-4110-b931-b169dc368f5c" name="description">
+          <con:configuration>
+            <path>lineItems[1].messages[0].description</path>
+            <content>Physician must have Specialty</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="920ead7f-bebc-4472-9c12-8e13567ba74e" name="physicianID">
+          <con:configuration>
+            <path>lineItems[1].physician.physicianID</path>
+            <content>P0002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-55918" id="17d3ecf9-8a18-46a9-af4d-c0813a12213d">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DeterminePhysicianSpecialtyAndPrimaryCareRequired/DeterminePhysicianSpecialtyAndPrimaryCareRequired/WADL" methodName="DeterminePhysicianSpecialtyAndPrimaryCareRequired" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-55918" id="4cc0062e-fee2-44e1-8964-69274685cef6" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2004-02-15T00:14:14.000+0530"
+        }
+    },
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "physician": {
+                "physicianID": "P0001",
+                "primaryCarePhysician": "false",
+                "specialityCode": "Surgery",
+                "taxonomyCode": "Surgery"
+            },
+            "plans": [
+                {
+                    "id": "513942563DD75A34E0532C97F4A150EF",
+                    "planCode": "4121"
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": "Continuous Glucose Monitors"
+        },
+        {
+            "lineItemID": "L002",
+            "physician": {
+                "physicianID": "P0002",
+                "primaryCarePhysician": "false",
+                "specialityCode": "Surgery",
+                "taxonomyCode": "Surgery"
+            },
+            "plans": [
+                {
+                    "id": "513942563DD75A34E0532C97F4A150EF",
+                    "planCode": "7100"
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": "Continuous Glucose Monitors"
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DeterminePhysicianSpecialtyAndPrimaryCareRequired/DeterminePhysicianSpecialtyAndPrimaryCareRequired/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="ab70d11a-01f1-429b-a8d3-c1a2aa4bb346" name="Valid HTTP Status Codes_7">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="50eae809-e3ab-4cbf-87fc-4504c12eb552" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="be15138a-ad17-4cef-be0d-2659ad79b273" name="messageCode">
+          <con:configuration>
+            <path>lineItems[0].messages[0].messageCode</path>
+            <content>OVPV15</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="a44fe213-c6d4-4e5f-aa5d-34d1a33421a5" name="description">
+          <con:configuration>
+            <path>lineItems[0].messages[0].description</path>
+            <content>Physician must have Specialty</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="18792815-7a73-4345-b6be-d7f990348438" name="physicianID">
+          <con:configuration>
+            <path>lineItems[0].physician.physicianID</path>
+            <content>P0001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="57029a4f-0930-43aa-a3c4-7eb2597c2a38" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[1].lineItemID</path>
+            <content>L002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="1b1f9ee5-5a2c-4a19-b3bd-64abb3ac2540" name="messageCode">
+          <con:configuration>
+            <path>lineItems[1].messages[0].messageCode</path>
+            <content>OVPV15</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="e9d5415b-b68f-423e-97e9-3e7502e9b1be" name="description">
+          <con:configuration>
+            <path>lineItems[1].messages[0].description</path>
+            <content>Physician must have Specialty</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="0f4de57e-81dc-41a4-ba01-c3cdb0b852d8" name="physicianID">
+          <con:configuration>
+            <path>lineItems[1].physician.physicianID</path>
+            <content>P0002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-55919" id="8f6dd8f8-6a12-4c24-ba6b-2a91ef7dfaec">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DeterminePhysicianSpecialtyAndPrimaryCareRequired/DeterminePhysicianSpecialtyAndPrimaryCareRequired/WADL" methodName="DeterminePhysicianSpecialtyAndPrimaryCareRequired" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-55919" id="4cc0062e-fee2-44e1-8964-69274685cef6" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2004-02-15T00:14:14.000+0530"
+        }
+    },
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "physician": {
+                "physicianID": "P0001",
+                "primaryCarePhysician": "true",
+                "specialityCode": "46",
+                "taxonomyCode": "207VE0102X"
+            },
+            "plans": [
+                {
+                    "id": "513942563DD75A34E0532C97F4A150EF",
+                    "planCode": "7100"
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": "Continuous Glucose Monitors"
+        },
+        {
+            "lineItemID": "L002",
+            "physician": {
+                "physicianID": "P0002",
+                "primaryCarePhysician": "false",
+                "specialityCode": "Surgery",
+                "taxonomyCode": "2080P0205X"
+            },
+            "plans": [
+                {
+                    "id": "513942563DD75A34E0532C97F4A150EF",
+                    "planCode": "2483"
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": "Continuous Glucose Monitors"
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DeterminePhysicianSpecialtyAndPrimaryCareRequired/DeterminePhysicianSpecialtyAndPrimaryCareRequired/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="1d0d710a-9219-4fe4-808b-c878f004bba3" name="Valid HTTP Status Codes_8">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="7deb1cd3-5b76-4397-a47c-9462e7c8e4c9" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="eaeaaf38-d8e9-4f19-b3a5-21bdfdd2b76b" name="messageCode">
+          <con:configuration>
+            <path>lineItems[0].messages[0].messageCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="17d2dc44-364e-4e59-baad-ac6697c946db" name="description">
+          <con:configuration>
+            <path>lineItems[0].messages[0].description</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="f5734300-52d2-4074-b2d4-9059e6297aba" name="physicianID">
+          <con:configuration>
+            <path>lineItems[0].physician.physicianID</path>
+            <content>P0001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="1e9612a4-5a92-48ec-9456-2fae8d3b3e4c" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[1].lineItemID</path>
+            <content>L002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="985b63d7-ae08-470e-8d05-af4576121e30" name="messageCode">
+          <con:configuration>
+            <path>lineItems[1].messages[0].messageCode</path>
+            <content>OVPV15</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="79c694a1-1073-4654-85de-53d776537cbb" name="description">
+          <con:configuration>
+            <path>lineItems[1].messages[0].description</path>
+            <content>Physician must have Specialty</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="85f26cea-eafa-48f8-b573-70a71a316cd7" name="physicianID">
+          <con:configuration>
+            <path>lineItems[1].physician.physicianID</path>
+            <content>P0002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-55920" id="b3e11a83-527a-4776-8703-b47dd0b1d435">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DeterminePhysicianSpecialtyAndPrimaryCareRequired/DeterminePhysicianSpecialtyAndPrimaryCareRequired/WADL" methodName="DeterminePhysicianSpecialtyAndPrimaryCareRequired" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-55920" id="4cc0062e-fee2-44e1-8964-69274685cef6" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2004-02-15T00:14:14.000+0530"
+        }
+    },
+    "lineItems": [
+        {
+            "lineItemID": "L001",
+            "physician": {
+                "physicianID": "P0001",
+                "primaryCarePhysician": "false",
+                "specialityCode": "",
+                "taxonomyCode": ""
+            },
+            "plans": [
+                {
+                    "id": "513942563DD75A34E0532C97F4A150EF",
+                    "planCode": "8095"
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": ""
+        },
+        {
+            "lineItemID": "L002",
+            "physician": {
+                "physicianID": "P0002",
+                "primaryCarePhysician": "true",
+                "specialityCode": "Surgery",
+                "taxonomyCode": "207RE0101X"
+            },
+            "plans": [
+                {
+                    "id": "513942563DD75A34E0532C97F4A150EF",
+                    "planCode": "6513"
+                }
+            ],
+            "productCategory": "",
+            "productSubCategory1": "",
+            "productSubCategory2": "Continuous Glucose Monitors"
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DeterminePhysicianSpecialtyAndPrimaryCareRequired/DeterminePhysicianSpecialtyAndPrimaryCareRequired/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="a7f5d7f0-6900-4488-b091-3ef0d0fa36bf" name="Valid HTTP Status Codes_9">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="d90a8cca-6fc9-4ee0-a2d1-0b7e1a4f3aa1" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="d11ea1f5-10ee-47f4-895f-e9470a9416b6" name="messageCode">
+          <con:configuration>
+            <path>lineItems[0].messages[0].messageCode</path>
+            <content>OVPV14</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="f857e79c-5e8f-406b-9e4b-992f33ae2c83" name="description">
+          <con:configuration>
+            <path>lineItems[0].messages[0].description</path>
+            <content>Physician must be Primary Care</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="f52493b6-c09b-471c-90b9-89f022a1101b" name="physicianID">
+          <con:configuration>
+            <path>lineItems[0].physician.physicianID</path>
+            <content>P0001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="fbf7af15-1074-436b-977d-dbfb789ee44e" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[1].lineItemID</path>
+            <content>L002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="ee83503d-b9ee-4c8d-9cc3-038e03c64682" name="messageCode">
+          <con:configuration>
+            <path>lineItems[1].messages[0].messageCode</path>
+            <content>OVPV15</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="885797c5-19a0-4272-8d55-4a6b03f4e069" name="description">
+          <con:configuration>
+            <path>lineItems[1].messages[0].description</path>
+            <content>Physician must have Specialty</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="3b7f12b4-95b2-406f-bd6b-c48ec9141a60" name="physicianID">
+          <con:configuration>
+            <path>lineItems[1].physician.physicianID</path>
+            <content>P0002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:properties/>
+  <con:reportParameters/>
+</con:testCase>

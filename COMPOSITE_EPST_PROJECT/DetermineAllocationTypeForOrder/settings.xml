@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<con:testSuite id="74fb0263-e553-4cf7-be61-5c9d04120408" name="DetermineAllocationTypeForOrder" xmlns:con="http://eviware.com/soapui/config">
+  <con:settings>
+    <con:setting id="74fb0263-e553-4cf7-be61-5c9d04120408fileName">DetermineAllocationTypeForOrder</con:setting>
+  </con:settings>
+  <con:runType>SEQUENTIAL</con:runType>
+  <con:properties/>
+  <con:reportParameters/>
+</con:testSuite>

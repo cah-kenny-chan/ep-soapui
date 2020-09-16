@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<con:testSuite id="9f0350f5-9851-407f-8665-5ddf831388e6" name="DetermineMedicalPolicyReviewRequired" xmlns:con="http://eviware.com/soapui/config">
+  <con:settings>
+    <con:setting id="9f0350f5-9851-407f-8665-5ddf831388e6fileName">DetermineMedicalPolicyReviewRequired</con:setting>
+  </con:settings>
+  <con:runType>SEQUENTIAL</con:runType>
+  <con:properties/>
+  <con:reportParameters/>
+</con:testSuite>

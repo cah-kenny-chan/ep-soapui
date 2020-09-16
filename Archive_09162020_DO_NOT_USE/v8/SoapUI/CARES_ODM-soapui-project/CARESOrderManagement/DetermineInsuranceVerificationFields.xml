@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<con:resource name="DetermineInsuranceVerificationFields" path="/DecisionService/rest/v1/DetermineInsuranceVerificationFields/DetermineInsuranceVerificationFields/WADL" id="e0d1fb79-3059-4423-b8e9-7cf77218da40" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:con="http://eviware.com/soapui/config">
+  <con:settings>
+    <con:setting id="e0d1fb79-3059-4423-b8e9-7cf77218da40fileName">DetermineInsuranceVerificationFields</con:setting>
+  </con:settings>
+  <con:parameters/>
+  <con:method name="DetermineInsuranceVerificationFields" id="e06e089a-31ad-432f-bc8c-bbf9e6d81b3b" method="POST">
+    <con:settings/>
+    <con:parameters/>
+    <con:representation type="REQUEST">
+      <con:mediaType>application/json</con:mediaType>
+      <con:params/>
+    </con:representation>
+    <con:representation type="RESPONSE">
+      <con:mediaType>application/json; charset=UTF-8</con:mediaType>
+      <con:status>200</con:status>
+      <con:params/>
+      <con:element xmlns:wadl="http://lqec5009c1ods01/DecisionService/rest/v1/DetermineInsuranceVerificationFields/DetermineInsuranceVerificationFields/WADL">wadl:Response</con:element>
+    </con:representation>
+    <con:representation type="FAULT">
+      <con:mediaType>application/json</con:mediaType>
+      <con:status>500</con:status>
+      <con:params/>
+      <con:element xmlns:wadl="http://lqec5009c1ods01/DecisionService/rest/v1/DetermineInsuranceVerificationFields/DetermineInsuranceVerificationFields/WADL">wadl:Fault</con:element>
+    </con:representation>
+    <con:request name="DetermineInsuranceVerificationFields_LineItems" id="c68db7a1-9c35-4880-b24d-c2a800d69b6e" mediaType="application/json" postQueryString="false">
+      <con:settings>
+        <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+      </con:settings>
+      <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+      <con:request>{
+
+   "lineItems":[
+
+      {
+
+         "lineItemID":"0001",
+
+         "productCategory":"",
+
+         "productSubCategory1":"",
+
+         "productSubCategory2":"",
+
+         "productSubCategory3":"",         
+
+         "customerState":"C1",
+
+         "plans":[
+
+            {
+
+               "id":"4F586843484E1E0BE0532C97F4A12082",
+
+               "planCode":"8124"
+
+            }
+
+         ]
+
+      },
+ {
+
+         "lineItemID":"0002",
+
+         "productCategory":"",
+
+         "productSubCategory1":"",
+
+         "productSubCategory2":"",
+
+         "productSubCategory3":"",        
+
+         "customerState":"C1",
+
+         "plans":[
+
+            {
+
+               "id":"4F586843484E1E0BE0532C97F4A12082",
+
+               "planCode":"8124"
+
+            }
+
+         ]
+
+      }
+
+
+   ],
+
+   "e2eMetadata":{
+
+      "serviceAddressing":{
+
+         "from":"PCF",
+
+         "callingFunction":"DetermineInsuranceVerificationFields/DetermineInsuranceVerificationFields",
+
+         "correlationID":"c123",
+
+         "timestamp":"2019-08-26T00:00:00.000+0000"
+
+      }
+
+   }
+
+}</con:request>
+      <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineInsuranceVerificationFields/DetermineInsuranceVerificationFields/WADL</con:originalUri>
+      <con:credentials>
+        <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+        <con:authType>No Authorization</con:authType>
+      </con:credentials>
+      <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+      <con:jmsPropertyConfig/>
+      <con:parameters/>
+    </con:request>
+    <con:request name="DetermineInsuranceVerificationFields_Payerlist" id="5c5114b4-7b03-4021-994a-e9912d86d051" mediaType="application/json" postQueryString="false">
+      <con:settings>
+        <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+      </con:settings>
+      <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+      <con:request>{
+  "plans": [
+    {
+      "id": "4F586843484E1E0BE0532C97F4A12082",
+      "planCode": "B208",
+      "financialResponsiblePayer":true
+    },
+    {
+      "id": "4F586843484E1E0BE0532C97F4A12081",
+      "planCode": "B208",
+      "financialResponsiblePayer":true
+    }
+  ],
+  "e2eMetadata": {
+    "serviceAddressing": {
+      "from": "string",
+      "callingFunction": "string",
+      "correlationID": "string",
+      "timestamp": "2019-08-26T00:00:00.000+0000"
+    }
+  },
+  "__DecisionID__": "string"
+}</con:request>
+      <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineInsuranceVerificationFields/DetermineInsuranceVerificationFields/WADL</con:originalUri>
+      <con:credentials>
+        <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+        <con:authType>No Authorization</con:authType>
+      </con:credentials>
+      <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+      <con:jmsPropertyConfig/>
+      <con:parameters/>
+    </con:request>
+  </con:method>
+</con:resource>

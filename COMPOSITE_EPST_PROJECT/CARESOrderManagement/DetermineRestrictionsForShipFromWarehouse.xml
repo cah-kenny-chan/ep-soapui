@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<con:resource name="DetermineRestrictionsForShipFromWarehouse" path="/DecisionService/rest/v1/DetermineRestrictionsForShipFromWarehouse/DetermineRestrictionsForShipFromWarehouse/WADL" id="03154751-6194-4e92-8d92-588e3a0d9278" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:con="http://eviware.com/soapui/config">
+  <con:settings>
+    <con:setting id="03154751-6194-4e92-8d92-588e3a0d9278fileName">DetermineRestrictionsForShipFromWarehouse</con:setting>
+  </con:settings>
+  <con:parameters/>
+  <con:method name="DetermineRestrictionsForShipFromWarehouse" id="3c8156be-3b28-4827-aed9-3dfb9da004f5" method="POST">
+    <con:settings/>
+    <con:parameters/>
+    <con:representation type="REQUEST">
+      <con:mediaType>application/json</con:mediaType>
+      <con:params/>
+    </con:representation>
+    <con:representation type="RESPONSE">
+      <con:mediaType>application/json; charset=UTF-8</con:mediaType>
+      <con:status>200</con:status>
+      <con:params/>
+      <con:element xmlns:wadl="http://lqec5009c1ods01/DecisionService/rest/v1/DetermineRestrictionsForShipFromWarehouse/DetermineRestrictionsForShipFromWarehouse/WADL">wadl:Response</con:element>
+    </con:representation>
+    <con:request name="DetermineRestrictionsForShipFromWarehouse" id="f3620f38-0a9f-4ffe-ac14-80caa1a5e197" mediaType="application/json" postQueryString="false">
+      <con:settings>
+        <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+      </con:settings>
+      <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+      <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2008-09-29T07:19:45.000+0530"
+        },
+        "serviceParameters": null,
+        "serviceState": null
+    },
+    "order": {
+        "acceptableShipFromWarehouses": [
+            {
+                "warehouseLocationCd": "1"
+            },
+            {
+                "warehouseLocationCd": ""
+            }
+        ],
+        "lineItems": [
+            {
+                "acceptableShipFromWarehouses": [
+                    {
+                        "warehouseLocationCd": "4"
+                    },
+                    {
+                        "warehouseLocationCd": ""
+                    }
+                ],
+                "itemNumber": "123456",
+                "lineItemID": "L001",
+                "plans": [
+                    {
+                        "id": "P001",
+                        "planCode": "9096"
+                    }
+                ],
+                "productClass": "COMMODES"
+            }
+        ],
+        "orderId": "O1",
+        "shipToAddress": [
+            {
+                "state": "NC"
+            }
+        ]
+    }
+}</con:request>
+      <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineRestrictionsForShipFromWarehouse/DetermineRestrictionsForShipFromWarehouse/WADL</con:originalUri>
+      <con:credentials>
+        <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+        <con:authType>No Authorization</con:authType>
+      </con:credentials>
+      <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+      <con:jmsPropertyConfig/>
+      <con:parameters/>
+    </con:request>
+  </con:method>
+</con:resource>

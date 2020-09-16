@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<con:testSuite id="8fe7c944-4eb9-4e2d-a9e3-547a0e910534" name="DeterminePharmacyReviewAndDispensing" xmlns:con="http://eviware.com/soapui/config">
+  <con:settings>
+    <con:setting id="8fe7c944-4eb9-4e2d-a9e3-547a0e910534fileName">DeterminePharmacyReviewAndDispensing</con:setting>
+  </con:settings>
+  <con:runType>SEQUENTIAL</con:runType>
+  <con:properties/>
+  <con:reportParameters/>
+</con:testSuite>

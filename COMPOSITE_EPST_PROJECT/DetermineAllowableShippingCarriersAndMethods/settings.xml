@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<con:testSuite id="0f65d53a-b25b-4842-86b2-738b1b079dbd" name="DetermineAllowableShippingCarriersAndMethods" xmlns:con="http://eviware.com/soapui/config">
+  <con:settings>
+    <con:setting id="0f65d53a-b25b-4842-86b2-738b1b079dbdfileName">DetermineAllowableShippingCarriersAndMethods</con:setting>
+  </con:settings>
+  <con:runType>SEQUENTIAL</con:runType>
+  <con:properties/>
+  <con:reportParameters/>
+</con:testSuite>

@@ -1,0 +1,3003 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<con:testCase id="4a5ed76e-6bda-45cf-baa9-875caaf19924" failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="DetermineServiceCode" searchProperties="true" xmlns:con="http://eviware.com/soapui/config">
+  <con:settings>
+    <con:setting id="4a5ed76e-6bda-45cf-baa9-875caaf19924fileName">DetermineServiceCode</con:setting>
+  </con:settings>
+  <con:testStep type="restrequest" name="JSON Request" id="1dd2b43a-323e-435e-94d6-73535387ac41">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineServiceCode/DetermineServiceCode/WADL" methodName="DetermineServiceCode" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="JSON Request" id="a773d023-0f76-46ab-8c1a-d2b425976773" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "bundles/DetermineBaseItemHcpcsCodes",
+            "correlationID": " IrKi27e1lMYrHGqA5CZRGL6i ",
+            "from": "PCF",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "lineItemID": "0001",
+            "plans": [
+                {
+                    "id": "813942563DD75A34E0532C97F4A150EFG",
+                    "planCode": "A004"
+                }
+            ],
+            "productCategory": "Breast Pump",
+            "productID": "P1231"
+        },
+        {
+            "lineItemID": "0002",
+            "plans": [
+                {
+                    "id": "613942563DD75A34E0532C97F4A150EFG",
+                    "planCode": "A008"
+                }
+            ],
+            "productCategory": "Breast Pump",
+            "productID": "P5682"
+        }
+    ]
+}</con:request>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="groovy" name="DetermineServiceCode-withNoProduct" id="15408818-ffef-4e55-8177-39d722a56494">
+    <con:settings/>
+    <con:config>
+      <script>import jxl.*;
+import jxl.write.*
+import java.io.*
+import java.io.file.*
+import java.util.*
+import java.lang.*
+import jxl.read.biff.BiffException;
+import net.sf.*
+import net.sf.json.*
+import net.sf.json.groovy.*
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+import groovy.json.JsonBuilder
+import com.eviware.soapui.model.testsuite.TestStepResult.TestStepStatus
+import com.eviware.soapui.impl.wsdl.teststeps.RestTestRequestStep
+
+def groovyUtils = new com.eviware.soapui.support.GroovyUtils(context)
+def projectDir = groovyUtils.projectPath
+
+def inputfile =  projectDir + "/DetermineServiceCode/DetermineServiceCode-withNoProduct_Input.xls"
+def outputfile = projectDir + "/DetermineServiceCode/DetermineServiceCode-withNoProduct_Output.xls"
+ 
+//Creating workbook for reading value from Excel Sheet
+Workbook wb = Workbook.getWorkbook(new File(inputfile))
+Sheet sh = wb.getSheet("ExpectedResults")
+Sheet jsonInput = wb.getSheet("JSON")
+
+
+//reading data from input Excel sheet
+rc = sh.getRows();
+cc = sh.getColumns();
+
+Cell jreq = jsonInput.getCell(0,0)
+
+//Creating Workbook for writing value in Excel Sheet
+WritableWorkbook wb1= Workbook.createWorkbook(new File(outputfile));
+WritableSheet sheet1 = wb1.createSheet("ActualResults",0);
+
+//Header declaration for output file
+addCell(0,0,"LineItemId",sheet1);
+addCell(1,0,"planId",sheet1);
+addCell(2,0,"ProductId",sheet1);
+addCell(3,0,"Primary Service Code",sheet1);
+addCell(4,0,"Second Service Code",sheet1);
+addCell(5,0,"Third Service Code",sheet1);
+addCell(6,0,"productClassPrimaryServiceCode",sheet1);
+addCell(7,0,"productClassSecondaryServiceCode",sheet1);
+addCell(8,0,"productClassTertiaryServiceCode",sheet1);
+addCell(9,0,"LineItemId",sheet1);
+addCell(10,0,"planId",sheet1);
+addCell(11,0,"ProductId",sheet1);
+addCell(12,0,"Primary Service Code",sheet1);
+addCell(13,0,"Second Service Code",sheet1);
+addCell(14,0,"Third Service Code",sheet1);
+addCell(15,0,"productClassPrimaryServiceCode",sheet1);
+addCell(16,0,"productClassSecondaryServiceCode",sheet1);
+addCell(17,0,"productClassTertiaryServiceCode",sheet1);
+addCell(18,0,"PASS/FAIL",sheet1);
+addCell(19,0,"FAILED DUE TO",sheet1);
+
+//new testStepName
+
+def newTestStep=null
+
+try {
+
+            
+
+               def req = jreq.getContents()
+   
+                //Assigning request value dynamically
+
+                //request
+                def slurper = new JsonSlurper().parseText(req);
+                def requestTemplet = new JsonBuilder(slurper);
+
+            
+               for (i=2;i&lt;rc;i++){
+
+                                  // Input for TestCaseName
+                         Cell varTestCaseName = sh.getCell(0,i)
+                        def TestCaseName = varTestCaseName.getContents()
+                      
+
+                                //Input for Plan for Payer1                                       
+                            requestTemplet.content.plans[0].planCode = sh.getCell(1,i).getContents()
+
+                               //Input for payerID for Payer1
+                           requestTemplet.content.plans[0].id = sh.getCell(2,i).getContents()                     
+                        
+                               //Input for Plan for Payer2
+                           requestTemplet.content.plans[1].planCode = sh.getCell(3,i).getContents()
+
+                              //Input for payerID for Payer2
+                           requestTemplet.content.plans[1].id = sh.getCell(4,i).getContents()
+
+                              //Assign json request to variable
+                       def jsonReqAsString = requestTemplet.toPrettyString()
+                       def restRequest = testRunner.testCase.getTestStepByName('JSON Request');
+                       restRequest.setPropertyValue('Request',jsonReqAsString);
+
+                                //teststep cloned: Start
+                          def getTestCase = testRunner.testCase;
+                          def testst = testRunner.testCase.getTestStepByName("JSON Request");                  
+                              newTestStep = TestCaseName
+                              cleanUp(newTestStep)
+                              getTestCase.cloneStep(restRequest,newTestStep)
+
+                                
+                         //teststep cloned: End
+                         //Executing the testcase
+                        testRunner.runTestStepByName(newTestStep)
+
+                          //retrive response
+                        
+                      def ResponseMessage = testRunner.testCase.testSteps[newTestStep].testRequest.response.contentAsString
+                             
+                        //new JsonSlurper to parse and get the response in Json format
+                        def slurper1 = new JsonSlurper()
+                        def json = slurper1.parseText(ResponseMessage)
+
+                    if(json.serviceCode.size()>=1)
+                    {     
+                          // get lineItemId from response json          
+                        addCell(0,i,json.serviceCode[0].lineItemId.toString(),sheet1);
+                        // get planId from response json          
+                        addCell(1,i,json.serviceCode[0].planId.toString(),sheet1);
+                          // get productID from response json          
+                        addCell(2,i,json.serviceCode[0].productID.toString(),sheet1);
+                         // get primaryServiceCode from response json          
+                        addCell(3,i,json.serviceCode[0].primaryServiceCode.toString(),sheet1);    
+                           // get secondServiceCode from response json          
+                        addCell(4,i,json.serviceCode[0].secondServiceCode.toString(),sheet1);    
+                          // get thirdServiceCode from response json          
+                        addCell(5,i,json.serviceCode[0].thirdServiceCode.toString(),sheet1);                          
+                           // get primaryServiceCode from response json
+                        addCell(6,i,json.serviceCode[0].productClassPrimaryServiceCode.toString(),sheet1);
+                          // get productClassSecondaryServiceCode from response json          
+                        addCell(7,i,json.serviceCode[0].productClassSecondaryServiceCode.toString(),sheet1);
+                           // get productClassTertiaryServiceCode from response json          
+                        addCell(8,i,json.serviceCode[0].productClassTertiaryServiceCode.toString(),sheet1);
+                        
+                                            
+                             // get lineItemId from response json          
+                         addCell(9,i,json.serviceCode[1].lineItemId.toString(),sheet1);
+                         // get planId from response json          
+                         addCell(10,i,json.serviceCode[1].planId.toString(),sheet1);
+                            // get productID from response json          
+                         addCell(11,i,json.serviceCode[1].productID.toString(),sheet1);
+                          // get primaryServiceCode from response json     
+                          addCell(12,i,json.serviceCode[1].primaryServiceCode.toString(),sheet1);
+                            // get secondServiceCode from response json          
+                         addCell(13,i,json.serviceCode[1].secondServiceCode.toString(),sheet1);
+                            // get thirdServiceCode from response json          
+                         addCell(14,i,json.serviceCode[1].thirdServiceCode.toString(),sheet1);                           
+                           // get primaryServiceCode from response json
+                         addCell(15,i,json.serviceCode[1].productClassPrimaryServiceCode.toString(),sheet1);
+                           // get productClassSecondaryServiceCode from response json          
+                         addCell(16,i,json.serviceCode[1].productClassSecondaryServiceCode.toString(),sheet1);
+                           // get productClassTertiaryServiceCode from response json          
+                        addCell(17,i,json.serviceCode[1].productClassTertiaryServiceCode.toString(),sheet1);
+
+                    }else{  
+                       
+                         // get lineItemId from response json          
+                        addCell(0,i,json.serviceCode[0].lineItemId.toString(),sheet1);
+                        // get planId from response json          
+                        addCell(1,i,json.serviceCode[0].planId.toString(),sheet1);
+                          // get productID from response json          
+                        addCell(2,i,json.serviceCode[0].productID.toString(),sheet1);
+                         // get primaryServiceCode from response json          
+                        addCell(3,i,json.serviceCode[0].primaryServiceCode.toString(),sheet1);    
+                           // get secondServiceCode from response json          
+                        addCell(4,i,json.serviceCode[0].secondServiceCode.toString(),sheet1);    
+                          // get thirdServiceCode from response json          
+                        addCell(5,i,json.serviceCode[0].thirdServiceCode.toString(),sheet1);                          
+                           // get primaryServiceCode from response json
+                        addCell(6,i,json.serviceCode[0].productClassPrimaryServiceCode.toString(),sheet1);
+                          // get productClassSecondaryServiceCode from response json          
+                        addCell(7,i,json.serviceCode[0].productClassSecondaryServiceCode.toString(),sheet1);
+                           // get productClassTertiaryServiceCode from response json          
+                        addCell(8,i,json.serviceCode[0].productClassTertiaryServiceCode.toString(),sheet1);
+                   }
+
+                                    
+                      //dynamic asserstion :Start
+                   def testStepForAssertion = testRunner.testCase.getTestStepByName(newTestStep);
+
+                                //ValidHTTPStatusCodes 200 Assertion
+                  addAssertionValidHTTPStatusCodes(testStepForAssertion,"Valid HTTP Status Codes_"+i)
+     		  if(json.serviceCode.size()>=1){
+
+                            //get the expected values
+                           lineItemID = sh.getCell(5,i).getContents()
+                         addAssertionJsonPathMatch(testStepForAssertion,lineItemID,"serviceCode[0].lineItemId","lineItemID")
+                         
+                          planId = sh.getCell(6,i).getContents()
+                       addAssertionJsonPathMatch(testStepForAssertion,planId,"serviceCode[0].planId","planId")
+                       
+                       productID = sh.getCell(7,i).getContents()
+                         addAssertionJsonPathMatch(testStepForAssertion,productID,"serviceCode[0].productID","productID")                       
+                         
+                         primaryServiceCode = sh.getCell(8,i).getContents()
+                       addAssertionJsonPathMatch(testStepForAssertion,primaryServiceCode,"serviceCode[0].primaryServiceCode","primaryServiceCode")
+
+                         secondaryServiceCode = sh.getCell(9,i).getContents()
+                        addAssertionJsonPathMatch(testStepForAssertion,secondaryServiceCode,"serviceCode[0].secondServiceCode","secondServiceCode")
+
+                         thirdServiceCode = sh.getCell(10,i).getContents()
+                        addAssertionJsonPathMatch(testStepForAssertion,thirdServiceCode,"serviceCode[0].thirdServiceCode","thirdServiceCode")
+
+                        productClassPrimaryServiceCode = sh.getCell(11,i).getContents()
+                         addAssertionJsonPathMatch(testStepForAssertion,productClassPrimaryServiceCode,"serviceCode[0].productClassPrimaryServiceCode","productClassPrimaryServiceCode")
+
+                           productClassSecondaryServiceCode = sh.getCell(12,i).getContents()
+                          addAssertionJsonPathMatch(testStepForAssertion,productClassSecondaryServiceCode,"serviceCode[0].productClassSecondaryServiceCode","productClassSecondaryServiceCode")
+
+                           productClassTertiaryServiceCode = sh.getCell(13,i).getContents()
+                          addAssertionJsonPathMatch(testStepForAssertion,productClassTertiaryServiceCode,"serviceCode[0].productClassTertiaryServiceCode","productClassTertiaryServiceCode")
+
+                          
+                            lineItemID1 = sh.getCell(14,i).getContents()
+                           addAssertionJsonPathMatch(testStepForAssertion,lineItemID1,"serviceCode[1].lineItemId","lineItemID")
+                           
+                           planId1 = sh.getCell(15,i).getContents()
+                           addAssertionJsonPathMatch(testStepForAssertion,planId1,"serviceCode[1].planId","planId1")
+
+                              productID1 = sh.getCell(16,i).getContents()
+                           addAssertionJsonPathMatch(testStepForAssertion,productID1,"serviceCode[1].productID","productID")
+
+                            primaryServiceCode1 = sh.getCell(17,i).getContents()
+                           addAssertionJsonPathMatch(testStepForAssertion,primaryServiceCode1,"serviceCode[1].primaryServiceCode","primaryServiceCode")
+
+                            secondaryServiceCode1 = sh.getCell(18,i).getContents()
+                           addAssertionJsonPathMatch(testStepForAssertion,secondaryServiceCode1,"serviceCode[1].secondServiceCode","secondServiceCode")
+
+                            thirdServiceCode1 = sh.getCell(19,i).getContents()
+                           addAssertionJsonPathMatch(testStepForAssertion,thirdServiceCode1,"serviceCode[1].thirdServiceCode","thirdServiceCode")
+
+                            productClassPrimaryServiceCode1 = sh.getCell(20,i).getContents()
+                           addAssertionJsonPathMatch(testStepForAssertion,productClassPrimaryServiceCode1,"serviceCode[1].productClassPrimaryServiceCode","productClassPrimaryServiceCode")
+
+                            productClassSecondaryServiceCode1 = sh.getCell(21,i).getContents()
+                           addAssertionJsonPathMatch(testStepForAssertion,productClassSecondaryServiceCode1,"serviceCode[1].productClassSecondaryServiceCode","productClassSecondaryServiceCode")
+
+                            productClassTertiaryServiceCode1 = sh.getCell(22,i).getContents()
+                          addAssertionJsonPathMatch(testStepForAssertion,productClassTertiaryServiceCode1,"serviceCode[1].productClassTertiaryServiceCode","productClassTertiaryServiceCode")
+
+             }else{
+
+                            lineItemID = sh.getCell(5,i).getContents()
+                         addAssertionJsonPathMatch(testStepForAssertion,lineItemID,"serviceCode[0].lineItemId","lineItemID")
+                         
+                          planId = sh.getCell(6,i).getContents()
+                       addAssertionJsonPathMatch(testStepForAssertion,planId,"serviceCode[0].planId","planId")
+                       
+                       productID = sh.getCell(7,i).getContents()
+                         addAssertionJsonPathMatch(testStepForAssertion,productID,"serviceCode[0].productID","productID")                       
+                         
+                         primaryServiceCode = sh.getCell(8,i).getContents()
+                       addAssertionJsonPathMatch(testStepForAssertion,primaryServiceCode,"serviceCode[0].primaryServiceCode","primaryServiceCode")
+
+                         secondaryServiceCode = sh.getCell(9,i).getContents()
+                        addAssertionJsonPathMatch(testStepForAssertion,secondaryServiceCode,"serviceCode[0].secondServiceCode","secondServiceCode")
+
+                         thirdServiceCode = sh.getCell(10,i).getContents()
+                        addAssertionJsonPathMatch(testStepForAssertion,thirdServiceCode,"serviceCode[0].thirdServiceCode","thirdServiceCode")
+
+                        productClassPrimaryServiceCode = sh.getCell(11,i).getContents()
+                         addAssertionJsonPathMatch(testStepForAssertion,productClassPrimaryServiceCode,"serviceCode[0].productClassPrimaryServiceCode","productClassPrimaryServiceCode")
+
+                           productClassSecondaryServiceCode = sh.getCell(12,i).getContents()
+                          addAssertionJsonPathMatch(testStepForAssertion,productClassSecondaryServiceCode,"serviceCode[0].productClassSecondaryServiceCode","productClassSecondaryServiceCode")
+
+                           productClassTertiaryServiceCode = sh.getCell(13,i).getContents()
+                          addAssertionJsonPathMatch(testStepForAssertion,productClassTertiaryServiceCode,"serviceCode[0].productClassTertiaryServiceCode","productClassTertiaryServiceCode")
+
+            }
+
+          
+                              //dynamic asserstion :End
+                            assertionResult = testStepForAssertion.getAssertionStatus()
+             if(assertionResult.toString().equals("FAILED")){
+
+                                      addCell(18,i,"Fail",sheet1);
+                                   for( assertion in testStepForAssertion.assertionList ){
+
+                                 for( e in assertion.errors ){
+
+                                                    addCell(19,i,e.message,sheet1);
+
+                                                }  
+
+                                   }
+
+                                }
+
+                                else{
+
+                                  addCell(18,i,"PASS",sheet1);
+
+                                }
+
+       }
+
+        wb1.write();
+
+                log.info "TestCase Execution Completed successfull"
+
+                }              
+
+            
+           
+catch(Exception e)
+
+{
+
+                log.info(e)                          
+
+}
+
+finally
+
+{
+
+     //close workbook
+
+     wb.close();
+     wb1.close();      
+
+     
+
+}
+
+  //Method code
+
+def addAssertionJsonPathMatch(RestTestRequestStep testStepForAssertion,String expectedContent,String xPath,String assertionName) {
+
+          def assertionType = testStepForAssertion.addAssertion("JsonPath Match")
+
+                                assertionType.name = assertionName
+
+                                assertionType.setPath(xPath)
+
+                                assertionType.setExpectedContent(expectedContent)
+
+                                assertionType.setAllowWildcards(true)  
+
+}
+
+   //Method code
+
+def addAssertionValidHTTPStatusCodes(RestTestRequestStep testStepForAssertion,String assertionName) {
+
+         def StatusCodeAssertionxpath = testStepForAssertion.addAssertion("Valid HTTP Status Codes")
+
+                    StatusCodeAssertionxpath.name = assertionName
+
+                    StatusCodeAssertionxpath.codes=200
+
+}
+
+//method to delete
+
+def cleanUp(String requestName){
+
+                //remove the teststep::Start
+
+                def testCase = testRunner.testCase
+
+                def testStep = testCase.getTestStepByName(requestName)
+
+                if (testStep!=null){
+
+                                                testCase.removeTestStep(testStep)
+
+                }
+
+               
+
+                //remove the teststep::End
+
+}
+
+//method to add Cell to sheet1
+
+def addCell(int colmNum,int rowNum,String lblName,WritableSheet sheet1 ){
+
+                Label header = new Label(colmNum,rowNum,lblName);
+
+                sheet1.addCell(header);                
+
+}</script>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="groovy" name="DetermineServiceCode-withProduct" id="40897ca2-6f11-430a-9fca-00ad68450645">
+    <con:settings/>
+    <con:config>
+      <script><![CDATA[import jxl.*;
+import jxl.write.*
+import java.io.*
+import java.io.file.*
+import java.util.*
+import java.lang.*
+import jxl.read.biff.BiffException;
+import net.sf.*
+import net.sf.json.*
+import net.sf.json.groovy.*
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+import groovy.json.JsonBuilder
+import com.eviware.soapui.model.testsuite.TestStepResult.TestStepStatus
+import com.eviware.soapui.impl.wsdl.teststeps.RestTestRequestStep
+
+def groovyUtils = new com.eviware.soapui.support.GroovyUtils(context)
+def projectDir = groovyUtils.projectPath
+
+def inputfile =  projectDir + "/DetermineServiceCode/DetermineServiceCode-withProduct_Input.xls"
+def outputfile = projectDir + "/DetermineServiceCode/DetermineServiceCode-withProduct_Output.xls"
+
+//Creating workbook for reading value from Excel Sheet
+Workbook wb = Workbook.getWorkbook(new File(inputfile))
+Sheet sh = wb.getSheet("ExpectedResults")
+Sheet jsonInput = wb.getSheet("JSON")
+
+//reading data from input Excel sheet
+rc = sh.getRows();
+cc = sh.getColumns();
+Cell jreq = jsonInput.getCell(0,0)
+
+//Creating Workbook for writing value in Excel Sheet
+WritableWorkbook wb1= Workbook.createWorkbook(new File(outputfile));
+WritableSheet sheet1 = wb1.createSheet("ActualResults",0);
+
+//Header declaration for output file
+addCell(0,0,"LineItemId",sheet1);
+addCell(1,0,"planId",sheet1);
+addCell(2,0,"ProductId",sheet1);
+addCell(3,0,"Primary Service Code",sheet1);
+addCell(4,0,"Second Service Code",sheet1);
+addCell(5,0,"Third Service Code",sheet1);
+addCell(6,0,"productClassPrimaryServiceCode",sheet1);
+addCell(7,0,"productClassSecondaryServiceCode",sheet1);
+addCell(8,0,"productClassTertiaryServiceCode",sheet1);
+addCell(9,0,"LineItemId",sheet1);
+addCell(10,0,"planId",sheet1);
+addCell(11,0,"ProductId",sheet1);
+addCell(12,0,"Primary Service Code",sheet1);
+addCell(13,0,"Second Service Code",sheet1);
+addCell(14,0,"Third Service Code",sheet1);
+addCell(15,0,"productClassPrimaryServiceCode",sheet1);
+addCell(16,0,"productClassSecondaryServiceCode",sheet1);
+addCell(17,0,"productClassTertiaryServiceCode",sheet1);
+addCell(18,0,"PASS/FAIL",sheet1);
+addCell(19,0,"FAILED DUE TO",sheet1);
+
+//new testStepName
+def newTestStep=null
+//try {
+        
+                def req = jreq.getContents()
+   
+                //Assigning request value dynamically
+                //request
+                def slurper = new JsonSlurper().parseText(req);
+                def requestTemplet = new JsonBuilder(slurper);
+          
+           for (i=2;i<rc;i++){
+
+                       // Input for TestCaseName
+
+               Cell varTestCaseName = sh.getCell(0,i)
+                 def TestCaseName = varTestCaseName.getContents()
+               //  def lineItemID1 = sh.getCell(1,i).getContents()
+                // def lineItemID2 = sh.getCell(6,i).getContents()
+
+                                       //  Input for Line Item ID
+                                requestTemplet.content.lineItems[0].lineItemID = sh.getCell(1,i).getContents()
+                                      //Input for productID
+                                requestTemplet.content.lineItems[0].productID = sh.getCell(2,i).getContents()
+                                 //  Input for Product Category
+                                requestTemplet.content.lineItems[0].productCategory = sh.getCell(3,i).getContents()                              
+                                 // Input for Plan
+                                requestTemplet.content.lineItems[0].plans[0].planCode = sh.getCell(4,i).getContents()
+                                  // Input for ID
+                                requestTemplet.content.lineItems[0].plans[0].id =sh.getCell(5,i).getContents()                          
+               				 
+                                //  Input for Line Item ID
+                               requestTemplet.content.lineItems[1].lineItemID = sh.getCell(6,i).getContents()
+                                   //Input for productID
+                                requestTemplet.content.lineItems[1].productID = sh.getCell(7,i).getContents()
+                                   //Input for product Category
+                                requestTemplet.content.lineItems[1].productCategory = sh.getCell(8,i).getContents()
+                                // Input for Plan
+                                requestTemplet.content.lineItems[1].plans[0].planCode = sh.getCell(9,i).getContents()
+                                    // Input for ID
+                                requestTemplet.content.lineItems[1].plans[0].id =sh.getCell(10,i).getContents()
+
+                                     //Assign json request to variable
+
+                                def jsonReqAsString = requestTemplet.toPrettyString()
+                                def restRequest = testRunner.testCase.getTestStepByName('JSON Request');
+                                restRequest.setPropertyValue('Request',jsonReqAsString);
+
+                                //teststep cloned: Start
+                                def getTestCase = testRunner.testCase;
+                                def testst = testRunner.testCase.getTestStepByName("JSON Request");                 
+                                newTestStep = TestCaseName
+                                cleanUp(newTestStep)
+                                getTestCase.cloneStep(restRequest,newTestStep)
+
+                            
+                          //teststep cloned: End
+                                //Executing the testcase
+                                testRunner.runTestStepByName(newTestStep)
+
+                                //retrive response
+                                def ResponseMessage = testRunner.testCase.testSteps[newTestStep].testRequest.response.contentAsString
+                               
+                                //new JsonSlurper to parse and get the response in Json format
+                                def slurper1 = new JsonSlurper()
+                                def json = slurper1.parseText(ResponseMessage)
+
+                           if(json.serviceCode.size()>=1)// && lineItemID1!=""&& lineItemID2!="")
+                           {
+                             // get lineItemId from response json          
+                               addCell(0,i,json.serviceCode[0].lineItemId,sheet1);
+                                // get planId from response json          
+                               addCell(1,i,json.serviceCode[0].planId,sheet1);
+                                 // get productID from response json          
+                               addCell(2,i,json.serviceCode[0].productID,sheet1);
+                                 // get primaryServiceCode from response json          
+                               addCell(3,i,json.serviceCode[0].primaryServiceCode.toString(),sheet1);   
+                                  // get secondServiceCode from response json          
+                               addCell(4,i,json.serviceCode[0].secondServiceCode.toString(),sheet1);      
+                                 // get thirdServiceCode from response json          
+                               addCell(5,i,json.serviceCode[0].thirdServiceCode.toString(),sheet1);                             
+                                 // get productClassPrimaryServiceCode from response json
+                               addCell(6,i,json.serviceCode[0].productClassPrimaryServiceCode,sheet1);
+                                  // get productClassSecondaryServiceCode from response json          
+                               addCell(7,i,json.serviceCode[0].productClassSecondaryServiceCode,sheet1);
+                                  // get productClassTertiaryServiceCode from response json          
+                               addCell(8,i,json.serviceCode[0].productClassTertiaryServiceCode,sheet1);
+  
+                                   // get lineItemId from response json                                            
+                                addCell(9,i,json.serviceCode[1].lineItemId,sheet1);
+                                // get payerId from response json          
+                                addCell(10,i,json.serviceCode[1].planId,sheet1);
+                                 // get productID from response json          
+                                addCell(11,i,json.serviceCode[1].productID,sheet1);                                
+                                // get primaryServiceCode from response json
+                                addCell(12,i,json.serviceCode[1].primaryServiceCode.toString(),sheet1);
+                                 // get secondServiceCode from response json          
+                                addCell(13,i,json.serviceCode[1].secondServiceCode.toString(),sheet1); 
+                                 // get thirdServiceCode from response json          
+                                addCell(14,i,json.serviceCode[1].thirdServiceCode.toString(),sheet1);                                  
+                                 // get productClassPrimaryServiceCode from response json
+                                addCell(15,i,json.serviceCode[1].productClassPrimaryServiceCode,sheet1);
+                                  // get productClassSecondaryServiceCode from response json          
+                                addCell(16,i,json.serviceCode[1].productClassSecondaryServiceCode,sheet1);
+                                 // get productClassTertiaryServiceCode from response json          
+                                addCell(17,i,json.serviceCode[1].productClassTertiaryServiceCode,sheet1);
+                           }                        
+                            else {
+
+                                 // extract the value of required elements fron the json response                        
+                                 // get lineItemId from response json          
+                               addCell(0,i,json.serviceCode[0].lineItemId,sheet1);
+                                // get planId from response json          
+                               addCell(1,i,json.serviceCode[0].planId,sheet1);
+                                 // get productID from response json          
+                               addCell(2,i,json.serviceCode[0].productID,sheet1);
+                                 // get primaryServiceCode from response json          
+                               addCell(3,i,json.serviceCode[0].primaryServiceCode.toString(),sheet1);   
+                                  // get secondServiceCode from response json          
+                               addCell(4,i,json.serviceCode[0].secondServiceCode.toString(),sheet1);      
+                                 // get thirdServiceCode from response json          
+                               addCell(5,i,json.serviceCode[0].thirdServiceCode.toString(),sheet1);                             
+                                 // get productClassPrimaryServiceCode from response json
+                               addCell(6,i,json.serviceCode[0].productClassPrimaryServiceCode,sheet1);
+                                  // get productClassSecondaryServiceCode from response json          
+                               addCell(7,i,json.serviceCode[0].productClassSecondaryServiceCode,sheet1);
+                                  // get productClassTertiaryServiceCode from response json          
+                               addCell(8,i,json.serviceCode[0].productClassTertiaryServiceCode,sheet1);
+
+                                }
+  
+                               //dynamic asserstion :Start
+                                def testStepForAssertion = testRunner.testCase.getTestStepByName(newTestStep);
+                                //ValidHTTPStatusCodes 200 Assertion
+			       addAssertionValidHTTPStatusCodes(testStepForAssertion,"Valid HTTP Status Codes_"+i)
+			     if(json.serviceCode.size()>=1)// && lineItemID1!=""&& lineItemID2!=""){
+		{
+                     //get the expected values
+                          lineItemID = sh.getCell(11,i).getContents()
+                         addAssertionJsonPathMatch(testStepForAssertion,lineItemID,"serviceCode[0].lineItemId","lineItemID")
+                         
+                          planId = sh.getCell(12,i).getContents()
+                         addAssertionJsonPathMatch(testStepForAssertion,planId,"serviceCode[0].planId","planId")  
+                            
+                          productID = sh.getCell(13,i).getContents()
+                         addAssertionJsonPathMatch(testStepForAssertion,productID,"serviceCode[0].productID","productID")
+                         
+                          primaryServiceCode = sh.getCell(14,i).getContents()
+                         addAssertionJsonPathMatch(testStepForAssertion,primaryServiceCode,"serviceCode[0].primaryServiceCode","primaryServiceCode")
+                         
+                          secondaryServiceCode = sh.getCell(15,i).getContents()
+                         addAssertionJsonPathMatch(testStepForAssertion,secondaryServiceCode,"serviceCode[0].secondServiceCode","secondServiceCode")
+                         
+                          thirdServiceCode = sh.getCell(16,i).getContents()
+                         addAssertionJsonPathMatch(testStepForAssertion,thirdServiceCode,"serviceCode[0].thirdServiceCode","thirdServiceCode")
+                         
+                          productClassPrimaryServiceCode = sh.getCell(17,i).getContents()
+                         addAssertionJsonPathMatch(testStepForAssertion,productClassPrimaryServiceCode,"serviceCode[0].productClassPrimaryServiceCode","productClassPrimaryServiceCode")
+                         
+                          productClassSecondaryServiceCode = sh.getCell(18,i).getContents()
+                         addAssertionJsonPathMatch(testStepForAssertion,productClassSecondaryServiceCode,"serviceCode[0].productClassSecondaryServiceCode","productClassSecondaryServiceCode")
+                         
+                          productClassTertiaryServiceCode = sh.getCell(19,i).getContents()
+                         addAssertionJsonPathMatch(testStepForAssertion,productClassTertiaryServiceCode,"serviceCode[0].productClassTertiaryServiceCode","productClassTertiaryServiceCode")
+
+                         lineItemID1 = sh.getCell(20,i).getContents()
+                        addAssertionJsonPathMatch(testStepForAssertion,lineItemID1,"serviceCode[1].lineItemId","lineItemID")
+  
+                        planId1 = sh.getCell(21,i).getContents()
+                        addAssertionJsonPathMatch(testStepForAssertion,planId1,"serviceCode[1].planId","planId1")
+        
+                        productID1 = sh.getCell(22,i).getContents()
+                       addAssertionJsonPathMatch(testStepForAssertion,productID1,"serviceCode[1].productID","productID")
+     
+                       primaryServiceCode1 = sh.getCell(23,i).getContents()
+                       addAssertionJsonPathMatch(testStepForAssertion,primaryServiceCode1,"serviceCode[1].primaryServiceCode","primaryServiceCode")
+
+                       secondaryServiceCode1 = sh.getCell(24,i).getContents()
+                       addAssertionJsonPathMatch(testStepForAssertion,secondaryServiceCode1,"serviceCode[1].secondServiceCode","secondServiceCode")
+
+                        thirdServiceCode1 = sh.getCell(25,i).getContents()
+                       addAssertionJsonPathMatch(testStepForAssertion,thirdServiceCode1,"serviceCode[1].thirdServiceCode","thirdServiceCode")
+
+                        productClassPrimaryServiceCode1 = sh.getCell(26,i).getContents()
+                       addAssertionJsonPathMatch(testStepForAssertion,productClassPrimaryServiceCode1,"serviceCode[1].productClassPrimaryServiceCode","productClassPrimaryServiceCode")
+
+                        productClassSecondaryServiceCode1 = sh.getCell(27,i).getContents()
+                       addAssertionJsonPathMatch(testStepForAssertion,productClassSecondaryServiceCode1,"serviceCode[1].productClassSecondaryServiceCode","productClassSecondaryServiceCode")
+
+                        productClassTertiaryServiceCode1 = sh.getCell(28,i).getContents()
+                       addAssertionJsonPathMatch(testStepForAssertion,productClassTertiaryServiceCode1,"serviceCode[1].productClassTertiaryServiceCode","productClassTertiaryServiceCode")
+
+                          
+         }else{
+ 
+                    //get the expected values
+                      lineItemID = sh.getCell(11,i).getContents()
+                     addAssertionJsonPathMatch(testStepForAssertion,lineItemID,"serviceCode[0].lineItemId","lineItemID")
+   
+                      planId = sh.getCell(12,i).getContents()
+                      addAssertionJsonPathMatch(testStepForAssertion,planId,"serviceCode[0].planId","planId")
+        
+                      productID = sh.getCell(13,i).getContents()
+                      addAssertionJsonPathMatch(testStepForAssertion,productID,"serviceCode[0].productID","productID")
+
+                      primaryServiceCode = sh.getCell(14,i).getContents()
+                     addAssertionJsonPathMatch(testStepForAssertion,primaryServiceCode,"serviceCode[0].primaryServiceCode","primaryServiceCode")
+
+                      secondaryServiceCode = sh.getCell(15,i).getContents()
+                      addAssertionJsonPathMatch(testStepForAssertion,secondaryServiceCode,"serviceCode[0].secondServiceCode","secondServiceCode")
+
+                       thirdServiceCode = sh.getCell(16,i).getContents()
+                      addAssertionJsonPathMatch(testStepForAssertion,thirdServiceCode,"serviceCode[0].thirdServiceCode","thirdServiceCode")
+
+                      productClassPrimaryServiceCode = sh.getCell(17,i).getContents()
+                     addAssertionJsonPathMatch(testStepForAssertion,productClassPrimaryServiceCode,"serviceCode[0].productClassPrimaryServiceCode","productClassPrimaryServiceCode")
+
+                      productClassSecondaryServiceCode = sh.getCell(18,i).getContents()
+                     addAssertionJsonPathMatch(testStepForAssertion,productClassSecondaryServiceCode,"serviceCode[0].productClassSecondaryServiceCode","productClassSecondaryServiceCode")
+
+                       productClassTertiaryServiceCode = sh.getCell(19,i).getContents()
+                     addAssertionJsonPathMatch(testStepForAssertion,productClassTertiaryServiceCode,"serviceCode[0].productClassTertiaryServiceCode","productClassTertiaryServiceCode")
+
+     }
+
+                         
+                               //dynamic asserstion :End
+                          assertionResult = testStepForAssertion.getAssertionStatus()
+                                if(assertionResult.toString().equals("FAILED")){
+                                   addCell(18,i,"Fail",sheet1);
+                 for( assertion in testStepForAssertion.assertionList ){
+
+                                               for( e in assertion.errors ){
+                                                    addCell(19,i,e.message,sheet1);
+
+                                                } 
+
+                                   }
+
+                                }
+
+                                else{
+
+                                  addCell(18,i,"PASS",sheet1);
+
+                                }
+
+       }
+
+        wb1.write();
+
+                log.info "TestCase Execution Completed successfull"
+
+               /* }             
+
+       
+       
+catch(Exception e)
+
+{
+
+                log.info(e)                          
+
+}
+
+finally
+
+{*/
+
+     //close workbook
+
+     wb.close();
+     wb1.close();      
+
+
+
+//}
+
+  //Method code
+
+def addAssertionJsonPathMatch(RestTestRequestStep testStepForAssertion,String expectedContent,String xPath,String assertionName) {
+
+          def assertionType = testStepForAssertion.addAssertion("JsonPath Match")
+
+                                assertionType.name = assertionName
+
+                                assertionType.setPath(xPath)
+
+                                assertionType.setExpectedContent(expectedContent)
+
+                                assertionType.setAllowWildcards(true) 
+
+}
+
+   //Method code
+
+def addAssertionValidHTTPStatusCodes(RestTestRequestStep testStepForAssertion,String assertionName) {
+
+         def StatusCodeAssertionxpath = testStepForAssertion.addAssertion("Valid HTTP Status Codes")
+
+                    StatusCodeAssertionxpath.name = assertionName
+
+                    StatusCodeAssertionxpath.codes=200
+
+}
+
+//method to delete
+
+def cleanUp(String requestName){
+
+                //remove the teststep::Start
+
+                def testCase = testRunner.testCase
+
+                def testStep = testCase.getTestStepByName(requestName)
+
+                if (testStep!=null){
+
+                                                testCase.removeTestStep(testStep)
+
+                }
+
+               
+
+                //remove the teststep::End
+
+}
+
+//method to add Cell to sheet1
+
+def addCell(int colmNum,int rowNum,String lblName,WritableSheet sheet1 ){
+
+                Label header = new Label(colmNum,rowNum,lblName);
+
+                sheet1.addCell(header);               
+
+}]]></script>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-43161" id="d58ed173-66c1-41fd-a1ae-33e1d266e1f5">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineServiceCode/DetermineServiceCode/WADL" methodName="DetermineServiceCode" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-43161" id="a773d023-0f76-46ab-8c1a-d2b425976773" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2019-09-19T04:48:33.000+0530"
+        }
+    },
+    "plans": [
+        {
+            "id": "PA001",
+            "planCode": "7529"
+        },
+        {
+            "id": "",
+            "planCode": ""
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineServiceCode/DetermineServiceCode/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="736bab7e-b0cc-4f10-9f02-4e11f22d9282" name="Valid HTTP Status Codes_2">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="0b3ed769-0128-4ce2-913c-8998afbb5c5f" name="lineItemID">
+          <con:configuration>
+            <path>serviceCode[0].lineItemId</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="bca23421-5510-4c94-a716-eb51a2b0f356" name="planId">
+          <con:configuration>
+            <path>serviceCode[0].planId</path>
+            <content>PA001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="9a563905-dc75-482f-9330-6aaec7296147" name="productID">
+          <con:configuration>
+            <path>serviceCode[0].productID</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="45c6a455-39d2-487a-ada6-8debd8daf71e" name="primaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[0].primaryServiceCode</path>
+            <content>30</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="43cd89ae-56a0-48f3-8c48-6982d56e61a9" name="secondServiceCode">
+          <con:configuration>
+            <path>serviceCode[0].secondServiceCode</path>
+            <content>12</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="3ca13c9d-43d4-49da-aa86-48bc9e5e55b4" name="thirdServiceCode">
+          <con:configuration>
+            <path>serviceCode[0].thirdServiceCode</path>
+            <content>1</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="fd011299-71d3-455e-82c8-05f68a23c767" name="productClassPrimaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[0].productClassPrimaryServiceCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="9005ddc2-712c-4406-a12b-913e67811d21" name="productClassSecondaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[0].productClassSecondaryServiceCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="637936da-069f-4903-ac95-a7d242d3b04f" name="productClassTertiaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[0].productClassTertiaryServiceCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="dcf58791-5c1c-47e7-82fb-121f4579ea2a" name="lineItemID">
+          <con:configuration>
+            <path>serviceCode[1].lineItemId</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="cbd60ab7-43d5-4c4c-827d-a5605763c14a" name="planId1">
+          <con:configuration>
+            <path>serviceCode[1].planId</path>
+            <content/>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="bbc24a28-2cfe-4d9e-8f73-7723fd7e5988" name="productID">
+          <con:configuration>
+            <path>serviceCode[1].productID</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="d0cad703-66a9-42dc-aab2-1ea44f5a7ac2" name="primaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[1].primaryServiceCode</path>
+            <content>12</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="f4d29193-6890-456c-a3db-cd9f3de6cb97" name="secondServiceCode">
+          <con:configuration>
+            <path>serviceCode[1].secondServiceCode</path>
+            <content>30</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="d5cc03eb-af13-46ec-ad5d-1ba4ac592d47" name="thirdServiceCode">
+          <con:configuration>
+            <path>serviceCode[1].thirdServiceCode</path>
+            <content>1</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="71669d69-d87e-457d-8fc4-4eaddb76ca9e" name="productClassPrimaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[1].productClassPrimaryServiceCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="534aa7b8-abdc-40b2-9e85-a1e1593dba5c" name="productClassSecondaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[1].productClassSecondaryServiceCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="71d797bd-069d-4997-83d2-d3dc66ad084e" name="productClassTertiaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[1].productClassTertiaryServiceCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-43162" id="b9fc13d7-28a0-442c-ba6b-52f676d95dc0">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineServiceCode/DetermineServiceCode/WADL" methodName="DetermineServiceCode" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-43162" id="a773d023-0f76-46ab-8c1a-d2b425976773" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2019-09-19T04:48:33.000+0530"
+        }
+    },
+    "plans": [
+        {
+            "id": "null",
+            "planCode": "null"
+        },
+        {
+            "id": "",
+            "planCode": ""
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineServiceCode/DetermineServiceCode/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="8ef1cdca-d5d8-41ce-89cb-2bd40b0d0f93" name="Valid HTTP Status Codes_3">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="989dc0e4-07cd-47c6-995d-8380ee073dd5" name="lineItemID">
+          <con:configuration>
+            <path>serviceCode[0].lineItemId</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="96708353-f02b-4aee-925c-e1fe78a9054b" name="planId">
+          <con:configuration>
+            <path>serviceCode[0].planId</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="03c65650-0fea-4180-b8cd-ee453c8931c6" name="productID">
+          <con:configuration>
+            <path>serviceCode[0].productID</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="5c7052cc-fd10-4312-98ff-dfb4a3102c8a" name="primaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[0].primaryServiceCode</path>
+            <content>12</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="9562d9a5-af25-4fac-9ce0-cf564142f166" name="secondServiceCode">
+          <con:configuration>
+            <path>serviceCode[0].secondServiceCode</path>
+            <content>30</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="107a3707-a10d-4854-b64b-583eb3525797" name="thirdServiceCode">
+          <con:configuration>
+            <path>serviceCode[0].thirdServiceCode</path>
+            <content>1</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="77cbda46-02ff-4f5c-9278-408949c632f1" name="productClassPrimaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[0].productClassPrimaryServiceCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="bc6a1386-9e3b-4fb2-b333-d4bdeb337bb6" name="productClassSecondaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[0].productClassSecondaryServiceCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="dc69cf63-ba2a-4c41-9df3-edc7e10a7c8b" name="productClassTertiaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[0].productClassTertiaryServiceCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="acacdcc7-822e-442b-a77d-8b9b738eba94" name="lineItemID">
+          <con:configuration>
+            <path>serviceCode[1].lineItemId</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="3b0f8da5-4d24-42d5-8ce0-12dc998fd177" name="planId1">
+          <con:configuration>
+            <path>serviceCode[1].planId</path>
+            <content/>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="262cfb3d-5dd0-44b6-b883-e758ae1a6236" name="productID">
+          <con:configuration>
+            <path>serviceCode[1].productID</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="262c33ad-6cf3-4c40-ad8e-c192855f3d7e" name="primaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[1].primaryServiceCode</path>
+            <content>12</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="b828919a-22a8-4a3e-9f45-b274ce614958" name="secondServiceCode">
+          <con:configuration>
+            <path>serviceCode[1].secondServiceCode</path>
+            <content>30</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="47d90981-648e-476e-9bb7-52f092df3719" name="thirdServiceCode">
+          <con:configuration>
+            <path>serviceCode[1].thirdServiceCode</path>
+            <content>1</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="2f652b70-9965-4473-bb13-874de88485d6" name="productClassPrimaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[1].productClassPrimaryServiceCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="91ea5536-3705-48c6-8463-0dd6d456db89" name="productClassSecondaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[1].productClassSecondaryServiceCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="52544ea2-66dd-4ba8-88d5-46d694a41f7b" name="productClassTertiaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[1].productClassTertiaryServiceCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-43163" id="116f9e91-7918-4c28-8b32-105e742ea049">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineServiceCode/DetermineServiceCode/WADL" methodName="DetermineServiceCode" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-43163" id="a773d023-0f76-46ab-8c1a-d2b425976773" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2019-09-19T04:48:33.000+0530"
+        }
+    },
+    "plans": [
+        {
+            "id": "PA002",
+            "planCode": "A006"
+        },
+        {
+            "id": "",
+            "planCode": ""
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineServiceCode/DetermineServiceCode/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="3c800952-6cb8-4499-95f3-f6ab51ab4459" name="Valid HTTP Status Codes_4">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="c18e7454-5bae-40ab-af26-c954d905d639" name="lineItemID">
+          <con:configuration>
+            <path>serviceCode[0].lineItemId</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="d77ae87b-f814-4ad2-9e96-a1ec8bfad13d" name="planId">
+          <con:configuration>
+            <path>serviceCode[0].planId</path>
+            <content>PA002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="3db17caf-f061-43b1-8486-1afd59653f04" name="productID">
+          <con:configuration>
+            <path>serviceCode[0].productID</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="c570b1a7-b88c-4853-bd7b-ea42ee8d5980" name="primaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[0].primaryServiceCode</path>
+            <content>12</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="e589554a-280b-45ea-92e0-1d7c8a134ebc" name="secondServiceCode">
+          <con:configuration>
+            <path>serviceCode[0].secondServiceCode</path>
+            <content>30</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="3cb92671-376c-459c-b78b-79a9f830a15e" name="thirdServiceCode">
+          <con:configuration>
+            <path>serviceCode[0].thirdServiceCode</path>
+            <content>1</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="cd2652e4-752c-431a-b410-2f312a5ab799" name="productClassPrimaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[0].productClassPrimaryServiceCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="2d8ac9aa-c679-48b5-a664-ddab510031c1" name="productClassSecondaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[0].productClassSecondaryServiceCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="99f962fd-aa41-4bc2-94ff-7a8830d57802" name="productClassTertiaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[0].productClassTertiaryServiceCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="abd06b90-ce97-471f-a58f-6aea73b1a5a1" name="lineItemID">
+          <con:configuration>
+            <path>serviceCode[1].lineItemId</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="b9fd5878-231d-4e43-83fd-6d53c559c618" name="planId1">
+          <con:configuration>
+            <path>serviceCode[1].planId</path>
+            <content/>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="304c582c-4e18-4999-b956-c3d6f2cf0142" name="productID">
+          <con:configuration>
+            <path>serviceCode[1].productID</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="314fcd3f-d853-4dc4-9b56-889a6177abe7" name="primaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[1].primaryServiceCode</path>
+            <content>12</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="c3b3b29c-c238-47c9-a0e4-fb8519f028fe" name="secondServiceCode">
+          <con:configuration>
+            <path>serviceCode[1].secondServiceCode</path>
+            <content>30</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="8376ddf7-9bab-480b-a5a4-8db440d080e2" name="thirdServiceCode">
+          <con:configuration>
+            <path>serviceCode[1].thirdServiceCode</path>
+            <content>1</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="cc861894-c2e4-4ad9-9df9-bcee34c4d012" name="productClassPrimaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[1].productClassPrimaryServiceCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="02a87e6c-3bd5-4613-8f7b-c17f1ebf3fd4" name="productClassSecondaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[1].productClassSecondaryServiceCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="33b05d0f-1cf1-47e8-862a-d939261e0a70" name="productClassTertiaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[1].productClassTertiaryServiceCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-43164" id="c86986f0-54e8-4b03-90f2-9fa4269979a2">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineServiceCode/DetermineServiceCode/WADL" methodName="DetermineServiceCode" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-43164" id="a773d023-0f76-46ab-8c1a-d2b425976773" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2019-09-19T04:48:33.000+0530"
+        }
+    },
+    "plans": [
+        {
+            "id": "PA015",
+            "planCode": "7529"
+        },
+        {
+            "id": "PA016",
+            "planCode": "6184"
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineServiceCode/DetermineServiceCode/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="a687a4fc-1578-4f2a-84da-345c80bd3bb3" name="Valid HTTP Status Codes_5">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="488badbf-a1d3-4ba6-9115-201057b0d48c" name="lineItemID">
+          <con:configuration>
+            <path>serviceCode[0].lineItemId</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="03cb5558-261b-46fd-a489-4d5b734722ba" name="planId">
+          <con:configuration>
+            <path>serviceCode[0].planId</path>
+            <content>PA015</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="e5c422c8-2fad-494e-877e-be45696a9542" name="productID">
+          <con:configuration>
+            <path>serviceCode[0].productID</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="d5e5afc1-338a-4e94-a932-67227ea28483" name="primaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[0].primaryServiceCode</path>
+            <content>30</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="588d888b-a80c-4d97-8bb5-61f6f59b32a0" name="secondServiceCode">
+          <con:configuration>
+            <path>serviceCode[0].secondServiceCode</path>
+            <content>12</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="9f4dd840-6e95-4f02-9a0c-ae58fd4a7bee" name="thirdServiceCode">
+          <con:configuration>
+            <path>serviceCode[0].thirdServiceCode</path>
+            <content>1</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="03895380-fbf7-4dda-8754-13367d88fe58" name="productClassPrimaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[0].productClassPrimaryServiceCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="33a1626f-b026-4c44-8fc9-998b07a15243" name="productClassSecondaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[0].productClassSecondaryServiceCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="5281e87a-5679-4c29-b338-508785a9c601" name="productClassTertiaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[0].productClassTertiaryServiceCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="6de3b5e9-8a8a-4e4b-9829-0f77e68f713c" name="lineItemID">
+          <con:configuration>
+            <path>serviceCode[1].lineItemId</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="4daabe48-2930-440f-ae31-4c39d0b4194f" name="planId1">
+          <con:configuration>
+            <path>serviceCode[1].planId</path>
+            <content>PA016</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="95b5761b-2eec-405f-893f-4e972060cb15" name="productID">
+          <con:configuration>
+            <path>serviceCode[1].productID</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="a56c4cec-315e-41a4-8b85-9fdc9724fb09" name="primaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[1].primaryServiceCode</path>
+            <content>30</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="67c0f506-2650-4cb5-ad0f-4942120c1925" name="secondServiceCode">
+          <con:configuration>
+            <path>serviceCode[1].secondServiceCode</path>
+            <content>12</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="a032a7d8-7a18-4362-8f9c-0681d01a5798" name="thirdServiceCode">
+          <con:configuration>
+            <path>serviceCode[1].thirdServiceCode</path>
+            <content>1</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="51389d0e-62fa-4c92-b2ad-f564ea59cf94" name="productClassPrimaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[1].productClassPrimaryServiceCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="2d3f580f-4b1a-42ec-bf6e-8d6485b95d21" name="productClassSecondaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[1].productClassSecondaryServiceCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="cd6cd0bd-0fc7-410d-87ee-7ea081a8cf59" name="productClassTertiaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[1].productClassTertiaryServiceCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-43165" id="5f6cdf86-8bd2-46a9-9336-806e61a141c0">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineServiceCode/DetermineServiceCode/WADL" methodName="DetermineServiceCode" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-43165" id="a773d023-0f76-46ab-8c1a-d2b425976773" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "string",
+            "from": "string",
+            "timestamp": "2019-09-19T04:48:33.000+0530"
+        }
+    },
+    "plans": [
+        {
+            "id": "PA017",
+            "planCode": "A004"
+        },
+        {
+            "id": "PA018",
+            "planCode": "A006"
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineServiceCode/DetermineServiceCode/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="d41be193-ef09-4269-8ce1-4ed85d957cbe" name="Valid HTTP Status Codes_6">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="6c68f18d-79fc-45b2-bd30-814c32796d83" name="lineItemID">
+          <con:configuration>
+            <path>serviceCode[0].lineItemId</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="7bb5cb1e-9dcf-4aa1-96e6-e90fc35688e8" name="planId">
+          <con:configuration>
+            <path>serviceCode[0].planId</path>
+            <content>PA017</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="826691da-5757-49ab-8cef-de0aa226f62a" name="productID">
+          <con:configuration>
+            <path>serviceCode[0].productID</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="4dc125b6-d0d4-4461-a6ce-104e95854839" name="primaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[0].primaryServiceCode</path>
+            <content>12</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="fc4db270-288e-44a4-a016-5c7e97d1b558" name="secondServiceCode">
+          <con:configuration>
+            <path>serviceCode[0].secondServiceCode</path>
+            <content>30</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="74f7af6d-760c-4ff8-8472-86d46232813d" name="thirdServiceCode">
+          <con:configuration>
+            <path>serviceCode[0].thirdServiceCode</path>
+            <content>1</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="c98b410a-db51-4a34-b28f-787ac2022b11" name="productClassPrimaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[0].productClassPrimaryServiceCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="3cf19cf2-ae34-4c14-8dc1-19d567af634e" name="productClassSecondaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[0].productClassSecondaryServiceCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="5c38693f-abfc-40fd-a674-1023595d2264" name="productClassTertiaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[0].productClassTertiaryServiceCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="261f54b6-25ad-4ff5-aa8f-ed71048297a3" name="lineItemID">
+          <con:configuration>
+            <path>serviceCode[1].lineItemId</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="9300ba3c-0d1f-4cc8-ad14-0c88e59b2e4b" name="planId1">
+          <con:configuration>
+            <path>serviceCode[1].planId</path>
+            <content>PA018</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="a0f55787-f97c-415b-ae61-1ecba10272e1" name="productID">
+          <con:configuration>
+            <path>serviceCode[1].productID</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="cf9ac3a7-6ae5-40a2-b4cb-45e9ace4986b" name="primaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[1].primaryServiceCode</path>
+            <content>12</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="2948e1e2-2b35-4dcf-ad46-2f23b1b0da8d" name="secondServiceCode">
+          <con:configuration>
+            <path>serviceCode[1].secondServiceCode</path>
+            <content>30</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="6a35a75f-0ba8-40e6-af7c-c3f770f375b1" name="thirdServiceCode">
+          <con:configuration>
+            <path>serviceCode[1].thirdServiceCode</path>
+            <content>1</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="df18e934-2a95-4287-8b46-41e7464df152" name="productClassPrimaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[1].productClassPrimaryServiceCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="9eca07c3-45ba-4bb0-9953-4a518f0d92f5" name="productClassSecondaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[1].productClassSecondaryServiceCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="129c2727-9c19-4173-8020-8ce7443f6718" name="productClassTertiaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[1].productClassTertiaryServiceCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-43166" id="6ddefa39-9e65-4e49-bbfb-d19b0d80b255">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineServiceCode/DetermineServiceCode/WADL" methodName="DetermineServiceCode" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-43166" id="a773d023-0f76-46ab-8c1a-d2b425976773" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "bundles/DetermineBaseItemHcpcsCodes",
+            "correlationID": " IrKi27e1lMYrHGqA5CZRGL6i ",
+            "from": "PCF",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "lineItemID": "0001",
+            "plans": [
+                {
+                    "id": "513942563DD75A34E0532C97F4A150EFG",
+                    "planCode": "7408"
+                }
+            ],
+            "productCategory": "Diabetes",
+            "productID": "P1234"
+        },
+        {
+            "lineItemID": "",
+            "plans": [
+                {
+                    "id": "",
+                    "planCode": ""
+                }
+            ],
+            "productCategory": "",
+            "productID": ""
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineServiceCode/DetermineServiceCode/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="2e48c7d8-7556-470e-a58b-0189caa8cd7a" name="Valid HTTP Status Codes_2">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="c2c161ac-c0ee-4857-aa9d-abb50ce5ec3e" name="lineItemID">
+          <con:configuration>
+            <path>serviceCode[0].lineItemId</path>
+            <content>0001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="62d8efab-a1f2-4130-94c7-3a664b24d707" name="planId">
+          <con:configuration>
+            <path>serviceCode[0].planId</path>
+            <content>513942563DD75A34E0532C97F4A150EFG</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="6348d43f-a307-4394-b030-6e2db6dbf5d7" name="productID">
+          <con:configuration>
+            <path>serviceCode[0].productID</path>
+            <content>P1234</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="234d13bc-7a61-414b-88f1-502cd2a459f5" name="primaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[0].primaryServiceCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="3f21330a-28e1-491a-82e3-67e756c69aef" name="secondServiceCode">
+          <con:configuration>
+            <path>serviceCode[0].secondServiceCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="15a8992f-4a07-4267-9cd9-a7174d3405ff" name="thirdServiceCode">
+          <con:configuration>
+            <path>serviceCode[0].thirdServiceCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="5679d6af-aa85-452c-aa36-f7da32127830" name="productClassPrimaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[0].productClassPrimaryServiceCode</path>
+            <content>DS</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="82ad1667-c83c-4697-a56d-2d8523a17a39" name="productClassSecondaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[0].productClassSecondaryServiceCode</path>
+            <content/>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="fe741c65-6eee-4f51-b28a-d74498d6f335" name="productClassTertiaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[0].productClassTertiaryServiceCode</path>
+            <content/>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="feb8144f-1520-4f2c-bdf4-7be54f87c2ac" name="lineItemID">
+          <con:configuration>
+            <path>serviceCode[1].lineItemId</path>
+            <content/>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="0fc01b5a-d53b-413e-98c5-02717e87bb3a" name="planId1">
+          <con:configuration>
+            <path>serviceCode[1].planId</path>
+            <content/>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="c8124acc-43b7-4f19-a9df-1e4ed40eb934" name="productID">
+          <con:configuration>
+            <path>serviceCode[1].productID</path>
+            <content/>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="a7254840-6eed-409d-8522-f8733ab9fb49" name="primaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[1].primaryServiceCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="fdd00c08-2e12-4459-b4ea-646fe59f0e13" name="secondServiceCode">
+          <con:configuration>
+            <path>serviceCode[1].secondServiceCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="97e5227b-a022-41d9-b79a-69d3d495fccd" name="thirdServiceCode">
+          <con:configuration>
+            <path>serviceCode[1].thirdServiceCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="3a5ab71e-8003-4828-bdbb-bdf536944be7" name="productClassPrimaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[1].productClassPrimaryServiceCode</path>
+            <content>12</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="e0848b80-e0c0-4a32-a316-e9fb1ffe23dd" name="productClassSecondaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[1].productClassSecondaryServiceCode</path>
+            <content>30</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="1306ee0b-96fd-4170-afb4-048b8c3806aa" name="productClassTertiaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[1].productClassTertiaryServiceCode</path>
+            <content>1</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-43167" id="2a8b8db2-aa75-4665-8895-6b9418aba1ca">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineServiceCode/DetermineServiceCode/WADL" methodName="DetermineServiceCode" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-43167" id="a773d023-0f76-46ab-8c1a-d2b425976773" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "bundles/DetermineBaseItemHcpcsCodes",
+            "correlationID": " IrKi27e1lMYrHGqA5CZRGL6i ",
+            "from": "PCF",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "lineItemID": "0001",
+            "plans": [
+                {
+                    "id": "3C9F9D14CB7547A9ACCA8F896D54B0C6",
+                    "planCode": "A600"
+                }
+            ],
+            "productCategory": "Breast Pump",
+            "productID": "P1238"
+        },
+        {
+            "lineItemID": "",
+            "plans": [
+                {
+                    "id": "",
+                    "planCode": ""
+                }
+            ],
+            "productCategory": "",
+            "productID": ""
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineServiceCode/DetermineServiceCode/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="200070b7-eb58-4860-9f9b-6f2cc82646fa" name="Valid HTTP Status Codes_3">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="17c6e69a-f527-44b6-8161-346f550d339e" name="lineItemID">
+          <con:configuration>
+            <path>serviceCode[0].lineItemId</path>
+            <content>0001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="4f1501e5-d25e-481e-afe5-cdbc27927e11" name="planId">
+          <con:configuration>
+            <path>serviceCode[0].planId</path>
+            <content>3C9F9D14CB7547A9ACCA8F896D54B0C6</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="1033edf8-8fae-42fe-8ff3-9068a6908658" name="productID">
+          <con:configuration>
+            <path>serviceCode[0].productID</path>
+            <content>P1238</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="6ac3eb8a-c34e-4721-a6d8-7cdc4947b75e" name="primaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[0].primaryServiceCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="2f604617-3887-4feb-b86f-792ffacea04e" name="secondServiceCode">
+          <con:configuration>
+            <path>serviceCode[0].secondServiceCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="a41f935c-9ee0-4537-99d6-1b9b2669b665" name="thirdServiceCode">
+          <con:configuration>
+            <path>serviceCode[0].thirdServiceCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="e674f3b2-5491-47ae-9acc-3be0e0538165" name="productClassPrimaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[0].productClassPrimaryServiceCode</path>
+            <content>12</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="096d17ea-b3ec-4977-81fa-e27651dfe417" name="productClassSecondaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[0].productClassSecondaryServiceCode</path>
+            <content>30</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="1b57de04-b943-4eb2-9e00-299c776a3b68" name="productClassTertiaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[0].productClassTertiaryServiceCode</path>
+            <content>1</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="9597eb31-793f-4e14-9226-9b0192689edc" name="lineItemID">
+          <con:configuration>
+            <path>serviceCode[1].lineItemId</path>
+            <content/>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="d83e4fff-6b11-457a-953f-847bf59c3cf1" name="planId1">
+          <con:configuration>
+            <path>serviceCode[1].planId</path>
+            <content/>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="fc1f5b5c-1830-45fe-ad4b-bac8e9c71c98" name="productID">
+          <con:configuration>
+            <path>serviceCode[1].productID</path>
+            <content/>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="0fe1a69e-fd5e-4f33-88ca-d7b69b8e3a04" name="primaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[1].primaryServiceCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="245637a4-0342-4b7c-b5c6-8dceea50cf0a" name="secondServiceCode">
+          <con:configuration>
+            <path>serviceCode[1].secondServiceCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="edc99d48-c2f1-4537-8adb-d3eee476d58f" name="thirdServiceCode">
+          <con:configuration>
+            <path>serviceCode[1].thirdServiceCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="1bce4d28-2397-4c99-bbb1-6b6ab0ebca01" name="productClassPrimaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[1].productClassPrimaryServiceCode</path>
+            <content>12</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="f71fb0f4-0ce1-461a-b96f-fa32fcac2560" name="productClassSecondaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[1].productClassSecondaryServiceCode</path>
+            <content>30</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="6085f486-a1ac-426f-a3f6-bf0111511d45" name="productClassTertiaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[1].productClassTertiaryServiceCode</path>
+            <content>1</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-43168" id="68fcd0ac-3f0d-4cac-987a-c80845a19a78">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineServiceCode/DetermineServiceCode/WADL" methodName="DetermineServiceCode" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-43168" id="a773d023-0f76-46ab-8c1a-d2b425976773" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "bundles/DetermineBaseItemHcpcsCodes",
+            "correlationID": " IrKi27e1lMYrHGqA5CZRGL6i ",
+            "from": "PCF",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "lineItemID": "0001",
+            "plans": [
+                {
+                    "id": "456D102999E945678E47BA154FABFC12T",
+                    "planCode": "7408"
+                }
+            ],
+            "productCategory": "Diabetes",
+            "productID": "P1239"
+        },
+        {
+            "lineItemID": "0002",
+            "plans": [
+                {
+                    "id": "513942563DD75A34E0532C97F4A150EFG",
+                    "planCode": "7408"
+                }
+            ],
+            "productCategory": "Diabetes",
+            "productID": "P5689"
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineServiceCode/DetermineServiceCode/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="dfff9bc9-e893-4388-8240-ae6460ba12f4" name="Valid HTTP Status Codes_4">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="5fc75114-37aa-4998-ba36-438f58113b28" name="lineItemID">
+          <con:configuration>
+            <path>serviceCode[0].lineItemId</path>
+            <content>0001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="914eaecc-cfa4-4dc9-a7a0-02b21d71ef38" name="planId">
+          <con:configuration>
+            <path>serviceCode[0].planId</path>
+            <content>456D102999E945678E47BA154FABFC12T</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="c7a44993-5559-4778-a113-5e55ebf4a490" name="productID">
+          <con:configuration>
+            <path>serviceCode[0].productID</path>
+            <content>P1239</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="0648a681-cd47-430a-be98-1c2ba28a6036" name="primaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[0].primaryServiceCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="b9407c60-5cbf-4a21-9548-300e427c0d09" name="secondServiceCode">
+          <con:configuration>
+            <path>serviceCode[0].secondServiceCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="9502e316-1fad-407d-8d79-e65840f7c45b" name="thirdServiceCode">
+          <con:configuration>
+            <path>serviceCode[0].thirdServiceCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="266160ca-3de8-4a7f-acb0-fdb292c0f91c" name="productClassPrimaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[0].productClassPrimaryServiceCode</path>
+            <content>DS</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="9400f5a7-228b-4708-9133-9aafa83a4a3a" name="productClassSecondaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[0].productClassSecondaryServiceCode</path>
+            <content/>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="8781304f-3d2e-4518-b46f-a2f46b23422e" name="productClassTertiaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[0].productClassTertiaryServiceCode</path>
+            <content/>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="314805d0-ca0b-41c3-9ffb-062a5a2fe620" name="lineItemID">
+          <con:configuration>
+            <path>serviceCode[1].lineItemId</path>
+            <content>0002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="8fe2cdc1-a232-4b07-8725-ad0b4ec1bf0a" name="planId1">
+          <con:configuration>
+            <path>serviceCode[1].planId</path>
+            <content>513942563DD75A34E0532C97F4A150EFG</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="82ed3c2d-5631-4ef4-9339-fcd8259de146" name="productID">
+          <con:configuration>
+            <path>serviceCode[1].productID</path>
+            <content>P5689</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="83ad3454-eeee-479b-bd3b-c070b7cd8eb6" name="primaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[1].primaryServiceCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="9930a2f2-d423-437c-a8be-7d9f39366946" name="secondServiceCode">
+          <con:configuration>
+            <path>serviceCode[1].secondServiceCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="6bcdc619-6c18-4252-b4be-8804812e48b3" name="thirdServiceCode">
+          <con:configuration>
+            <path>serviceCode[1].thirdServiceCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="e1a0e731-dc06-4ee6-b145-86848f46f981" name="productClassPrimaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[1].productClassPrimaryServiceCode</path>
+            <content>DS</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="0209133e-da04-4e37-a60c-d7cc501c3b2d" name="productClassSecondaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[1].productClassSecondaryServiceCode</path>
+            <content/>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="87144037-746a-4ed5-af60-11f46190efd1" name="productClassTertiaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[1].productClassTertiaryServiceCode</path>
+            <content/>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-43169" id="e404528a-8bd3-4571-9b8a-3402566f3945">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineServiceCode/DetermineServiceCode/WADL" methodName="DetermineServiceCode" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-43169" id="a773d023-0f76-46ab-8c1a-d2b425976773" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "bundles/DetermineBaseItemHcpcsCodes",
+            "correlationID": " IrKi27e1lMYrHGqA5CZRGL6i ",
+            "from": "PCF",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "lineItemID": "0001",
+            "plans": [
+                {
+                    "id": "513942563DD75A34E0532C97F4A150EFG",
+                    "planCode": "null"
+                }
+            ],
+            "productCategory": "null",
+            "productID": "P1234"
+        },
+        {
+            "lineItemID": "0002",
+            "plans": [
+                {
+                    "id": "913942563DD75A34E0532C97F4A150EFG",
+                    "planCode": "null"
+                }
+            ],
+            "productCategory": "null",
+            "productID": "P5681"
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineServiceCode/DetermineServiceCode/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="e94d8e14-4f63-47cd-8058-4f5545906a6c" name="Valid HTTP Status Codes_5">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="83d2c69e-217a-4106-8c1a-8a62f7919214" name="lineItemID">
+          <con:configuration>
+            <path>serviceCode[0].lineItemId</path>
+            <content>0001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="c8208d33-b790-4d87-b7b4-cb59290726c6" name="planId">
+          <con:configuration>
+            <path>serviceCode[0].planId</path>
+            <content>513942563DD75A34E0532C97F4A150EFG</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="b8f5dc46-9642-4f2e-b9c0-66968af0208c" name="productID">
+          <con:configuration>
+            <path>serviceCode[0].productID</path>
+            <content>P1234</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="0db4ccaf-a257-4328-8221-38628bceedda" name="primaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[0].primaryServiceCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="3ae44ddb-e72f-4d6d-b6f3-6b49fb12eb97" name="secondServiceCode">
+          <con:configuration>
+            <path>serviceCode[0].secondServiceCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="f15ea864-ec58-4305-8da5-21677edd7acd" name="thirdServiceCode">
+          <con:configuration>
+            <path>serviceCode[0].thirdServiceCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="c5036a54-2d98-4ff1-a9b0-8cd45ed3dea6" name="productClassPrimaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[0].productClassPrimaryServiceCode</path>
+            <content>12</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="815c9e46-768a-43ca-9890-6b238f2f2c7b" name="productClassSecondaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[0].productClassSecondaryServiceCode</path>
+            <content>30</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="2d3bab82-5afb-4307-8854-96edf9467bc3" name="productClassTertiaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[0].productClassTertiaryServiceCode</path>
+            <content>1</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="45c2a967-3a5f-41d4-b6cf-7a7793ddf43b" name="lineItemID">
+          <con:configuration>
+            <path>serviceCode[1].lineItemId</path>
+            <content>0002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="3e143eeb-892a-4dce-9020-e2229fdefefd" name="planId1">
+          <con:configuration>
+            <path>serviceCode[1].planId</path>
+            <content>913942563DD75A34E0532C97F4A150EFG</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="de887421-fded-4516-8969-6d40bd6c5f0a" name="productID">
+          <con:configuration>
+            <path>serviceCode[1].productID</path>
+            <content>P5681</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="6d5dd4d9-95d5-46c7-88b9-0a84f25ce379" name="primaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[1].primaryServiceCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="939ff600-9c88-4084-bc71-7c383c879ebe" name="secondServiceCode">
+          <con:configuration>
+            <path>serviceCode[1].secondServiceCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="cad85b6c-cacd-450e-90ae-3114c4b0e36f" name="thirdServiceCode">
+          <con:configuration>
+            <path>serviceCode[1].thirdServiceCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="ab8452c1-c962-423d-8df9-9e122e2de216" name="productClassPrimaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[1].productClassPrimaryServiceCode</path>
+            <content>12</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="a44753ee-7d1c-4ca3-8fd7-fe23f904c874" name="productClassSecondaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[1].productClassSecondaryServiceCode</path>
+            <content>30</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="c3bf9a13-9d42-4add-a164-5206f0d2ab29" name="productClassTertiaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[1].productClassTertiaryServiceCode</path>
+            <content>1</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-43170" id="091e9059-74f9-4ae5-aa95-ad6b9d22d4a3">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineServiceCode/DetermineServiceCode/WADL" methodName="DetermineServiceCode" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-43170" id="a773d023-0f76-46ab-8c1a-d2b425976773" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "bundles/DetermineBaseItemHcpcsCodes",
+            "correlationID": " IrKi27e1lMYrHGqA5CZRGL6i ",
+            "from": "PCF",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "lineItemID": "0001",
+            "plans": [
+                {
+                    "id": "813942563DD75A34E0532C97F4A150EFG",
+                    "planCode": "A004"
+                }
+            ],
+            "productCategory": "Breast Pump",
+            "productID": "P1231"
+        },
+        {
+            "lineItemID": "0002",
+            "plans": [
+                {
+                    "id": "613942563DD75A34E0532C97F4A150EFG",
+                    "planCode": "A008"
+                }
+            ],
+            "productCategory": "Breast Pump",
+            "productID": "P5682"
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineServiceCode/DetermineServiceCode/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="1890ad24-e796-4217-8a17-74d5068253f2" name="Valid HTTP Status Codes_6">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="b2937dc0-c1b6-467a-9e10-af22b2f170c3" name="lineItemID">
+          <con:configuration>
+            <path>serviceCode[0].lineItemId</path>
+            <content>0001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="223e476b-7faa-4528-9ec3-46cdd1b0e3e9" name="planId">
+          <con:configuration>
+            <path>serviceCode[0].planId</path>
+            <content>813942563DD75A34E0532C97F4A150EFG</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="9603d9be-b321-4ad6-b57c-23025b2a05b0" name="productID">
+          <con:configuration>
+            <path>serviceCode[0].productID</path>
+            <content>P1231</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="f126aaba-9440-46a1-8e63-fe94b601f459" name="primaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[0].primaryServiceCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="f1617a9d-9b8d-4b4c-a3f7-e42dc39eae76" name="secondServiceCode">
+          <con:configuration>
+            <path>serviceCode[0].secondServiceCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="90a0f367-5755-409f-bf3d-a7b6110a0fe4" name="thirdServiceCode">
+          <con:configuration>
+            <path>serviceCode[0].thirdServiceCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="8ed01096-b869-4237-8996-897d74aa2fac" name="productClassPrimaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[0].productClassPrimaryServiceCode</path>
+            <content>12</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="c0ccfb1a-c9cf-4a4c-bc3c-3b6daea02d53" name="productClassSecondaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[0].productClassSecondaryServiceCode</path>
+            <content>30</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="7c4f5c4c-fc66-4242-8d0d-7f8c67938b5b" name="productClassTertiaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[0].productClassTertiaryServiceCode</path>
+            <content>1</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="7a5c5b6c-68a1-43f7-b668-33e1887abd58" name="lineItemID">
+          <con:configuration>
+            <path>serviceCode[1].lineItemId</path>
+            <content>0002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="b1caa50c-1060-45c8-8cbd-f4e3356365d5" name="planId1">
+          <con:configuration>
+            <path>serviceCode[1].planId</path>
+            <content>613942563DD75A34E0532C97F4A150EFG</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="3f70701d-2306-4857-85b7-9516c624c061" name="productID">
+          <con:configuration>
+            <path>serviceCode[1].productID</path>
+            <content>P5682</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="3c36da0b-ea10-4c49-8932-3e1a9de53bcd" name="primaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[1].primaryServiceCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="6694e9b0-5dd9-4347-a56e-d63a50af3dc6" name="secondServiceCode">
+          <con:configuration>
+            <path>serviceCode[1].secondServiceCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="f24420dd-da93-416c-bbd8-29868ee4d1cd" name="thirdServiceCode">
+          <con:configuration>
+            <path>serviceCode[1].thirdServiceCode</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="b6e76445-dad2-4dc5-92fe-179d19352424" name="productClassPrimaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[1].productClassPrimaryServiceCode</path>
+            <content>12</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="17b6db6c-34fb-4e1b-93a4-f74b6284c724" name="productClassSecondaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[1].productClassSecondaryServiceCode</path>
+            <content>30</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="5a153ba9-924b-4c36-9850-cf6c2a1a9a49" name="productClassTertiaryServiceCode">
+          <con:configuration>
+            <path>serviceCode[1].productClassTertiaryServiceCode</path>
+            <content>1</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:properties/>
+  <con:reportParameters/>
+</con:testCase>

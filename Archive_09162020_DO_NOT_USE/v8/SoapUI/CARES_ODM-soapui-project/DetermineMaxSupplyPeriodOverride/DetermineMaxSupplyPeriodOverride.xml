@@ -1,0 +1,1702 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<con:testCase id="962d27ad-b21c-419c-9acf-48c9ca2b9365" failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="DetermineMaxSupplyPeriodOverride" searchProperties="true" xmlns:con="http://eviware.com/soapui/config">
+  <con:settings>
+    <con:setting id="962d27ad-b21c-419c-9acf-48c9ca2b9365fileName">DetermineMaxSupplyPeriodOverride</con:setting>
+  </con:settings>
+  <con:testStep type="restrequest" name="JSON Request" id="25cd294d-40da-4088-b22f-7135d4090a2e">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineMaxSupplyPeriodOverride/DetermineMaxSupplyPeriodOverride/WADL" methodName="DetermineMaxSupplyPeriodOverride" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="JSON Request" id="9b4d9470-c5c8-4191-9ab3-79df023e9fb4" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "ABC",
+            "correlationID": " IrKi27e1lMYrHGqA5CZRGL6i ",
+            "from": "PCF",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "itemNumber": "",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "43EDF2",
+                    "planCode": ""
+                }
+            ]
+        },
+        {
+            "itemNumber": "",
+            "lineItemID": "L002",
+            "plans": [
+                {
+                    "id": "43EDG2",
+                    "planCode": ""
+                }
+            ]
+        }
+    ]
+}</con:request>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="groovy" name="DetermineMaxSupplyPeriodOverride-singleLineItem" id="49ae46e4-3abf-4799-a0b3-c19861a90d1d">
+    <con:settings/>
+    <con:config>
+      <script>import jxl.*;
+import jxl.write.*
+import java.io.*
+import java.io.file.*
+import java.util.*
+import java.lang.*
+import jxl.read.biff.BiffException;
+import net.sf.*
+import net.sf.json.*
+import net.sf.json.groovy.*
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+import groovy.json.JsonBuilder
+import com.eviware.soapui.model.testsuite.TestStepResult.TestStepStatus
+import com.eviware.soapui.impl.wsdl.teststeps.RestTestRequestStep
+
+def groovyUtils = new com.eviware.soapui.support.GroovyUtils(context)
+def projectDir = groovyUtils.projectPath
+
+def inputfile =  projectDir + "/DetermineMaxSupplyPeriodOverride/MaxSupplyPeriodOverride_singleLineItem-Input.xls"
+def outputfile = projectDir + "/DetermineMaxSupplyPeriodOverride/MaxSupplyPeriodOverride_singleLineItem-Output.xls"
+
+//Creating workbook for reading value from Excel Sheet
+
+Workbook wb = Workbook.getWorkbook(new File(inputfile))
+Sheet sh = wb.getSheet("ExpectedResults")
+Sheet jsonInput = wb.getSheet("JSON")
+
+//reading data from input Excel sheet
+rc = sh.getRows();
+cc = sh.getColumns();
+Cell jreq = jsonInput.getCell(0,0)
+
+//Creating Workbook for writing value in Excel Sheet
+WritableWorkbook wb1= Workbook.createWorkbook(new File(outputfile));
+WritableSheet sheet1 = wb1.createSheet("ActualResults",0);
+
+//Header declaration for output file
+addCell(0,0,"lineItemID",sheet1);
+addCell(1,0,"itemNumber",sheet1);
+addCell(2,0,"maxSupplyPeriod",sheet1);
+addCell(3,0,"maxSupplyPeriodUOM",sheet1);
+addCell(4,0,"id",sheet1);
+addCell(5,0,"planCode",sheet1);
+addCell(6,0,"PASS/FAIL",sheet1);
+addCell(7,0,"FAILED DUE TO",sheet1);
+ 
+//new testStepName
+def newTestStep=null
+
+try {
+
+   
+               def req = jreq.getContents()
+               //Assigning request value dynamically
+               //request
+               def slurper = new JsonSlurper().parseText(req);
+               def requestTemplet = new JsonBuilder(slurper);
+
+         
+               for (i=2;i&lt;rc;i++){
+
+                           // Input for TestCaseName
+                         Cell varTestCaseName = sh.getCell(0,i)
+                        def TestCaseName = varTestCaseName.getContents()
+                        
+                                //  Input for Line Item ID
+                                requestTemplet.content.lineItems[0].lineItemID = sh.getCell(1,i).getContents()
+                                      //Input for productID
+                                requestTemplet.content.lineItems[0].itemNumber = sh.getCell(2,i).getContents()                                                             
+                                 // Input for Plan
+                                requestTemplet.content.lineItems[0].plans[0].planCode = sh.getCell(3,i).getContents()
+                                  // Input for ID
+                                requestTemplet.content.lineItems[0].plans[0].id =sh.getCell(4,i).getContents()
+
+                              //Assign json request to variable
+                       def jsonReqAsString = requestTemplet.toPrettyString()
+                       def restRequest = testRunner.testCase.getTestStepByName('JSON Request');
+                       restRequest.setPropertyValue('Request',jsonReqAsString);
+
+                                //teststep cloned: Start
+                        def getTestCase = testRunner.testCase;
+                        def testst = testRunner.testCase.getTestStepByName("JSON Request");                 
+                            newTestStep = TestCaseName
+                            cleanUp(newTestStep)
+                            getTestCase.cloneStep(restRequest,newTestStep)
+                             
+                         //teststep cloned: End
+                         //Executing the testcase
+                        testRunner.runTestStepByName(newTestStep)
+ 
+                         //retrive response         
+                       def ResponseMessage = testRunner.testCase.testSteps[newTestStep].testRequest.response.contentAsString
+                    
+                         //new JsonSlurper to parse and get the response in Json format
+                        def slurper1 = new JsonSlurper()
+                        def json = slurper1.parseText(ResponseMessage)
+                    
+                                  
+                           // get lineItemID from response json                                 
+                        addCell(0,i,json.lineItems[0].lineItemID,sheet1);                                   
+                          // get PayerID from response json                                   
+                        addCell(1,i,json.lineItems[0].itemNumber,sheet1);   
+                          // get contactMethod from response json                           
+                         addCell(2,i,json.lineItems[0].maxSupplyPeriod.toString(),sheet1);  
+                         // get groupNumber from response json                               
+                        addCell(3,i,json.lineItems[0].maxSupplyPeriodUOM.toString(),sheet1);
+                          // get policyNumber from response json         
+                        addCell(4,i,json.lineItems[0].plans[0].id,sheet1);
+                          // get payerType from response json         
+                        addCell(5,i,json.lineItems[0].plans[0].planCode,sheet1);
+                           
+                                                           
+                      //dynamic asserstion :Start
+                   def testStepForAssertion = testRunner.testCase.getTestStepByName(newTestStep);
+                                //ValidHTTPStatusCodes 200 Assertion
+                  addAssertionValidHTTPStatusCodes(testStepForAssertion,"Valid HTTP Status Codes_"+i)
+            
+                             //get the expected values
+                          lineItemID = sh.getCell(5,i).getContents()
+                       addAssertionJsonPathMatch(testStepForAssertion,lineItemID,"lineItems[0].lineItemID","lineItemID")
+
+                          itemNumber = sh.getCell(6,i).getContents()
+                       addAssertionJsonPathMatch(testStepForAssertion,itemNumber,"lineItems[0].itemNumber","itemNumber")
+
+                         maxSupplyPeriod = sh.getCell(7,i).getContents().toString()
+                        addAssertionJsonPathMatch(testStepForAssertion,maxSupplyPeriod,"lineItems[0].maxSupplyPeriod","maxSupplyPeriod")
+
+                         maxSupplyPeriodUOM = sh.getCell(8,i).getContents().toString()
+                        addAssertionJsonPathMatch(testStepForAssertion,maxSupplyPeriodUOM,"lineItems[0].maxSupplyPeriodUOM","maxSupplyPeriodUOM")
+
+                         id = sh.getCell(9,i).getContents()
+                        addAssertionJsonPathMatch(testStepForAssertion,id,"lineItems[0].plans[0].id","id")
+
+                          planCode = sh.getCell(10,i).getContents()
+                         addAssertionJsonPathMatch(testStepForAssertion,planCode,"lineItems[0].plans[0].planCode","planCode")
+                            
+                     
+                            //dynamic asserstion :End
+
+                            assertionResult = testStepForAssertion.getAssertionStatus()
+             if(assertionResult.toString().equals("FAILED")){
+
+                                       addCell(6,i,"Fail",sheet1);
+                                   for( assertion in testStepForAssertion.assertionList ){
+                                  for( e in assertion.errors ){
+
+                                                     addCell(7,i,e.message,sheet1);
+
+                                                } 
+
+
+                                   }
+
+ 
+
+                                }
+
+ 
+                                else{
+
+                                   addCell(6,i,"PASS",sheet1);
+
+                                }
+
+ 
+       }
+
+      wb1.write();
+            log.info "TestCase Execution Completed successfull"
+
+ 
+
+                }             
+     
+catch(Exception e)
+{
+
+                 log.info(e)                         
+}
+
+finally
+{
+
+    //close workbook
+     wb.close();
+     wb1.close();     
+
+}
+
+//Method code
+def addAssertionJsonPathMatch(RestTestRequestStep testStepForAssertion,String expectedContent,String xPath,String assertionName) {
+          def assertionType = testStepForAssertion.addAssertion("JsonPath Match")
+                                assertionType.name = assertionName
+                                assertionType.setPath(xPath)
+                                assertionType.setExpectedContent(expectedContent)
+                                assertionType.setAllowWildcards(true) 
+
+}
+
+//Method code
+def addAssertionValidHTTPStatusCodes(RestTestRequestStep testStepForAssertion,String assertionName) {
+
+         def StatusCodeAssertionxpath = testStepForAssertion.addAssertion("Valid HTTP Status Codes")
+             StatusCodeAssertionxpath.name = assertionName
+             StatusCodeAssertionxpath.codes=200
+
+}
+
+//method to delete
+def cleanUp(String requestName){
+
+                //remove the teststep::Start
+                def testCase = testRunner.testCase
+                def testStep = testCase.getTestStepByName(requestName)
+
+                if (testStep!=null){
+
+ 
+                                    testCase.removeTestStep(testStep)
+                }
+
+    
+            //remove the teststep::End
+
+}
+
+ 
+
+//method to add Cell to sheet1
+
+def addCell(int colmNum,int rowNum,String lblName,WritableSheet sheet1 ){
+
+                 Label header = new Label(colmNum,rowNum,lblName);
+                sheet1.addCell(header);               
+
+}</script>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="groovy" name="DetermineMaxSupplyPeriodOverride-multiLineItem" id="2dfe6c61-21ae-46e7-804a-5c7b76283196">
+    <con:settings/>
+    <con:config>
+      <script>import jxl.*;
+import jxl.write.*
+import java.io.*
+import java.io.file.*
+import java.util.*
+import java.lang.*
+import jxl.read.biff.BiffException;
+import net.sf.*
+import net.sf.json.*
+import net.sf.json.groovy.*
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+import groovy.json.JsonBuilder
+import com.eviware.soapui.model.testsuite.TestStepResult.TestStepStatus
+import com.eviware.soapui.impl.wsdl.teststeps.RestTestRequestStep
+
+def groovyUtils = new com.eviware.soapui.support.GroovyUtils(context)
+def projectDir = groovyUtils.projectPath
+
+def inputfile =  projectDir + "/DetermineMaxSupplyPeriodOverride/MaxSupplyPeriodOverride_multiLineItem-Input.xls"
+def outputfile = projectDir + "/DetermineMaxSupplyPeriodOverride/MaxSupplyPeriodOverride_multiLineItem-Output.xls"
+
+//Creating workbook for reading value from Excel Sheet
+
+Workbook wb = Workbook.getWorkbook(new File(inputfile))
+Sheet sh = wb.getSheet("ExpectedResults")
+Sheet jsonInput = wb.getSheet("JSON")
+
+//reading data from input Excel sheet
+rc = sh.getRows();
+cc = sh.getColumns();
+Cell jreq = jsonInput.getCell(0,0)
+
+//Creating Workbook for writing value in Excel Sheet
+WritableWorkbook wb1= Workbook.createWorkbook(new File(outputfile));
+WritableSheet sheet1 = wb1.createSheet("ActualResults",0);
+
+//Header declaration for output file
+addCell(0,0,"lineItemID",sheet1);
+addCell(1,0,"itemNumber",sheet1);
+addCell(2,0,"maxSupplyPeriod",sheet1);
+addCell(3,0,"maxSupplyPeriodUOM",sheet1);
+addCell(4,0,"id",sheet1);
+addCell(5,0,"planCode",sheet1);
+addCell(6,0,"lineItemID",sheet1);
+addCell(7,0,"itemNumber",sheet1);
+addCell(8,0,"maxSupplyPeriod",sheet1);
+addCell(9,0,"maxSupplyPeriodUOM",sheet1);
+addCell(10,0,"id",sheet1);
+addCell(11,0,"planCode",sheet1);
+addCell(12,0,"PASS/FAIL",sheet1);
+addCell(13,0,"FAILED DUE TO",sheet1);
+ 
+//new testStepName
+def newTestStep=null
+
+try {
+
+   
+               def req = jreq.getContents()
+               //Assigning request value dynamically
+               //request
+               def slurper = new JsonSlurper().parseText(req);
+               def requestTemplet = new JsonBuilder(slurper);
+
+         
+               for (i=2;i&lt;rc;i++){
+
+                           // Input for TestCaseName
+                         Cell varTestCaseName = sh.getCell(0,i)
+                        def TestCaseName = varTestCaseName.getContents()
+                        
+                                //  Input for Line Item ID
+                              
+                                requestTemplet.content.lineItems[0].lineItemID = sh.getCell(1,i).getContents()
+                                      //Input for productID
+                                requestTemplet.content.lineItems[0].itemNumber = sh.getCell(2,i).getContents()                                                             
+                                 // Input for Plan
+                                requestTemplet.content.lineItems[0].plans[0].planCode = sh.getCell(3,i).getContents()
+                                  // Input for ID
+                                requestTemplet.content.lineItems[0].plans[0].id = sh.getCell(4,i).getContents()
+
+                                //  Input for Line Item ID
+                                requestTemplet.content.lineItems[1].lineItemID = sh.getCell(5,i).getContents()
+                                    //Input for productID
+                                requestTemplet.content.lineItems[1].itemNumber = sh.getCell(6,i).getContents()                                                             
+                                 // Input for Plan
+                                requestTemplet.content.lineItems[1].plans[0].planCode = sh.getCell(7,i).getContents()
+                                  // Input for ID
+                                requestTemplet.content.lineItems[1].plans[0].id = sh.getCell(8,i).getContents()
+
+                              //Assign json request to variable
+                       def jsonReqAsString = requestTemplet.toPrettyString()
+                       def restRequest = testRunner.testCase.getTestStepByName('JSON Request');
+                       restRequest.setPropertyValue('Request',jsonReqAsString);
+
+                                //teststep cloned: Start
+                        def getTestCase = testRunner.testCase;
+                        def testst = testRunner.testCase.getTestStepByName("JSON Request");                 
+                            newTestStep = TestCaseName
+                            cleanUp(newTestStep)
+                            getTestCase.cloneStep(restRequest,newTestStep)
+                             
+                         //teststep cloned: End
+                         //Executing the testcase
+                        testRunner.runTestStepByName(newTestStep)
+ 
+                         //retrive response         
+                       def ResponseMessage = testRunner.testCase.testSteps[newTestStep].testRequest.response.contentAsString
+                    
+                         //new JsonSlurper to parse and get the response in Json format
+                        def slurper1 = new JsonSlurper()
+                        def json = slurper1.parseText(ResponseMessage)
+                    
+                                  
+                           // get lineItemID from response json                                 
+                        addCell(0,i,json.lineItems[0].lineItemID,sheet1);                                   
+                          // get PayerID from response json                                   
+                        addCell(1,i,json.lineItems[0].itemNumber,sheet1);   
+                          // get contactMethod from response json                           
+                         addCell(2,i,json.lineItems[0].maxSupplyPeriod.toString(),sheet1);  
+                         // get groupNumber from response json                               
+                        addCell(3,i,json.lineItems[0].maxSupplyPeriodUOM.toString(),sheet1);
+                          // get policyNumber from response json         
+                        addCell(4,i,json.lineItems[0].plans[0].id,sheet1);
+                          // get payerType from response json         
+                        addCell(5,i,json.lineItems[0].plans[0].planCode,sheet1);
+
+                        addCell(6,i,json.lineItems[1].lineItemID,sheet1);                                   
+                          // get PayerID from response json                                   
+                        addCell(7,i,json.lineItems[1].itemNumber,sheet1);   
+                          // get contactMethod from response json                           
+                         addCell(8,i,json.lineItems[1].maxSupplyPeriod.toString(),sheet1);  
+                         // get groupNumber from response json                               
+                        addCell(9,i,json.lineItems[1].maxSupplyPeriodUOM.toString(),sheet1);
+                          // get policyNumber from response json         
+                        addCell(10,i,json.lineItems[1].plans[0].id,sheet1);
+                          // get payerType from response json         
+                        addCell(11,i,json.lineItems[1].plans[0].planCode,sheet1);
+                           
+                           
+                                                           
+                      //dynamic asserstion :Start
+                   def testStepForAssertion = testRunner.testCase.getTestStepByName(newTestStep);
+                                //ValidHTTPStatusCodes 200 Assertion
+                  addAssertionValidHTTPStatusCodes(testStepForAssertion,"Valid HTTP Status Codes_"+i)
+            
+                             //get the expected values
+                          lineItemID = sh.getCell(9,i).getContents()
+                       addAssertionJsonPathMatch(testStepForAssertion,lineItemID,"lineItems[0].lineItemID","lineItemID")
+
+                          itemNumber = sh.getCell(10,i).getContents()
+                       addAssertionJsonPathMatch(testStepForAssertion,itemNumber,"lineItems[0].itemNumber","itemNumber")
+
+                         maxSupplyPeriod = sh.getCell(11,i).getContents().toString()
+                        addAssertionJsonPathMatch(testStepForAssertion,maxSupplyPeriod,"lineItems[0].maxSupplyPeriod","maxSupplyPeriod")
+
+                         maxSupplyPeriodUOM = sh.getCell(12,i).getContents().toString()
+                        addAssertionJsonPathMatch(testStepForAssertion,maxSupplyPeriodUOM,"lineItems[0].maxSupplyPeriodUOM","maxSupplyPeriodUOM")
+
+                         id = sh.getCell(13,i).getContents()
+                        addAssertionJsonPathMatch(testStepForAssertion,id,"lineItems[0].plans[0].id","id")
+
+                          planCode = sh.getCell(14,i).getContents()
+                         addAssertionJsonPathMatch(testStepForAssertion,planCode,"lineItems[0].plans[0].planCode","planCode")
+
+                         lineItemID1 = sh.getCell(15,i).getContents()
+                       addAssertionJsonPathMatch(testStepForAssertion,lineItemID1,"lineItems[1].lineItemID","lineItemID")
+
+                          itemNumber1 = sh.getCell(16,i).getContents()
+                       addAssertionJsonPathMatch(testStepForAssertion,itemNumber1,"lineItems[1].itemNumber","itemNumber")
+
+                         maxSupplyPeriod1 = sh.getCell(17,i).getContents().toString()
+                        addAssertionJsonPathMatch(testStepForAssertion,maxSupplyPeriod1,"lineItems[1].maxSupplyPeriod","maxSupplyPeriod")
+
+                         maxSupplyPeriodUOM1 = sh.getCell(18,i).getContents().toString()
+                        addAssertionJsonPathMatch(testStepForAssertion,maxSupplyPeriodUOM1,"lineItems[1].maxSupplyPeriodUOM","maxSupplyPeriodUOM1")
+
+                         id1 = sh.getCell(19,i).getContents()
+                        addAssertionJsonPathMatch(testStepForAssertion,id1,"lineItems[1].plans[0].id","id")
+
+                          planCode1 = sh.getCell(20,i).getContents()
+                         addAssertionJsonPathMatch(testStepForAssertion,planCode1,"lineItems[1].plans[0].planCode","planCode1")
+                            
+                     
+                            
+                     
+                            //dynamic asserstion :End
+
+                            assertionResult = testStepForAssertion.getAssertionStatus()
+             if(assertionResult.toString().equals("FAILED")){
+
+                                       addCell(12,i,"Fail",sheet1);
+                                   for( assertion in testStepForAssertion.assertionList ){
+                                  for( e in assertion.errors ){
+
+                                                     addCell(13,i,e.message,sheet1);
+
+                                                } 
+
+
+                                   }
+
+ 
+
+                                }
+
+ 
+                                else{
+
+                                   addCell(13,i,"PASS",sheet1);
+
+                                }
+
+ 
+       }
+
+      wb1.write();
+            log.info "TestCase Execution Completed successfull"
+
+ 
+
+                }             
+     
+catch(Exception e)
+{
+
+                 log.info(e)                         
+}
+
+finally
+{
+
+    //close workbook
+     wb.close();
+     wb1.close();     
+
+}
+
+//Method code
+def addAssertionJsonPathMatch(RestTestRequestStep testStepForAssertion,String expectedContent,String xPath,String assertionName) {
+          def assertionType = testStepForAssertion.addAssertion("JsonPath Match")
+                                assertionType.name = assertionName
+                                assertionType.setPath(xPath)
+                                assertionType.setExpectedContent(expectedContent)
+                                assertionType.setAllowWildcards(true) 
+
+}
+
+//Method code
+def addAssertionValidHTTPStatusCodes(RestTestRequestStep testStepForAssertion,String assertionName) {
+
+         def StatusCodeAssertionxpath = testStepForAssertion.addAssertion("Valid HTTP Status Codes")
+             StatusCodeAssertionxpath.name = assertionName
+             StatusCodeAssertionxpath.codes=200
+
+}
+
+//method to delete
+def cleanUp(String requestName){
+
+                //remove the teststep::Start
+                def testCase = testRunner.testCase
+                def testStep = testCase.getTestStepByName(requestName)
+
+                if (testStep!=null){
+
+ 
+                                    testCase.removeTestStep(testStep)
+                }
+
+    
+            //remove the teststep::End
+
+}
+
+ 
+
+//method to add Cell to sheet1
+
+def addCell(int colmNum,int rowNum,String lblName,WritableSheet sheet1 ){
+
+                 Label header = new Label(colmNum,rowNum,lblName);
+                sheet1.addCell(header);               
+
+}</script>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-42781" id="b1329e98-7739-4794-b2ee-69267b7a33f7">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineMaxSupplyPeriodOverride/DetermineMaxSupplyPeriodOverride/WADL" methodName="DetermineMaxSupplyPeriodOverride" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-42781" id="9b4d9470-c5c8-4191-9ab3-79df023e9fb4" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "ABC",
+            "correlationID": " IrKi27e1lMYrHGqA5CZRGL6i ",
+            "from": "PCF",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "itemNumber": "MNMMT7725NAE",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA01",
+                    "planCode": ""
+                }
+            ]
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineMaxSupplyPeriodOverride/DetermineMaxSupplyPeriodOverride/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="6ef40c19-cbdd-4cec-af4b-8fca285a83e7" name="Valid HTTP Status Codes_2">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="79b81d9a-a0d0-4ec5-8e7c-d819b76ee7c6" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="3d5041bb-2962-4606-aa00-470708dca89f" name="itemNumber">
+          <con:configuration>
+            <path>lineItems[0].itemNumber</path>
+            <content>MNMMT7725NAE</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="c0cf9bc3-da5c-4e93-8edf-c638cbdcb8d8" name="maxSupplyPeriod">
+          <con:configuration>
+            <path>lineItems[0].maxSupplyPeriod</path>
+            <content>12</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="35afdc3c-c0da-48fc-a331-d4f5f9e1dab9" name="maxSupplyPeriodUOM">
+          <con:configuration>
+            <path>lineItems[0].maxSupplyPeriodUOM</path>
+            <content>M</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="810e3328-ee79-4198-9576-f1e1c7830f8f" name="id">
+          <con:configuration>
+            <path>lineItems[0].plans[0].id</path>
+            <content>PA01</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="55b463f8-2dba-454d-b7b1-e41ef6267928" name="planCode">
+          <con:configuration>
+            <path>lineItems[0].plans[0].planCode</path>
+            <content/>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-42782" id="42d7cba9-194d-4606-a264-8af2cf70ffa8">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineMaxSupplyPeriodOverride/DetermineMaxSupplyPeriodOverride/WADL" methodName="DetermineMaxSupplyPeriodOverride" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-42782" id="9b4d9470-c5c8-4191-9ab3-79df023e9fb4" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "ABC",
+            "correlationID": " IrKi27e1lMYrHGqA5CZRGL6i ",
+            "from": "PCF",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "itemNumber": "EDSTTGF001BB",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA02",
+                    "planCode": ""
+                }
+            ]
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineMaxSupplyPeriodOverride/DetermineMaxSupplyPeriodOverride/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="56df1746-cb9f-4674-8818-4a8c9fcadf67" name="Valid HTTP Status Codes_3">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="ba78ece8-153c-4a1c-a7e6-cf916c87c483" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="1a439064-c4fe-4e86-a728-4b8cd80c3efb" name="itemNumber">
+          <con:configuration>
+            <path>lineItems[0].itemNumber</path>
+            <content>EDSTTGF001BB</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="91fcff2c-4a29-4ac1-aeb9-b3aed73ce50d" name="maxSupplyPeriod">
+          <con:configuration>
+            <path>lineItems[0].maxSupplyPeriod</path>
+            <content>3</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="14ca8b41-54b1-451d-874b-6112af0b5528" name="maxSupplyPeriodUOM">
+          <con:configuration>
+            <path>lineItems[0].maxSupplyPeriodUOM</path>
+            <content>M</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="75b5f9dc-7616-4ba5-8a35-758a72df313f" name="id">
+          <con:configuration>
+            <path>lineItems[0].plans[0].id</path>
+            <content>PA02</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="a3aca122-545e-45b4-a4c5-09065eb68409" name="planCode">
+          <con:configuration>
+            <path>lineItems[0].plans[0].planCode</path>
+            <content/>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-42783" id="7b469624-6c93-4464-aecf-d94109d4ab6c">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineMaxSupplyPeriodOverride/DetermineMaxSupplyPeriodOverride/WADL" methodName="DetermineMaxSupplyPeriodOverride" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-42783" id="9b4d9470-c5c8-4191-9ab3-79df023e9fb4" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "ABC",
+            "correlationID": " IrKi27e1lMYrHGqA5CZRGL6i ",
+            "from": "PCF",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "itemNumber": "DDSTTMC001MEDIM1",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA03",
+                    "planCode": ""
+                }
+            ]
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineMaxSupplyPeriodOverride/DetermineMaxSupplyPeriodOverride/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="cc07a883-88f9-4269-8ad2-6843efc1fd3b" name="Valid HTTP Status Codes_4">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="1a43781b-9953-45ec-8b6c-4b8b37229cf8" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="0b12d2a5-810b-4cf8-88fc-1c43d9c4ee3a" name="itemNumber">
+          <con:configuration>
+            <path>lineItems[0].itemNumber</path>
+            <content>DDSTTMC001MEDIM1</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="aee8a35b-86ff-4e98-8d1a-c4ab4a0ebb01" name="maxSupplyPeriod">
+          <con:configuration>
+            <path>lineItems[0].maxSupplyPeriod</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="9caf3a73-2403-497f-b3f9-e0c822cd13bc" name="maxSupplyPeriodUOM">
+          <con:configuration>
+            <path>lineItems[0].maxSupplyPeriodUOM</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="fa346972-1d5b-4245-8b08-30c0945fd6dd" name="id">
+          <con:configuration>
+            <path>lineItems[0].plans[0].id</path>
+            <content>PA03</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="d9b48dbe-77ab-49a8-bc36-77b483f377ae" name="planCode">
+          <con:configuration>
+            <path>lineItems[0].plans[0].planCode</path>
+            <content/>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-42784" id="b9f9ed10-daf9-4317-ab9f-6eb049ba7ef2">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineMaxSupplyPeriodOverride/DetermineMaxSupplyPeriodOverride/WADL" methodName="DetermineMaxSupplyPeriodOverride" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-42784" id="9b4d9470-c5c8-4191-9ab3-79df023e9fb4" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "ABC",
+            "correlationID": " IrKi27e1lMYrHGqA5CZRGL6i ",
+            "from": "PCF",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "itemNumber": "",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA04",
+                    "planCode": ""
+                }
+            ]
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineMaxSupplyPeriodOverride/DetermineMaxSupplyPeriodOverride/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="13076fbd-3c86-49c9-a355-a391280c197c" name="Valid HTTP Status Codes_5">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="40ef3e32-36e5-402d-a775-e475f23f367f" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="edc1f911-a0b3-4ae9-b33f-93484c4da6f1" name="itemNumber">
+          <con:configuration>
+            <path>lineItems[0].itemNumber</path>
+            <content/>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="1e0e56af-eb12-40d2-9fde-40ee829acc36" name="maxSupplyPeriod">
+          <con:configuration>
+            <path>lineItems[0].maxSupplyPeriod</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="0c695013-051e-4627-b51e-8df044d4f61f" name="maxSupplyPeriodUOM">
+          <con:configuration>
+            <path>lineItems[0].maxSupplyPeriodUOM</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="0c044a52-5548-40fa-84d1-ee4700dd6a12" name="id">
+          <con:configuration>
+            <path>lineItems[0].plans[0].id</path>
+            <content>PA04</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="757f099d-477f-4cf8-a1d8-69c843e2d89b" name="planCode">
+          <con:configuration>
+            <path>lineItems[0].plans[0].planCode</path>
+            <content/>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-42785" id="56fa9148-6a2c-4b72-a844-223d939c5dfa">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineMaxSupplyPeriodOverride/DetermineMaxSupplyPeriodOverride/WADL" methodName="DetermineMaxSupplyPeriodOverride" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-42785" id="9b4d9470-c5c8-4191-9ab3-79df023e9fb4" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "ABC",
+            "correlationID": " IrKi27e1lMYrHGqA5CZRGL6i ",
+            "from": "PCF",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "itemNumber": "EDSTTGL003",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA05",
+                    "planCode": ""
+                }
+            ]
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineMaxSupplyPeriodOverride/DetermineMaxSupplyPeriodOverride/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="d0388205-7b66-4155-adae-1c2297a36564" name="Valid HTTP Status Codes_6">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="697a7493-caf6-45ad-a071-ce46e775bc5a" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="852df880-6185-4ff1-82a6-b4a8a7752f15" name="itemNumber">
+          <con:configuration>
+            <path>lineItems[0].itemNumber</path>
+            <content>EDSTTGL003</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="41ba68eb-7ec8-43a8-a066-ba154860520f" name="maxSupplyPeriod">
+          <con:configuration>
+            <path>lineItems[0].maxSupplyPeriod</path>
+            <content>6</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="00f5c7fe-1570-4a4b-8cd9-7a4f7d1a51bf" name="maxSupplyPeriodUOM">
+          <con:configuration>
+            <path>lineItems[0].maxSupplyPeriodUOM</path>
+            <content>M</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="c64edcf8-83e1-4f50-be08-c1c67ddfd13c" name="id">
+          <con:configuration>
+            <path>lineItems[0].plans[0].id</path>
+            <content>PA05</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="71558fcc-1297-48bd-a062-1a5321d19707" name="planCode">
+          <con:configuration>
+            <path>lineItems[0].plans[0].planCode</path>
+            <content/>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-42786" id="a0dc2f40-49a3-471b-8b12-a330446f2038">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineMaxSupplyPeriodOverride/DetermineMaxSupplyPeriodOverride/WADL" methodName="DetermineMaxSupplyPeriodOverride" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-42786" id="9b4d9470-c5c8-4191-9ab3-79df023e9fb4" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "ABC",
+            "correlationID": " IrKi27e1lMYrHGqA5CZRGL6i ",
+            "from": "PCF",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "itemNumber": "DDSTTMC001MEDIM",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA06",
+                    "planCode": ""
+                }
+            ]
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineMaxSupplyPeriodOverride/DetermineMaxSupplyPeriodOverride/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="335c1ae4-5f22-4549-ba10-f2c956315c63" name="Valid HTTP Status Codes_7">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="f83ed5bb-330d-4440-88ff-82433f989d8e" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="ff232d5f-281a-4c82-8d70-28bdd406448b" name="itemNumber">
+          <con:configuration>
+            <path>lineItems[0].itemNumber</path>
+            <content>DDSTTMC001MEDIM</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="d4ff15b4-593d-45fd-8b30-ba305aca25a1" name="maxSupplyPeriod">
+          <con:configuration>
+            <path>lineItems[0].maxSupplyPeriod</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="b43fcdc1-9655-4d38-ac3e-f0a7f4ff8603" name="maxSupplyPeriodUOM">
+          <con:configuration>
+            <path>lineItems[0].maxSupplyPeriodUOM</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="16cde8e0-98b0-41f8-8136-f10646242092" name="id">
+          <con:configuration>
+            <path>lineItems[0].plans[0].id</path>
+            <content>PA06</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="4f52959e-7e8e-44e8-9567-8d95e788fd10" name="planCode">
+          <con:configuration>
+            <path>lineItems[0].plans[0].planCode</path>
+            <content/>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-42787" id="f3ac3960-79af-4e22-a2b1-30631524e2d1">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineMaxSupplyPeriodOverride/DetermineMaxSupplyPeriodOverride/WADL" methodName="DetermineMaxSupplyPeriodOverride" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-42787" id="9b4d9470-c5c8-4191-9ab3-79df023e9fb4" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "ABC",
+            "correlationID": " IrKi27e1lMYrHGqA5CZRGL6i ",
+            "from": "PCF",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "itemNumber": "MNMMT7820LNAI",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "43EDF1",
+                    "planCode": ""
+                }
+            ]
+        },
+        {
+            "itemNumber": "EDSTTRF001P",
+            "lineItemID": "L002",
+            "plans": [
+                {
+                    "id": "43EDG1",
+                    "planCode": ""
+                }
+            ]
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineMaxSupplyPeriodOverride/DetermineMaxSupplyPeriodOverride/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="b53a0d36-10ff-4b34-85e4-46680f591c68" name="Valid HTTP Status Codes_2">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="36ce73b8-fda1-41d2-ab99-fa7474bbed08" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="fdd4e6a8-8fd5-43f0-887b-20481ce6b6a2" name="itemNumber">
+          <con:configuration>
+            <path>lineItems[0].itemNumber</path>
+            <content>MNMMT7820LNAI</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="f960983c-25dc-4f4a-bc5e-6a1023f0e465" name="maxSupplyPeriod">
+          <con:configuration>
+            <path>lineItems[0].maxSupplyPeriod</path>
+            <content>12</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="07a46278-e1d9-476d-a103-8d8b6916bb1e" name="maxSupplyPeriodUOM">
+          <con:configuration>
+            <path>lineItems[0].maxSupplyPeriodUOM</path>
+            <content>M</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="1b599bbb-f538-4609-b71b-14bc49b9fa66" name="id">
+          <con:configuration>
+            <path>lineItems[0].plans[0].id</path>
+            <content>43EDF1</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="8d87a077-c49f-4832-8469-6b842d978b52" name="planCode">
+          <con:configuration>
+            <path>lineItems[0].plans[0].planCode</path>
+            <content/>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="484ba379-f866-4433-abb1-7e9dee8d39d6" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[1].lineItemID</path>
+            <content>L002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="903b6699-6c86-46f0-83a7-d70ad76d2780" name="itemNumber">
+          <con:configuration>
+            <path>lineItems[1].itemNumber</path>
+            <content>EDSTTRF001P</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="9c405c55-ad96-48c5-b873-8d0abebf860f" name="maxSupplyPeriod">
+          <con:configuration>
+            <path>lineItems[1].maxSupplyPeriod</path>
+            <content>3</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="194170c2-71b5-4164-bd80-246c2afd2f2c" name="maxSupplyPeriodUOM1">
+          <con:configuration>
+            <path>lineItems[1].maxSupplyPeriodUOM</path>
+            <content>M</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="2aa56069-b8ea-4abf-a59f-48f2078fb39c" name="id">
+          <con:configuration>
+            <path>lineItems[1].plans[0].id</path>
+            <content>43EDG1</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="6ce9c467-80a8-4a93-bff7-3d91bc2b06d0" name="planCode1">
+          <con:configuration>
+            <path>lineItems[1].plans[0].planCode</path>
+            <content/>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-42788" id="10916cb1-b193-43bd-9095-76164b17181c">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineMaxSupplyPeriodOverride/DetermineMaxSupplyPeriodOverride/WADL" methodName="DetermineMaxSupplyPeriodOverride" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-42788" id="9b4d9470-c5c8-4191-9ab3-79df023e9fb4" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "ABC",
+            "correlationID": " IrKi27e1lMYrHGqA5CZRGL6i ",
+            "from": "PCF",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "itemNumber": "12MNMMT7725NA",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "43EDF2",
+                    "planCode": ""
+                }
+            ]
+        },
+        {
+            "itemNumber": "13EDSTTOR001F",
+            "lineItemID": "L002",
+            "plans": [
+                {
+                    "id": "43EDG2",
+                    "planCode": ""
+                }
+            ]
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineMaxSupplyPeriodOverride/DetermineMaxSupplyPeriodOverride/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="163a10e5-3edf-4fd9-a872-675fcc31d4df" name="Valid HTTP Status Codes_3">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="5c1c3808-52ea-46ec-89b9-339fa09da4f1" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="148fbe76-8a7e-4b84-995f-8d4a92fd680a" name="itemNumber">
+          <con:configuration>
+            <path>lineItems[0].itemNumber</path>
+            <content>12MNMMT7725NA</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="d47d4888-e57b-4506-89cf-bf42322f145b" name="maxSupplyPeriod">
+          <con:configuration>
+            <path>lineItems[0].maxSupplyPeriod</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="3f6ccd6a-729f-4a6a-8877-ad83990f0aec" name="maxSupplyPeriodUOM">
+          <con:configuration>
+            <path>lineItems[0].maxSupplyPeriodUOM</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="5b755656-50d4-4348-b414-50abbdd14173" name="id">
+          <con:configuration>
+            <path>lineItems[0].plans[0].id</path>
+            <content>43EDF2</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="18a87488-4a1f-4ece-8141-3669434761e5" name="planCode">
+          <con:configuration>
+            <path>lineItems[0].plans[0].planCode</path>
+            <content/>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="35a2c232-6acc-4b8b-8b8f-40d4423e4422" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[1].lineItemID</path>
+            <content>L002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="87ceb7bd-2866-49e0-9794-58603dc2100a" name="itemNumber">
+          <con:configuration>
+            <path>lineItems[1].itemNumber</path>
+            <content>13EDSTTOR001F</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="6a2f2e63-eb95-420a-8038-b882759bc584" name="maxSupplyPeriod">
+          <con:configuration>
+            <path>lineItems[1].maxSupplyPeriod</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="259f1901-483e-4d7c-9bbf-db360c70020d" name="maxSupplyPeriodUOM1">
+          <con:configuration>
+            <path>lineItems[1].maxSupplyPeriodUOM</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="b84dcc47-94f2-44fb-9a7b-60345b34170e" name="id">
+          <con:configuration>
+            <path>lineItems[1].plans[0].id</path>
+            <content>43EDG2</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="2adad2a4-a144-409f-97f0-15c70a22adee" name="planCode1">
+          <con:configuration>
+            <path>lineItems[1].plans[0].planCode</path>
+            <content/>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-42789" id="e9deb29a-dd8a-41dd-883a-d3168b10940f">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineMaxSupplyPeriodOverride/DetermineMaxSupplyPeriodOverride/WADL" methodName="DetermineMaxSupplyPeriodOverride" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-42789" id="9b4d9470-c5c8-4191-9ab3-79df023e9fb4" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "ABC",
+            "correlationID": " IrKi27e1lMYrHGqA5CZRGL6i ",
+            "from": "PCF",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "itemNumber": "",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "43EDF2",
+                    "planCode": ""
+                }
+            ]
+        },
+        {
+            "itemNumber": "",
+            "lineItemID": "L002",
+            "plans": [
+                {
+                    "id": "43EDG2",
+                    "planCode": ""
+                }
+            ]
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineMaxSupplyPeriodOverride/DetermineMaxSupplyPeriodOverride/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="bb9b69b2-56f0-4572-9592-12fa482521d1" name="Valid HTTP Status Codes_4">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="cabfa9ad-b18a-4a6c-af70-c590e424b242" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="5c5f85cd-436d-479e-87e9-a7fe6e642591" name="itemNumber">
+          <con:configuration>
+            <path>lineItems[0].itemNumber</path>
+            <content/>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="02db7366-ac86-4e90-bf32-3e0d3bda73c8" name="maxSupplyPeriod">
+          <con:configuration>
+            <path>lineItems[0].maxSupplyPeriod</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="97c1b2d7-8425-4861-99b6-16a279e6592f" name="maxSupplyPeriodUOM">
+          <con:configuration>
+            <path>lineItems[0].maxSupplyPeriodUOM</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="f727a356-ed7f-4b49-b9e9-4062d99290ab" name="id">
+          <con:configuration>
+            <path>lineItems[0].plans[0].id</path>
+            <content>43EDF2</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="fc4742c6-5a47-482c-9e0c-45301c88add0" name="planCode">
+          <con:configuration>
+            <path>lineItems[0].plans[0].planCode</path>
+            <content/>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="502ab242-132b-4c12-963f-369657eed145" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[1].lineItemID</path>
+            <content>L002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="6b4db7d9-93ae-4d13-b25d-3f0122d80537" name="itemNumber">
+          <con:configuration>
+            <path>lineItems[1].itemNumber</path>
+            <content/>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="4381146d-9400-4948-b740-e49959588f49" name="maxSupplyPeriod">
+          <con:configuration>
+            <path>lineItems[1].maxSupplyPeriod</path>
+            <content>0</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="56251b57-ded6-4015-afe7-8db3d322b06a" name="maxSupplyPeriodUOM1">
+          <con:configuration>
+            <path>lineItems[1].maxSupplyPeriodUOM</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="1e3a25ec-5c63-4136-8668-bb7ae830672f" name="id">
+          <con:configuration>
+            <path>lineItems[1].plans[0].id</path>
+            <content>43EDG2</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="df9572a9-6829-4349-aea3-d35c4709636f" name="planCode1">
+          <con:configuration>
+            <path>lineItems[1].plans[0].planCode</path>
+            <content/>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:properties/>
+  <con:reportParameters/>
+</con:testCase>

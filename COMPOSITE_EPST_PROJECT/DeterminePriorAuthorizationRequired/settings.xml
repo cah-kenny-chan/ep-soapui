@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<con:testSuite id="fa6f886f-7aa3-4911-b78b-5bd1069aafb3" name="DeterminePriorAuthorizationRequired" xmlns:con="http://eviware.com/soapui/config">
+  <con:settings>
+    <con:setting id="fa6f886f-7aa3-4911-b78b-5bd1069aafb3fileName">DeterminePriorAuthorizationRequired</con:setting>
+  </con:settings>
+  <con:runType>SEQUENTIAL</con:runType>
+  <con:properties/>
+  <con:reportParameters/>
+</con:testSuite>

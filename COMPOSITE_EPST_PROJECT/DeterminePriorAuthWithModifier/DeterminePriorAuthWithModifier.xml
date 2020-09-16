@@ -1,0 +1,1723 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<con:testCase id="18626f68-8045-485b-998a-b07dae230385" failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="DeterminePriorAuthWithModifier" searchProperties="true" xmlns:con="http://eviware.com/soapui/config">
+  <con:settings>
+    <con:setting id="18626f68-8045-485b-998a-b07dae230385fileName">DeterminePriorAuthWithModifier</con:setting>
+  </con:settings>
+  <con:testStep type="groovy" name="DeterminePriorAuthWithModifier_SingleLineItem" id="cf815515-c9e3-4cda-ace5-964d03c387af">
+    <con:settings/>
+    <con:config>
+      <script>import jxl.*;
+import jxl.write.*
+import java.io.*
+import java.io.file.*
+import java.util.*
+import java.lang.*
+import jxl.read.biff.BiffException;
+import net.sf.*
+import net.sf.json.*
+import net.sf.json.groovy.*
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+import groovy.json.JsonBuilder
+import com.eviware.soapui.model.testsuite.TestStepResult.TestStepStatus
+import com.eviware.soapui.impl.wsdl.teststeps.RestTestRequestStep
+
+def groovyUtils = new com.eviware.soapui.support.GroovyUtils(context)
+def projectDir = groovyUtils.projectPath
+
+def inputfile =  projectDir + "/DeterminePriorAuthWithModifier/DeterminePriorAuthorizationModifier_Input.xls"
+def outputfile = projectDir + "/DeterminePriorAuthWithModifier/DeterminePriorAuthWithModifier-SingleiLineItem-Output.xls"
+
+//Creating workbook for reading value from Excel Sheet
+
+Workbook wb = Workbook.getWorkbook(new File(inputfile))
+Sheet sh = wb.getSheet("ExpectedResults-SingleLineItem")
+Sheet jsonInput = wb.getSheet("JSON-SingleLineItem")
+
+//reading data from input Excel sheet
+rc = sh.getRows();
+cc = sh.getColumns();
+Cell jreq = jsonInput.getCell(0,0)
+
+//Creating Workbook for writing value in Excel Sheet
+WritableWorkbook wb1= Workbook.createWorkbook(new File(outputfile));
+WritableSheet sheet1 = wb1.createSheet("ActualResults",0);
+
+//Header declaration for output file
+addCell(0,0,"lineItemID",sheet1);
+addCell(1,0,"firstModifier",sheet1);
+addCell(2,0,"secondModifier",sheet1);
+addCell(3,0,"thirdModifier",sheet1);
+addCell(4,0,"PASS/FAIL",sheet1);
+addCell(5,0,"FAILED DUE TO",sheet1);
+ 
+//new testStepName
+def newTestStep=null
+
+try {
+
+   
+               def req = jreq.getContents()
+               //Assigning request value dynamically
+               //request
+               def slurper = new JsonSlurper().parseText(req);
+               def requestTemplet = new JsonBuilder(slurper);
+
+         
+               for (i=2;i&lt;rc;i++){
+
+                           // Input for TestCaseName
+                         Cell varTestCaseName = sh.getCell(0,i)
+                        def TestCaseName = varTestCaseName.getContents()
+                        
+                                 //Input for Line Item ID
+                                requestTemplet.content.lineItems[0].lineItemID = sh.getCell(1,i).getContents()
+                                //Input for productClass
+                                requestTemplet.content.lineItems[0].productClass = sh.getCell(2,i).getContents().toString()
+                                 //Input for hcpcsCode                                  
+                                requestTemplet.content.lineItems[0].hcpcsCode = sh.getCell(3,i).getContents().toString()
+                                //Input for itemNumber                               
+                                requestTemplet.content.lineItems[0].itemNumber = sh.getCell(4,i).getContents().toString()  
+                                //Input for PayerID
+                                requestTemplet.content.lineItems[0].plans[0].id = sh.getCell(5,i).getContents().toString()
+                                //Input for planName
+                                requestTemplet.content.lineItems[0].plans[0].planCode = sh.getCell(6,i).getContents().toString()   
+                                                        
+
+                              //Assign json request to variable
+                       def jsonReqAsString = requestTemplet.toPrettyString()
+                       def restRequest = testRunner.testCase.getTestStepByName('JSON Request');
+                       restRequest.setPropertyValue('Request',jsonReqAsString);
+
+                                //teststep cloned: Start
+                        def getTestCase = testRunner.testCase;
+                        def testst = testRunner.testCase.getTestStepByName("JSON Request");                 
+                            newTestStep = TestCaseName
+                            cleanUp(newTestStep)
+                            getTestCase.cloneStep(restRequest,newTestStep)
+                             
+                         //teststep cloned: End
+                         //Executing the testcase
+                        testRunner.runTestStepByName(newTestStep)
+ 
+                         //retrive response         
+                       def ResponseMessage = testRunner.testCase.testSteps[newTestStep].testRequest.response.contentAsString
+                    
+                         //new JsonSlurper to parse and get the response in Json format
+                        def slurper1 = new JsonSlurper()
+                        def json = slurper1.parseText(ResponseMessage)
+                    
+                                  
+                           // get lineItemID from response json                                 
+                        addCell(0,i,json.priorAuthModifierResponse[0].lineItemID.toString(),sheet1);                                   
+                          // get firstModifier from response json                                   
+                        addCell(1,i,json.priorAuthModifierResponse[0].firstModifier.toString(),sheet1);  
+                         // get secondModifier from response json                                   
+                        addCell(2,i,json.priorAuthModifierResponse[0].secondModifier.toString(),sheet1); 
+					// get thirdModifier from response json                                   
+                        addCell(3,i,json.priorAuthModifierResponse[0].thirdModifier.toString(),sheet1);  
+                         // get fourthModifier from response json                                   
+                        addCell(4,i,json.priorAuthModifierResponse[0].fourthModifier.toString(),sheet1);
+
+                                                                                  
+                      //dynamic asserstion :Start
+                   def testStepForAssertion = testRunner.testCase.getTestStepByName(newTestStep);
+                                //ValidHTTPStatusCodes 200 Assertion
+                  addAssertionValidHTTPStatusCodes(testStepForAssertion,"Valid HTTP Status Codes_"+i)
+            
+                             //get the expected values
+                          lineItemID = sh.getCell(7,i).getContents()
+                       addAssertionJsonPathMatch(testStepForAssertion,lineItemID,"priorAuthModifierResponse[0].lineItemID","lineItemID")
+
+                          firstModifier = sh.getCell(8,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,firstModifier,"priorAuthModifierResponse[0].firstModifier","firstModifier")
+
+                          secondModifier = sh.getCell(9,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,secondModifier,"priorAuthModifierResponse[0].secondModifier","secondModifier") 
+                       
+                       thirdModifier = sh.getCell(10,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,thirdModifier,"priorAuthModifierResponse[0].thirdModifier","thirdModifier") 
+                       
+                       fourthModifier = sh.getCell(11,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,fourthModifier,"priorAuthModifierResponse[0].fourthModifier","fourthModifier")  
+
+                                                          
+                            //dynamic asserstion :End
+                            assertionResult = testStepForAssertion.getAssertionStatus()
+             if(assertionResult.toString().equals("FAILED")){
+
+                                       addCell(4,i,"Fail",sheet1);
+                                   for( assertion in testStepForAssertion.assertionList ){
+                                  for( e in assertion.errors ){
+
+                                                     addCell(5,i,e.message,sheet1);
+
+                                                } 
+
+                                   }
+
+                                }
+
+
+                                else{
+
+                                   addCell(4,i,"PASS",sheet1);
+
+                                }
+
+ 
+       }
+
+      wb1.write();
+            log.info "TestCase Execution Completed successfully"
+
+ 
+
+               }             
+     
+catch(Exception e)
+{
+
+                 log.info(e)                         
+}
+
+finally
+{
+
+    //close workbook
+     wb.close();
+     wb1.close();     
+
+}
+
+//Method code
+def addAssertionJsonPathMatch(RestTestRequestStep testStepForAssertion,String expectedContent,String xPath,String assertionName) {
+          def assertionType = testStepForAssertion.addAssertion("JsonPath Match")
+                                assertionType.name = assertionName
+                                assertionType.setPath(xPath)
+                                assertionType.setExpectedContent(expectedContent)
+                                assertionType.setAllowWildcards(true) 
+
+}
+
+//Method code
+def addAssertionValidHTTPStatusCodes(RestTestRequestStep testStepForAssertion,String assertionName) {
+
+         def StatusCodeAssertionxpath = testStepForAssertion.addAssertion("Valid HTTP Status Codes")
+             StatusCodeAssertionxpath.name = assertionName
+             StatusCodeAssertionxpath.codes=200
+
+}
+
+//method to delete
+def cleanUp(String requestName){
+
+                //remove the teststep::Start
+                def testCase = testRunner.testCase
+                def testStep = testCase.getTestStepByName(requestName)
+
+                if (testStep!=null){
+
+ 
+                                    testCase.removeTestStep(testStep)
+                }
+
+    
+            //remove the teststep::End
+
+}
+
+ 
+
+//method to add Cell to sheet1
+
+def addCell(int colmNum,int rowNum,String lblName,WritableSheet sheet1 ){
+
+                 Label header = new Label(colmNum,rowNum,lblName);
+                sheet1.addCell(header);               
+
+}</script>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="groovy" name="DeterminePriorAuthWithModifier_MultiLineItem" id="8e08304a-22aa-4a6d-8643-ec1cb523f310">
+    <con:settings/>
+    <con:config>
+      <script>import jxl.*;
+import jxl.write.*
+import java.io.*
+import java.io.file.*
+import java.util.*
+import java.lang.*
+import jxl.read.biff.BiffException;
+import net.sf.*
+import net.sf.json.*
+import net.sf.json.groovy.*
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+import groovy.json.JsonBuilder
+import com.eviware.soapui.model.testsuite.TestStepResult.TestStepStatus
+import com.eviware.soapui.impl.wsdl.teststeps.RestTestRequestStep
+
+def groovyUtils = new com.eviware.soapui.support.GroovyUtils(context)
+def projectDir = groovyUtils.projectPath
+
+def inputfile =  projectDir + "/DeterminePriorAuthWithModifier/DeterminePriorAuthorizationModifier_Input.xls"
+def outputfile = projectDir + "/DeterminePriorAuthWithModifier/DeterminePriorAuthWithModifier-MultiLineItem-Output.xls"
+
+//Creating workbook for reading value from Excel Sheet
+
+Workbook wb = Workbook.getWorkbook(new File(inputfile))
+Sheet sh = wb.getSheet("ExpectedResults-MultiLineItem")
+Sheet jsonInput = wb.getSheet("JSON-MultiLineItem")
+
+//reading data from input Excel sheet
+rc = sh.getRows();
+cc = sh.getColumns();
+Cell jreq = jsonInput.getCell(0,0)
+
+//Creating Workbook for writing value in Excel Sheet
+WritableWorkbook wb1= Workbook.createWorkbook(new File(outputfile));
+WritableSheet sheet1 = wb1.createSheet("ActualResults",0);
+
+//Header declaration for output file
+addCell(0,0,"lineItemID",sheet1);
+addCell(1,0,"firstModifier",sheet1);
+addCell(2,0,"secondModifier",sheet1);
+addCell(3,0,"thirdModifier",sheet1);
+addCell(4,0,"fourthModifier",sheet1);
+addCell(5,0,"lineItemID",sheet1);
+addCell(6,0,"firstModifier",sheet1);
+addCell(7,0,"secondModifier",sheet1);
+addCell(8,0,"thirdModifier",sheet1);
+addCell(9,0,"fourthModifier",sheet1);
+addCell(10,0,"PASS/FAIL",sheet1);
+addCell(11,0,"FAILED DUE TO",sheet1);
+ 
+//new testStepName
+def newTestStep=null
+
+try {
+
+   
+               def req = jreq.getContents()
+               //Assigning request value dynamically
+               //request
+               def slurper = new JsonSlurper().parseText(req);
+               def requestTemplet = new JsonBuilder(slurper);
+
+         
+               for (i=2;i&lt;rc;i++){
+
+                           // Input for TestCaseName
+                         Cell varTestCaseName = sh.getCell(0,i)
+                        def TestCaseName = varTestCaseName.getContents()
+                        
+                                 //Input for Line Item ID
+                                requestTemplet.content.lineItems[0].lineItemID = sh.getCell(1,i).getContents()
+                                //Input for productClass
+                                requestTemplet.content.lineItems[0].productClass = sh.getCell(2,i).getContents().toString()
+                                 //Input for hcpcsCode                                  
+                                requestTemplet.content.lineItems[0].hcpcsCode = sh.getCell(3,i).getContents().toString()
+                                //Input for itemNumber                               
+                                requestTemplet.content.lineItems[0].itemNumber = sh.getCell(4,i).getContents().toString()  
+                                //Input for PayerID
+                                requestTemplet.content.lineItems[0].plans[0].id = sh.getCell(5,i).getContents().toString()
+                                //Input for planName
+                                requestTemplet.content.lineItems[0].plans[0].planCode = sh.getCell(6,i).getContents().toString()   
+                                                                                                              
+                                //Input for Line Item ID1
+						   requestTemplet.content.lineItems[1].lineItemID = sh.getCell(7,i).getContents().toString()
+                                //Input for productClass1
+                                requestTemplet.content.lineItems[1].productClass = sh.getCell(8,i).getContents().toString()
+                                 //Input for hcpcsCode 1                                 
+                                requestTemplet.content.lineItems[1].hcpcsCode = sh.getCell(9,i).getContents().toString()
+                                //Input for itemNumber 1                              
+                                requestTemplet.content.lineItems[1].itemNumber = sh.getCell(10,i).getContents().toString()  
+                                //Input for PayerID1
+                                requestTemplet.content.lineItems[1].plans[0].id = sh.getCell(11,i).getContents().toString()
+                                //Input for planName1
+                                requestTemplet.content.lineItems[1].plans[0].planCode = sh.getCell(12,i).getContents().toString()
+                         
+
+                              //Assign json request to variable
+                       def jsonReqAsString = requestTemplet.toPrettyString()
+                       def restRequest = testRunner.testCase.getTestStepByName('JSON Request');
+                       restRequest.setPropertyValue('Request',jsonReqAsString);
+
+                                //teststep cloned: Start
+                        def getTestCase = testRunner.testCase;
+                        def testst = testRunner.testCase.getTestStepByName("JSON Request");                 
+                            newTestStep = TestCaseName
+                            cleanUp(newTestStep)
+                            getTestCase.cloneStep(restRequest,newTestStep)
+                             
+                         //teststep cloned: End
+                         //Executing the testcase
+                        testRunner.runTestStepByName(newTestStep)
+ 
+                         //retrive response         
+                       def ResponseMessage = testRunner.testCase.testSteps[newTestStep].testRequest.response.contentAsString
+                    
+                         //new JsonSlurper to parse and get the response in Json format
+                        def slurper1 = new JsonSlurper()
+                        def json = slurper1.parseText(ResponseMessage)
+                    
+                                  
+                           // get lineItemID from response json                                 
+                        addCell(0,i,json.priorAuthModifierResponse[0].lineItemID.toString(),sheet1);                                   
+                          // get firstModifier from response json                                   
+                        addCell(1,i,json.priorAuthModifierResponse[0].firstModifier.toString(),sheet1);  
+                         // get secondModifier from response json                                   
+                        addCell(2,i,json.priorAuthModifierResponse[0].secondModifier.toString(),sheet1); 
+					// get thirdModifier from response json                                   
+                        addCell(3,i,json.priorAuthModifierResponse[0].thirdModifier.toString(),sheet1);  
+                         // get fourthModifier from response json                                   
+                        addCell(4,i,json.priorAuthModifierResponse[0].fourthModifier.toString(),sheet1);
+
+                        // get lineItemID from response json                                 
+                        addCell(5,i,json.priorAuthModifierResponse[1].lineItemID.toString(),sheet1);                                   
+                          // get gracePeriodDays from response json                                   
+                        addCell(6,i,json.priorAuthModifierResponse[1].firstModifier.toString(),sheet1);  
+                         // get limitsValid from response json                                   
+                        addCell(7,i,json.priorAuthModifierResponse[1].secondModifier.toString(),sheet1); 
+                        // get thirdModifier from response json                                   
+                        addCell(8,i,json.priorAuthModifierResponse[1].thirdModifier.toString(),sheet1);  
+                         // get fourthModifier from response json                                   
+                        addCell(9,i,json.priorAuthModifierResponse[1].fourthModifier.toString(),sheet1);
+                                                                            
+                                                           
+                      //dynamic asserstion :Start
+                   def testStepForAssertion = testRunner.testCase.getTestStepByName(newTestStep);
+                                //ValidHTTPStatusCodes 200 Assertion
+                  addAssertionValidHTTPStatusCodes(testStepForAssertion,"Valid HTTP Status Codes_"+i)
+            
+                             //get the expected values
+                          lineItemID = sh.getCell(13,i).getContents()
+                       addAssertionJsonPathMatch(testStepForAssertion,lineItemID,"priorAuthModifierResponse[0].lineItemID","lineItemID")
+
+                          firstModifier = sh.getCell(14,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,firstModifier,"priorAuthModifierResponse[0].firstModifier","firstModifier")
+
+                          secondModifier = sh.getCell(15,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,secondModifier,"priorAuthModifierResponse[0].secondModifier","secondModifier") 
+                       
+                       thirdModifier = sh.getCell(16,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,thirdModifier,"priorAuthModifierResponse[0].thirdModifier","thirdModifier") 
+                       
+                       fourthModifier = sh.getCell(17,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,fourthModifier,"priorAuthModifierResponse[0].fourthModifier","fourthModifier")  
+
+                                        //get the expected values
+                          lineItemID1 = sh.getCell(18,i).getContents()
+                       addAssertionJsonPathMatch(testStepForAssertion,lineItemID1,"priorAuthModifierResponse[1].lineItemID","lineItemID1")
+
+                          firstModifier1 = sh.getCell(19,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,firstModifier1,"priorAuthModifierResponse[1].firstModifier","firstModifier1")
+
+                          secondModifier1 = sh.getCell(20,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,secondModifier1,"priorAuthModifierResponse[1].secondModifier","secondModifier1") 
+                       
+                       thirdModifier1 = sh.getCell(21,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,thirdModifier1,"priorAuthModifierResponse[1].thirdModifier","thirdModifier1") 
+                       
+                       fourthModifier1 = sh.getCell(22,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,fourthModifier1,"priorAuthModifierResponse[1].fourthModifier","fourthModifier1")
+                                               
+                   
+                            //dynamic asserstion :End
+                            assertionResult = testStepForAssertion.getAssertionStatus()
+             if(assertionResult.toString().equals("FAILED")){
+
+                                       addCell(10,i,"Fail",sheet1);
+                                   for( assertion in testStepForAssertion.assertionList ){
+                                  for( e in assertion.errors ){
+
+                                                     addCell(11,i,e.message,sheet1);
+
+                                                } 
+
+                                   }
+
+                                }
+
+
+                                else{
+
+                                   addCell(10,i,"PASS",sheet1);
+
+                                }
+
+ 
+       }
+
+      wb1.write();
+            log.info "TestCase Execution Completed successfully"
+
+ 
+
+               }             
+     
+catch(Exception e)
+{
+
+                 log.info(e)                         
+}
+
+finally
+{
+
+    //close workbook
+     wb.close();
+     wb1.close();     
+
+}
+
+//Method code
+def addAssertionJsonPathMatch(RestTestRequestStep testStepForAssertion,String expectedContent,String xPath,String assertionName) {
+          def assertionType = testStepForAssertion.addAssertion("JsonPath Match")
+                                assertionType.name = assertionName
+                                assertionType.setPath(xPath)
+                                assertionType.setExpectedContent(expectedContent)
+                                assertionType.setAllowWildcards(true) 
+
+}
+
+//Method code
+def addAssertionValidHTTPStatusCodes(RestTestRequestStep testStepForAssertion,String assertionName) {
+
+         def StatusCodeAssertionxpath = testStepForAssertion.addAssertion("Valid HTTP Status Codes")
+             StatusCodeAssertionxpath.name = assertionName
+             StatusCodeAssertionxpath.codes=200
+
+}
+
+//method to delete
+def cleanUp(String requestName){
+
+                //remove the teststep::Start
+                def testCase = testRunner.testCase
+                def testStep = testCase.getTestStepByName(requestName)
+
+                if (testStep!=null){
+
+ 
+                                    testCase.removeTestStep(testStep)
+                }
+
+    
+            //remove the teststep::End
+
+}
+
+ 
+
+//method to add Cell to sheet1
+
+def addCell(int colmNum,int rowNum,String lblName,WritableSheet sheet1 ){
+
+                 Label header = new Label(colmNum,rowNum,lblName);
+                sheet1.addCell(header);               
+
+}</script>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="JSON Request" id="107388dd-2cb3-4719-9405-acf730158b4c">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DeterminePriorAuthWithModifier/DeterminePriorAuthWithModifier/WADL" methodName="DeterminePriorAuthWithModifier" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="JSON Request" id="438ba5cd-6b03-4c44-a82b-85101aad67f8" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "DeterminePriorAuthWithModifier/DeterminePriorAuthWithModifier",
+            "correlationID": "string",
+            "from": "PCF",
+            "timestamp": "2008-09-28T21:49:45.000-0400"
+        },
+        "serviceParameters": {
+            "accountId": "string",
+            "agentId": "string",
+            "orderId": "string",
+            "serviceTags": [
+                "string"
+            ]
+        },
+        "serviceState": {
+            "errorCode": "string",
+            "errorText": "string",
+            "errorTrace": "string",
+            "stateCode": "string"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "1234",
+            "itemNumber": "EDSTSOR003",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "payer1",
+                    "planCode": "9997"
+                },
+                {
+                    "id": "payer2",
+                    "planCode": "0011"
+                }
+            ],
+            "productClass": ""
+        },
+        {
+            "hcpcsCode": "E0784",
+            "itemNumber": "EDSTSOR003",
+            "lineItemID": "L002",
+            "plans": [
+                {
+                    "id": "payer2",
+                    "planCode": "9687"
+                }
+            ],
+            "productClass": "GARMENTS1234"
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DeterminePriorAuthWithModifier/DeterminePriorAuthWithModifier/WADL</con:originalUri>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-55440" id="16f6aa3c-deac-4f48-938a-af4af7ca5b5d">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DeterminePriorAuthWithModifier/DeterminePriorAuthWithModifier/WADL" methodName="DeterminePriorAuthWithModifier" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-55440" id="438ba5cd-6b03-4c44-a82b-85101aad67f8" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "DeterminePriorAuthWithModifier/DeterminePriorAuthWithModifier",
+            "correlationID": "string",
+            "from": "PCF",
+            "timestamp": "2008-09-28T21:49:45.000-0400"
+        },
+        "serviceParameters": {
+            "accountId": "string",
+            "agentId": "string",
+            "orderId": "string",
+            "serviceTags": [
+                "string"
+            ]
+        },
+        "serviceState": {
+            "errorCode": "string",
+            "errorText": "string",
+            "errorTrace": "string",
+            "stateCode": "string"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "",
+            "itemNumber": "",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "payer1",
+                    "planCode": "9993"
+                },
+                {
+                    "id": "payer2",
+                    "planCode": "0011"
+                }
+            ],
+            "productClass": ""
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DeterminePriorAuthWithModifier/DeterminePriorAuthWithModifier/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="92786980-880a-45d8-bc75-7d3c64cc56c8" name="Valid HTTP Status Codes_2">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="d1b165ad-439c-436b-bbbd-24a117e1a6fa" name="lineItemID">
+          <con:configuration>
+            <path>priorAuthModifierResponse[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="d70822a6-c7dd-4d29-9e0f-3ebf615617eb" name="firstModifier">
+          <con:configuration>
+            <path>priorAuthModifierResponse[0].firstModifier</path>
+            <content>NU</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="264328bc-7876-4f3d-80d5-47f0031cc1c4" name="secondModifier">
+          <con:configuration>
+            <path>priorAuthModifierResponse[0].secondModifier</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="e1904ec6-67b1-47fe-8187-98e1c64d801c" name="thirdModifier">
+          <con:configuration>
+            <path>priorAuthModifierResponse[0].thirdModifier</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="3ac7d160-3ff6-48fc-b97b-cffc2cf6107e" name="fourthModifier">
+          <con:configuration>
+            <path>priorAuthModifierResponse[0].fourthModifier</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-55441" id="98fbdc37-b3ae-4586-bbf7-debb7b7633e8">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DeterminePriorAuthWithModifier/DeterminePriorAuthWithModifier/WADL" methodName="DeterminePriorAuthWithModifier" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-55441" id="438ba5cd-6b03-4c44-a82b-85101aad67f8" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "DeterminePriorAuthWithModifier/DeterminePriorAuthWithModifier",
+            "correlationID": "string",
+            "from": "PCF",
+            "timestamp": "2008-09-28T21:49:45.000-0400"
+        },
+        "serviceParameters": {
+            "accountId": "string",
+            "agentId": "string",
+            "orderId": "string",
+            "serviceTags": [
+                "string"
+            ]
+        },
+        "serviceState": {
+            "errorCode": "string",
+            "errorText": "string",
+            "errorTrace": "string",
+            "stateCode": "string"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "",
+            "itemNumber": "EDSTSOR003",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "payer1",
+                    "planCode": "7598"
+                },
+                {
+                    "id": "payer2",
+                    "planCode": "0011"
+                }
+            ],
+            "productClass": ""
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DeterminePriorAuthWithModifier/DeterminePriorAuthWithModifier/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="a44c35dc-4e5c-45e9-9aa0-54fd2406ad98" name="Valid HTTP Status Codes_3">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="0a025156-e58e-44e7-9d1b-e6f0cfa35a9f" name="lineItemID">
+          <con:configuration>
+            <path>priorAuthModifierResponse[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="cb9ceab8-dd12-454a-99be-01d5bdb88916" name="firstModifier">
+          <con:configuration>
+            <path>priorAuthModifierResponse[0].firstModifier</path>
+            <content>NU</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="dcaaf7b8-4803-4c75-a934-e5e942385128" name="secondModifier">
+          <con:configuration>
+            <path>priorAuthModifierResponse[0].secondModifier</path>
+            <content>KX</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="056d31bf-687e-4e2e-acd5-e3bce1fe599c" name="thirdModifier">
+          <con:configuration>
+            <path>priorAuthModifierResponse[0].thirdModifier</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="c2a7e6eb-cec8-421c-bc95-bc82f16e2079" name="fourthModifier">
+          <con:configuration>
+            <path>priorAuthModifierResponse[0].fourthModifier</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-55442" id="420bc50a-6957-4335-8f5a-b2f53bdbd0dd">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DeterminePriorAuthWithModifier/DeterminePriorAuthWithModifier/WADL" methodName="DeterminePriorAuthWithModifier" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-55442" id="438ba5cd-6b03-4c44-a82b-85101aad67f8" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "DeterminePriorAuthWithModifier/DeterminePriorAuthWithModifier",
+            "correlationID": "string",
+            "from": "PCF",
+            "timestamp": "2008-09-28T21:49:45.000-0400"
+        },
+        "serviceParameters": {
+            "accountId": "string",
+            "agentId": "string",
+            "orderId": "string",
+            "serviceTags": [
+                "string"
+            ]
+        },
+        "serviceState": {
+            "errorCode": "string",
+            "errorText": "string",
+            "errorTrace": "string",
+            "stateCode": "string"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "",
+            "itemNumber": "EDSTSOR004",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "payer1",
+                    "planCode": "7604"
+                },
+                {
+                    "id": "payer2",
+                    "planCode": "0011"
+                }
+            ],
+            "productClass": ""
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DeterminePriorAuthWithModifier/DeterminePriorAuthWithModifier/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="b2b6979a-ec6b-4947-812a-3c221f93d5dc" name="Valid HTTP Status Codes_4">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="e31b451b-4fb4-4380-8328-0cbf0e5b470b" name="lineItemID">
+          <con:configuration>
+            <path>priorAuthModifierResponse[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="0fc030e8-84cd-4bfe-b435-b1cb42989e1c" name="firstModifier">
+          <con:configuration>
+            <path>priorAuthModifierResponse[0].firstModifier</path>
+            <content>NU</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="c208fc78-0222-4625-93eb-28f1bf8e8c1f" name="secondModifier">
+          <con:configuration>
+            <path>priorAuthModifierResponse[0].secondModifier</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="73f3ce5e-bbe0-499f-b2c1-e7c9e85a41d3" name="thirdModifier">
+          <con:configuration>
+            <path>priorAuthModifierResponse[0].thirdModifier</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="47aaf85d-ce02-4a50-ad42-c3770bcfd09c" name="fourthModifier">
+          <con:configuration>
+            <path>priorAuthModifierResponse[0].fourthModifier</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-55443" id="30d7849a-6563-45f2-9c76-efc5e0124309">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DeterminePriorAuthWithModifier/DeterminePriorAuthWithModifier/WADL" methodName="DeterminePriorAuthWithModifier" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-55443" id="438ba5cd-6b03-4c44-a82b-85101aad67f8" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "DeterminePriorAuthWithModifier/DeterminePriorAuthWithModifier",
+            "correlationID": "string",
+            "from": "PCF",
+            "timestamp": "2008-09-28T21:49:45.000-0400"
+        },
+        "serviceParameters": {
+            "accountId": "string",
+            "agentId": "string",
+            "orderId": "string",
+            "serviceTags": [
+                "string"
+            ]
+        },
+        "serviceState": {
+            "errorCode": "string",
+            "errorText": "string",
+            "errorTrace": "string",
+            "stateCode": "string"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "1234",
+            "itemNumber": "EDSTSOR003",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "payer1",
+                    "planCode": "9997"
+                },
+                {
+                    "id": "payer2",
+                    "planCode": "0011"
+                }
+            ],
+            "productClass": ""
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DeterminePriorAuthWithModifier/DeterminePriorAuthWithModifier/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="a6bf1688-670c-4041-b8d3-a864557ed2c2" name="Valid HTTP Status Codes_5">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="f17e8adf-16c5-47b3-87af-e9dff46ecf9a" name="lineItemID">
+          <con:configuration>
+            <path>priorAuthModifierResponse[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="ed8b2944-7a7d-47ab-9d88-4d21c85e86f3" name="firstModifier">
+          <con:configuration>
+            <path>priorAuthModifierResponse[0].firstModifier</path>
+            <content>NU</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="4ce4557f-ef82-4b38-87d9-4881489cc0a0" name="secondModifier">
+          <con:configuration>
+            <path>priorAuthModifierResponse[0].secondModifier</path>
+            <content>KX</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="ea312528-c0e1-4926-b378-9ac6e771a5e8" name="thirdModifier">
+          <con:configuration>
+            <path>priorAuthModifierResponse[0].thirdModifier</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="9b0a25f0-3d09-43e5-ba59-2e5814dc03c4" name="fourthModifier">
+          <con:configuration>
+            <path>priorAuthModifierResponse[0].fourthModifier</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-55444" id="cd651206-0691-4388-b2c1-82f4d92e68f9">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DeterminePriorAuthWithModifier/DeterminePriorAuthWithModifier/WADL" methodName="DeterminePriorAuthWithModifier" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-55444" id="438ba5cd-6b03-4c44-a82b-85101aad67f8" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "DeterminePriorAuthWithModifier/DeterminePriorAuthWithModifier",
+            "correlationID": "string",
+            "from": "PCF",
+            "timestamp": "2008-09-28T21:49:45.000-0400"
+        },
+        "serviceParameters": {
+            "accountId": "string",
+            "agentId": "string",
+            "orderId": "string",
+            "serviceTags": [
+                "string"
+            ]
+        },
+        "serviceState": {
+            "errorCode": "string",
+            "errorText": "string",
+            "errorTrace": "string",
+            "stateCode": "string"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "",
+            "itemNumber": "",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "payer1",
+                    "planCode": "9687"
+                },
+                {
+                    "id": "payer2",
+                    "planCode": "0011"
+                }
+            ],
+            "productClass": ""
+        },
+        {
+            "hcpcsCode": "",
+            "itemNumber": "",
+            "lineItemID": "L002",
+            "plans": [
+                {
+                    "id": "payer2",
+                    "planCode": "9996"
+                }
+            ],
+            "productClass": "GARMENTS1234"
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DeterminePriorAuthWithModifier/DeterminePriorAuthWithModifier/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="e84b5ab2-f417-4db5-92b4-fb115bcc3daa" name="Valid HTTP Status Codes_2">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="565ddd37-3236-486f-be6b-867b16c083ac" name="lineItemID">
+          <con:configuration>
+            <path>priorAuthModifierResponse[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="c3e32018-4259-4352-932a-95774a973d47" name="firstModifier">
+          <con:configuration>
+            <path>priorAuthModifierResponse[0].firstModifier</path>
+            <content>NU</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="a68eb8a5-94ee-4bd5-ae97-be1f8591bf7a" name="secondModifier">
+          <con:configuration>
+            <path>priorAuthModifierResponse[0].secondModifier</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="ec8ccbd9-b75a-41f1-9b6c-b21faab60b5e" name="thirdModifier">
+          <con:configuration>
+            <path>priorAuthModifierResponse[0].thirdModifier</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="c93602a4-8a14-477a-94bd-14abbeedabe0" name="fourthModifier">
+          <con:configuration>
+            <path>priorAuthModifierResponse[0].fourthModifier</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="b6054a9f-e4a0-43c9-95e2-e2f205ee19c7" name="lineItemID1">
+          <con:configuration>
+            <path>priorAuthModifierResponse[1].lineItemID</path>
+            <content>L002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="f4bbcd67-a936-4733-ac11-002362dc3dc0" name="firstModifier1">
+          <con:configuration>
+            <path>priorAuthModifierResponse[1].firstModifier</path>
+            <content>NU</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="590b6510-c5fb-4c56-935c-26ef3a3ce24b" name="secondModifier1">
+          <con:configuration>
+            <path>priorAuthModifierResponse[1].secondModifier</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="89ef3e37-c52b-4580-aaa7-0528746c4614" name="thirdModifier1">
+          <con:configuration>
+            <path>priorAuthModifierResponse[1].thirdModifier</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="48240cf2-130e-420f-9d91-2eb0086bd211" name="fourthModifier1">
+          <con:configuration>
+            <path>priorAuthModifierResponse[1].fourthModifier</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-55445" id="822384ba-a702-4572-b407-6c6640055d03">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DeterminePriorAuthWithModifier/DeterminePriorAuthWithModifier/WADL" methodName="DeterminePriorAuthWithModifier" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-55445" id="438ba5cd-6b03-4c44-a82b-85101aad67f8" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "DeterminePriorAuthWithModifier/DeterminePriorAuthWithModifier",
+            "correlationID": "string",
+            "from": "PCF",
+            "timestamp": "2008-09-28T21:49:45.000-0400"
+        },
+        "serviceParameters": {
+            "accountId": "string",
+            "agentId": "string",
+            "orderId": "string",
+            "serviceTags": [
+                "string"
+            ]
+        },
+        "serviceState": {
+            "errorCode": "string",
+            "errorText": "string",
+            "errorTrace": "string",
+            "stateCode": "string"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "",
+            "itemNumber": "EDSTSOR003",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "payer1",
+                    "planCode": "9993"
+                },
+                {
+                    "id": "payer2",
+                    "planCode": "0011"
+                }
+            ],
+            "productClass": ""
+        },
+        {
+            "hcpcsCode": "E0784",
+            "itemNumber": "EDSTSOR003",
+            "lineItemID": "L002",
+            "plans": [
+                {
+                    "id": "payer2",
+                    "planCode": "7598"
+                }
+            ],
+            "productClass": ""
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DeterminePriorAuthWithModifier/DeterminePriorAuthWithModifier/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="14e348fc-ac4a-4df7-a097-46b3e97fb42e" name="Valid HTTP Status Codes_3">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="e8c29050-2baf-4552-bcfb-a8453fae5e43" name="lineItemID">
+          <con:configuration>
+            <path>priorAuthModifierResponse[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="9a4ad128-1ae3-4d8d-b42d-5c2bc73bef86" name="firstModifier">
+          <con:configuration>
+            <path>priorAuthModifierResponse[0].firstModifier</path>
+            <content>NU</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="5a126c85-3db9-4f5f-a5bf-19d34b9acd07" name="secondModifier">
+          <con:configuration>
+            <path>priorAuthModifierResponse[0].secondModifier</path>
+            <content>KX</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="d4194a11-1ea9-4f8c-ae09-e637cf36e8a1" name="thirdModifier">
+          <con:configuration>
+            <path>priorAuthModifierResponse[0].thirdModifier</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="d117ecff-5ca1-47b1-bfc1-7452323b2ee6" name="fourthModifier">
+          <con:configuration>
+            <path>priorAuthModifierResponse[0].fourthModifier</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="a855f174-51c8-4852-a695-84c7f53153ad" name="lineItemID1">
+          <con:configuration>
+            <path>priorAuthModifierResponse[1].lineItemID</path>
+            <content>L002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="73fa8f05-c179-4f0a-8375-f1c9a7267bd7" name="firstModifier1">
+          <con:configuration>
+            <path>priorAuthModifierResponse[1].firstModifier</path>
+            <content>NU</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="87b3d45a-fab7-4bf9-8882-f9b5998ab919" name="secondModifier1">
+          <con:configuration>
+            <path>priorAuthModifierResponse[1].secondModifier</path>
+            <content>KX</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="b28221a1-d287-4ef9-97df-20e2b7e510a4" name="thirdModifier1">
+          <con:configuration>
+            <path>priorAuthModifierResponse[1].thirdModifier</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="cc9f1d42-966f-4b7c-b8e7-e8550a8538e7" name="fourthModifier1">
+          <con:configuration>
+            <path>priorAuthModifierResponse[1].fourthModifier</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-55446" id="277924cf-e208-4482-bc2a-3e3f71963226">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DeterminePriorAuthWithModifier/DeterminePriorAuthWithModifier/WADL" methodName="DeterminePriorAuthWithModifier" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-55446" id="438ba5cd-6b03-4c44-a82b-85101aad67f8" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "DeterminePriorAuthWithModifier/DeterminePriorAuthWithModifier",
+            "correlationID": "string",
+            "from": "PCF",
+            "timestamp": "2008-09-28T21:49:45.000-0400"
+        },
+        "serviceParameters": {
+            "accountId": "string",
+            "agentId": "string",
+            "orderId": "string",
+            "serviceTags": [
+                "string"
+            ]
+        },
+        "serviceState": {
+            "errorCode": "string",
+            "errorText": "string",
+            "errorTrace": "string",
+            "stateCode": "string"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "",
+            "itemNumber": "EDSTSOR004",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "payer1",
+                    "planCode": "7620"
+                },
+                {
+                    "id": "payer2",
+                    "planCode": "0011"
+                }
+            ],
+            "productClass": "GARMENTS123"
+        },
+        {
+            "hcpcsCode": "",
+            "itemNumber": "EDSTSOR004",
+            "lineItemID": "L002",
+            "plans": [
+                {
+                    "id": "payer2",
+                    "planCode": "7604"
+                }
+            ],
+            "productClass": ""
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DeterminePriorAuthWithModifier/DeterminePriorAuthWithModifier/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="3dee4da9-3fec-49d5-892b-9f1a49e00ce7" name="Valid HTTP Status Codes_4">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="f02ea33a-d083-46df-a266-05b6ab9133eb" name="lineItemID">
+          <con:configuration>
+            <path>priorAuthModifierResponse[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="7bf24570-f902-4895-8066-cd7a784396a6" name="firstModifier">
+          <con:configuration>
+            <path>priorAuthModifierResponse[0].firstModifier</path>
+            <content>NU</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="f2da2ecd-f3ee-48ef-a972-5f7961600649" name="secondModifier">
+          <con:configuration>
+            <path>priorAuthModifierResponse[0].secondModifier</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="9be455fb-6788-455c-b380-e87ac8101201" name="thirdModifier">
+          <con:configuration>
+            <path>priorAuthModifierResponse[0].thirdModifier</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="8ba9a22f-0898-4fb4-a19e-a0a7a0649db7" name="fourthModifier">
+          <con:configuration>
+            <path>priorAuthModifierResponse[0].fourthModifier</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="c9885f83-e718-447a-974a-c9575509a673" name="lineItemID1">
+          <con:configuration>
+            <path>priorAuthModifierResponse[1].lineItemID</path>
+            <content>L002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="96414c4e-98ee-4205-b08e-7b9c62d230b3" name="firstModifier1">
+          <con:configuration>
+            <path>priorAuthModifierResponse[1].firstModifier</path>
+            <content>NU</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="e28c7d9b-777c-4127-8a40-73e426916913" name="secondModifier1">
+          <con:configuration>
+            <path>priorAuthModifierResponse[1].secondModifier</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="2004d340-8109-4dbb-b202-38197c428073" name="thirdModifier1">
+          <con:configuration>
+            <path>priorAuthModifierResponse[1].thirdModifier</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="816fd4f7-fe28-4732-9b03-8320a46254f8" name="fourthModifier1">
+          <con:configuration>
+            <path>priorAuthModifierResponse[1].fourthModifier</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-55447" id="3a8f8a99-0a8e-4c64-a80c-9d67c5fefd78">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DeterminePriorAuthWithModifier/DeterminePriorAuthWithModifier/WADL" methodName="DeterminePriorAuthWithModifier" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-55447" id="438ba5cd-6b03-4c44-a82b-85101aad67f8" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "DeterminePriorAuthWithModifier/DeterminePriorAuthWithModifier",
+            "correlationID": "string",
+            "from": "PCF",
+            "timestamp": "2008-09-28T21:49:45.000-0400"
+        },
+        "serviceParameters": {
+            "accountId": "string",
+            "agentId": "string",
+            "orderId": "string",
+            "serviceTags": [
+                "string"
+            ]
+        },
+        "serviceState": {
+            "errorCode": "string",
+            "errorText": "string",
+            "errorTrace": "string",
+            "stateCode": "string"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "1234",
+            "itemNumber": "EDSTSOR003",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "payer1",
+                    "planCode": "9997"
+                },
+                {
+                    "id": "payer2",
+                    "planCode": "0011"
+                }
+            ],
+            "productClass": ""
+        },
+        {
+            "hcpcsCode": "E0784",
+            "itemNumber": "EDSTSOR003",
+            "lineItemID": "L002",
+            "plans": [
+                {
+                    "id": "payer2",
+                    "planCode": "9687"
+                }
+            ],
+            "productClass": "GARMENTS1234"
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DeterminePriorAuthWithModifier/DeterminePriorAuthWithModifier/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="6e1bcaad-899d-45dc-b868-ffa9648e5858" name="Valid HTTP Status Codes_5">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="b228dbff-6b58-4ee5-80b4-a96db0c65eb2" name="lineItemID">
+          <con:configuration>
+            <path>priorAuthModifierResponse[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="e19a7975-66fc-472a-bf54-af92dad77151" name="firstModifier">
+          <con:configuration>
+            <path>priorAuthModifierResponse[0].firstModifier</path>
+            <content>NU</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="b42dfa6a-3baf-4071-adc5-4624e33793cd" name="secondModifier">
+          <con:configuration>
+            <path>priorAuthModifierResponse[0].secondModifier</path>
+            <content>KX</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="17cc8c10-bb5a-4837-a72c-2bf8888f554f" name="thirdModifier">
+          <con:configuration>
+            <path>priorAuthModifierResponse[0].thirdModifier</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="e5ed96fa-db9b-4a75-a63a-33301738dbec" name="fourthModifier">
+          <con:configuration>
+            <path>priorAuthModifierResponse[0].fourthModifier</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="0b9b4527-01be-4573-a9a6-7efa4c047b04" name="lineItemID1">
+          <con:configuration>
+            <path>priorAuthModifierResponse[1].lineItemID</path>
+            <content>L002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="acdb3f88-543c-49db-a971-0d14770d0f5d" name="firstModifier1">
+          <con:configuration>
+            <path>priorAuthModifierResponse[1].firstModifier</path>
+            <content>NU</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="bc7f9981-fe2e-4d78-9ee9-20aa4a83415c" name="secondModifier1">
+          <con:configuration>
+            <path>priorAuthModifierResponse[1].secondModifier</path>
+            <content>KX</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="ab0c18d0-8c47-40c4-a411-4a805221d69f" name="thirdModifier1">
+          <con:configuration>
+            <path>priorAuthModifierResponse[1].thirdModifier</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="e0caac91-08d9-41c2-b95c-b1b570515ae4" name="fourthModifier1">
+          <con:configuration>
+            <path>priorAuthModifierResponse[1].fourthModifier</path>
+            <content>null</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:properties/>
+  <con:reportParameters/>
+</con:testCase>

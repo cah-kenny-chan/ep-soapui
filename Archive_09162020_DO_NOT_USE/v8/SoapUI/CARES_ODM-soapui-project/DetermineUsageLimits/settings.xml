@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<con:testSuite id="845fcd47-84d0-4dbf-a6f6-824234a83fea" name="DetermineUsageLimits" xmlns:con="http://eviware.com/soapui/config">
+  <con:settings>
+    <con:setting id="845fcd47-84d0-4dbf-a6f6-824234a83feafileName">DetermineUsageLimits</con:setting>
+  </con:settings>
+  <con:runType>SEQUENTIAL</con:runType>
+  <con:properties/>
+  <con:reportParameters/>
+</con:testSuite>

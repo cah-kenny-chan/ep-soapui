@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<con:resource name="DetermineAllocationTypeForOrder" path="/DecisionService/rest/v1/DetermineAllocationTypeForOrder/DetermineAllocationTypeForOrder/WADL" id="93fb3551-a217-4459-b25d-4a894e85f110" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:con="http://eviware.com/soapui/config">
+  <con:settings>
+    <con:setting id="93fb3551-a217-4459-b25d-4a894e85f110fileName">DetermineAllocationTypeForOrder</con:setting>
+  </con:settings>
+  <con:parameters/>
+  <con:method name="DetermineAllocationTypeForOrder" id="13dc0e50-c2cb-4669-8a74-d2bd2f058603" method="POST">
+    <con:settings/>
+    <con:parameters/>
+    <con:request name="DetermineAllocationTypeForOrder" id="770b9035-ae76-4aec-8c2e-18a0e55c4c3d" mediaType="application/json" postQueryString="false">
+      <con:settings>
+        <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+      </con:settings>
+      <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+      <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "c123",
+            "from": "PCF",
+            "timestamp": "2008-09-29T07:19:45.000+0530"
+        }
+    },
+    "lineItems": [
+        {
+            "allocationType": "DB",
+            "itemNumber": "5459421200",
+            "lineItemID": "L001",
+            "productClass": ""
+        },
+        {
+            "allocationType": "RS",
+            "itemNumber": "5459421200",
+            "lineItemID": "L002",
+            "productClass": "57"
+        }
+    ]
+}</con:request>
+      <con:credentials>
+        <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+        <con:authType>No Authorization</con:authType>
+      </con:credentials>
+      <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+      <con:jmsPropertyConfig/>
+      <con:parameters/>
+    </con:request>
+  </con:method>
+</con:resource>

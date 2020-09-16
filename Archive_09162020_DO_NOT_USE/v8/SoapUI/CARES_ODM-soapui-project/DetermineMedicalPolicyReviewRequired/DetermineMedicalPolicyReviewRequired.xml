@@ -1,0 +1,1467 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<con:testCase id="2a86c549-af3f-4eb3-9643-ae1485bf9750" failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="DetermineMedicalPolicyReviewRequired" searchProperties="true" xmlns:con="http://eviware.com/soapui/config">
+  <con:settings>
+    <con:setting id="2a86c549-af3f-4eb3-9643-ae1485bf9750fileName">DetermineMedicalPolicyReviewRequired</con:setting>
+  </con:settings>
+  <con:testStep type="restrequest" name="JSON Request" id="ca950f41-2b23-495c-938d-80d0046d6333">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineMedicalPolicyReviewRequired/DetermineMedicalPolicyReviewRequired/WADL" methodName="DetermineMedicalPolicyReviewRequired" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="JSON Request" id="1fe3765e-87bb-4306-8f52-e52ea7b3c0e7" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "DetermineMedicalPolicyReviewRequired/DetermineMedicalPolicyReviewRequired",
+            "correlationID": "string",
+            "from": "PCF",
+            "timestamp": "2014-09-19T04:48:33.000+0530"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA001",
+                    "planCode": "6683",
+                    "type": ""
+                }
+            ],
+            "productCategory": "Diabetes",
+            "productSubCategory1": "Diabetes Testing",
+            "productSubCategory2": "Continuous Glucose Monitors",
+            "productSubCategory3": "ANY",
+            "productSubCategory4": "ANY"
+        },
+        {
+            "hcpcsCode": "ANY",
+            "lineItemID": "L002",
+            "plans": [
+                {
+                    "id": "PA002",
+                    "planCode": "",
+                    "type": ""
+                }
+            ],
+            "productCategory": "Diabetes",
+            "productSubCategory1": "Diabetes Testing",
+            "productSubCategory2": "Continuous Glucose Monitors",
+            "productSubCategory3": "ANY",
+            "productSubCategory4": "ANY"
+        }
+    ]
+}</con:request>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="groovy" name="DetermineMedicalPolicyReviewRequired_SingleLineItem" id="0405515d-df6a-4af1-aa4b-0b6ac3cd9e0d">
+    <con:settings/>
+    <con:config>
+      <script>import jxl.*;
+import jxl.write.*
+import java.io.*
+import java.io.file.*
+import java.util.*
+import java.lang.*
+import jxl.read.biff.BiffException;
+import net.sf.*
+import net.sf.json.*
+import net.sf.json.groovy.*
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+import groovy.json.JsonBuilder
+import com.eviware.soapui.model.testsuite.TestStepResult.TestStepStatus
+import com.eviware.soapui.impl.wsdl.teststeps.RestTestRequestStep
+
+def groovyUtils = new com.eviware.soapui.support.GroovyUtils(context)
+def projectDir = groovyUtils.projectPath
+
+def inputfile =  projectDir + "/DetermineMedicalPolicyReviewRequired/Determine Medical Policy Review Required-SingleLineItem-Input.xls"
+def outputfile = projectDir + "/DetermineMedicalPolicyReviewRequired/Determine Medical Policy Review Required-SingleLineItem-Output.xls"
+
+
+//Creating workbook for reading value from Excel Sheet
+
+Workbook wb = Workbook.getWorkbook(new File(inputfile))
+Sheet sh = wb.getSheet("ExpectedResults")
+Sheet jsonInput = wb.getSheet("JSON")
+
+//reading data from input Excel sheet
+rc = sh.getRows();
+cc = sh.getColumns();
+Cell jreq = jsonInput.getCell(0,0)
+
+//Creating Workbook for writing value in Excel Sheet
+WritableWorkbook wb1= Workbook.createWorkbook(new File(outputfile));
+WritableSheet sheet1 = wb1.createSheet("ActualResults",0);
+
+//Header declaration for output file
+addCell(0,0,"lineItemID",sheet1);
+addCell(1,0,"planID",sheet1);
+addCell(2,0,"neededForMedPolicy",sheet1);
+addCell(3,0,"medPolicyEvalForShipping",sheet1);
+addCell(4,0,"medPolicyEvalForBilling",sheet1);
+addCell(5,0,"medPolicyRevMethod",sheet1);
+addCell(6,0,"medPolicyLengthOfNeed",sheet1);
+addCell(7,0,"medDocType",sheet1);
+addCell(8,0,"PASS/FAIL",sheet1);
+addCell(9,0,"FAILED DUE TO",sheet1);
+ 
+//new testStepName
+def newTestStep=null
+
+try {
+
+   
+               def req = jreq.getContents()
+               //Assigning request value dynamically
+               //request
+               def slurper = new JsonSlurper().parseText(req);
+               def requestTemplet = new JsonBuilder(slurper);
+
+         
+               for (i=2;i&lt;rc;i++){
+
+                           // Input for TestCaseName
+                         Cell varTestCaseName = sh.getCell(0,i)
+                        def TestCaseName = varTestCaseName.getContents()
+
+                                                        
+                                 //Input for Line Item ID                                                             
+                                requestTemplet.content.lineItems[0].lineItemID = sh.getCell(2,i).getContents().toString()
+                                 //Input for hcpcsCode                                  
+                                requestTemplet.content.lineItems[0].hcpcsCode = sh.getCell(3,i).getContents().toString()
+                                //Input for productCategory                                  
+                                requestTemplet.content.lineItems[0].productCategory = sh.getCell(4,i).getContents().toString()
+                                //Input for productSubCategory1                                  
+                                requestTemplet.content.lineItems[0].productSubCategory1 = sh.getCell(5,i).getContents().toString()
+                                //Input for productSubCategory2                                  
+                                requestTemplet.content.lineItems[0].productSubCategory2 = sh.getCell(6,i).getContents().toString()
+                                //Input for productSubCategory3                                  
+                                requestTemplet.content.lineItems[0].productSubCategory3 = sh.getCell(7,i).getContents().toString()
+                                //Input for productSubCategory4                                  
+                                requestTemplet.content.lineItems[0].productSubCategory4 = sh.getCell(8,i).getContents().toString()                                                                                    
+                                //Input for planName                                  
+                                requestTemplet.content.lineItems[0].plans[0].planCode = sh.getCell(9,i).getContents().toString()
+                                //Input for id                                  
+                                requestTemplet.content.lineItems[0].plans[0].id = sh.getCell(10,i).getContents().toString()
+                                //Input for type                                
+                                requestTemplet.content.lineItems[0].plans[0].type = sh.getCell(11,i).getContents().toString()
+                                                                 
+                              //Assign json request to variable
+                       def jsonReqAsString = requestTemplet.toPrettyString()
+                       def restRequest = testRunner.testCase.getTestStepByName('JSON Request');
+                       restRequest.setPropertyValue('Request',jsonReqAsString);
+
+                                //teststep cloned: Start
+                        def getTestCase = testRunner.testCase;
+                        def testst = testRunner.testCase.getTestStepByName("JSON Request");                 
+                            newTestStep = TestCaseName
+                            cleanUp(newTestStep)
+                            getTestCase.cloneStep(restRequest,newTestStep)
+                             
+                         //teststep cloned: End
+                         //Executing the testcase
+                        testRunner.runTestStepByName(newTestStep)
+ 
+                         //retrive response         
+                       def ResponseMessage = testRunner.testCase.testSteps[newTestStep].testRequest.response.contentAsString
+                    
+                         //new JsonSlurper to parse and get the response in Json format
+                        def slurper1 = new JsonSlurper()
+                        def json = slurper1.parseText(ResponseMessage)
+                    
+                                  
+                         // get lineItemID from response json  
+                        addCell(0,i,json.medPolicyNeeds[0].lineItemID.toString(),sheet1);                                   
+                        // get payerIDeCode from response json                               
+                        addCell(1,i,json.medPolicyNeeds[0].planID.toString(),sheet1);                                   
+                        // get neededForMedPolicy from response json                                   
+                        addCell(2,i,json.medPolicyNeeds[0].neededForMedPolicy.toString(),sheet1);  
+                        // get medPolicyEvalForShipping from response json                                   
+                        addCell(3,i,json.medPolicyNeeds[0].medPolicyEvalForShipping.toString(),sheet1);
+                        // get medPolicyEvalForBilling from response json                                   
+                        addCell(4,i,json.medPolicyNeeds[0].medPolicyEvalForBilling.toString(),sheet1);
+                        // get medPolicyRevMethod from response json                                   
+                        addCell(5,i,json.medPolicyNeeds[0].medPolicyRevMethod.toString(),sheet1);
+                        // get medPolicyLengthOfNeed from response json                                   
+                        addCell(6,i,json.medPolicyNeeds[0].medPolicyLengthOfNeed.toString(),sheet1);
+                        // get neededForMedPolicy from response json                                   
+                        addCell(7,i,json.medPolicyNeeds[0].medicalDocuments[0].medDocType.toString(),sheet1);
+                                                
+                      //dynamic asserstion :Start
+                   def testStepForAssertion = testRunner.testCase.getTestStepByName(newTestStep);
+                                //ValidHTTPStatusCodes 200 Assertion
+                  addAssertionValidHTTPStatusCodes(testStepForAssertion,"Valid HTTP Status Codes_"+i)
+            
+                             //get the expected values
+                          lineItemID = sh.getCell(12,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,lineItemID,"medPolicyNeeds[0].lineItemID","lineItemID")
+
+                          planID = sh.getCell(13,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,planID,"medPolicyNeeds[0].planID","planID")
+
+                          neededForMedPolicy = sh.getCell(14,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,neededForMedPolicy,"medPolicyNeeds[0].neededForMedPolicy","neededForMedPolicy")
+
+                          medPolicyEvalForShipping = sh.getCell(15,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,medPolicyEvalForShipping,"medPolicyNeeds[0].medPolicyEvalForShipping","medPolicyEvalForShipping")
+
+                         medPolicyEvalForBilling = sh.getCell(16,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,medPolicyEvalForBilling,"medPolicyNeeds[0].medPolicyEvalForBilling","medPolicyEvalForBilling")
+
+                          medPolicyRevMethod = sh.getCell(17,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,medPolicyRevMethod,"medPolicyNeeds[0].medPolicyRevMethod","medPolicyRevMethod")
+
+                        medPolicyLengthOfNeed = sh.getCell(18,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,medPolicyLengthOfNeed,"medPolicyNeeds[0].medPolicyLengthOfNeed","medPolicyLengthOfNeed")
+       
+                        medDocType = sh.getCell(19,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,medDocType,"medPolicyNeeds[0].medicalDocuments[0].medDocType","medDocType")
+     
+                               //dynamic asserstion :End
+                            assertionResult = testStepForAssertion.getAssertionStatus()
+             if(assertionResult.toString().equals("FAILED")){
+
+                                       addCell(8,i,"Fail",sheet1);
+                                   for( assertion in testStepForAssertion.assertionList ){
+                                  for( e in assertion.errors ){
+
+                                                     addCell(9,i,e.message,sheet1);
+
+                                                } 
+
+                                   }
+
+                                }
+
+
+                                else{
+
+                                   addCell(8,i,"PASS",sheet1);
+
+                                }
+
+ 
+       }
+
+      wb1.write();
+            log.info "TestCase Execution Completed successfully"
+
+ 
+
+         }             
+     
+catch(Exception e)
+{
+log.info"test execution failed"
+                 log.info(e)                         
+}
+
+finally
+{
+
+    //close workbook
+     wb.close();
+     wb1.close();     
+
+}
+
+//Method code
+def addAssertionJsonPathMatch(RestTestRequestStep testStepForAssertion,String expectedContent,String xPath,String assertionName) {
+          def assertionType = testStepForAssertion.addAssertion("JsonPath Match")
+                                assertionType.name = assertionName
+                                assertionType.setPath(xPath)
+                                assertionType.setExpectedContent(expectedContent)
+                                assertionType.setAllowWildcards(true) 
+
+}
+
+//Method code
+def addAssertionValidHTTPStatusCodes(RestTestRequestStep testStepForAssertion,String assertionName) {
+
+         def StatusCodeAssertionxpath = testStepForAssertion.addAssertion("Valid HTTP Status Codes")
+             StatusCodeAssertionxpath.name = assertionName
+             StatusCodeAssertionxpath.codes=200
+
+}
+
+//method to delete
+def cleanUp(String requestName){
+
+                //remove the teststep::Start
+                def testCase = testRunner.testCase
+                def testStep = testCase.getTestStepByName(requestName)
+
+                if (testStep!=null){
+
+ 
+                                    testCase.removeTestStep(testStep)
+                }
+
+    
+            //remove the teststep::End
+
+}
+
+ 
+
+//method to add Cell to sheet1
+
+def addCell(int colmNum,int rowNum,String lblName,WritableSheet sheet1 ){
+
+                 Label header = new Label(colmNum,rowNum,lblName);
+                sheet1.addCell(header);               
+
+}</script>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="groovy" name="DetermineMedicalPolicyReviewRequired_MultiLineItem" id="0e332ba5-99ce-4e45-b5cb-5b849519b3ee">
+    <con:settings/>
+    <con:config>
+      <script>import jxl.*;
+import jxl.write.*
+import java.io.*
+import java.io.file.*
+import java.util.*
+import java.lang.*
+import jxl.read.biff.BiffException;
+import net.sf.*
+import net.sf.json.*
+import net.sf.json.groovy.*
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+import groovy.json.JsonBuilder
+import com.eviware.soapui.model.testsuite.TestStepResult.TestStepStatus
+import com.eviware.soapui.impl.wsdl.teststeps.RestTestRequestStep
+
+def groovyUtils = new com.eviware.soapui.support.GroovyUtils(context)
+def projectDir = groovyUtils.projectPath
+
+def inputfile =  projectDir + "/DetermineMedicalPolicyReviewRequired/Determine Medical Policy Review Required-MultiLineItem-Input.xls"
+def outputfile = projectDir + "/DetermineMedicalPolicyReviewRequired/Determine Medical Policy Review Required-MultiLineItem-Output.xls"
+
+
+//Creating workbook for reading value from Excel Sheet
+
+Workbook wb = Workbook.getWorkbook(new File(inputfile))
+Sheet sh = wb.getSheet("ExpectedResults")
+Sheet jsonInput = wb.getSheet("JSON")
+
+//reading data from input Excel sheet
+rc = sh.getRows();
+cc = sh.getColumns();
+Cell jreq = jsonInput.getCell(0,0)
+
+//Creating Workbook for writing value in Excel Sheet
+WritableWorkbook wb1= Workbook.createWorkbook(new File(outputfile));
+WritableSheet sheet1 = wb1.createSheet("ActualResults",0);
+
+//Header declaration for output file
+addCell(0,0,"lineItemID",sheet1);
+addCell(1,0,"planID",sheet1);
+addCell(2,0,"neededForMedPolicy",sheet1);
+addCell(3,0,"medPolicyEvalForShipping",sheet1);
+addCell(4,0,"medPolicyEvalForBilling",sheet1);
+addCell(5,0,"medPolicyRevMethod",sheet1);
+addCell(6,0,"medPolicyLengthOfNeed",sheet1);
+addCell(7,0,"medDocType",sheet1);
+//Header declaration for output file
+addCell(8,0,"lineItemID1",sheet1);
+addCell(9,0,"planID1",sheet1);
+addCell(10,0,"neededForMedPolicy1",sheet1);
+addCell(11,0,"medPolicyEvalForShipping1",sheet1);
+addCell(12,0,"medPolicyEvalForBilling1",sheet1);
+addCell(13,0,"medPolicyRevMethod1",sheet1);
+addCell(14,0,"medPolicyLengthOfNeed1",sheet1);
+addCell(15,0,"medDocType1",sheet1);
+addCell(16,0,"PASS/FAIL",sheet1);
+addCell(17,0,"FAILED DUE TO",sheet1);
+ 
+//new testStepName
+def newTestStep=null
+
+try {
+
+   
+               def req = jreq.getContents()
+               //Assigning request value dynamically
+               //request
+               def slurper = new JsonSlurper().parseText(req);
+               def requestTemplet = new JsonBuilder(slurper);
+
+         
+               for (i=2;i&lt;rc;i++){
+
+                           // Input for TestCaseName
+                         Cell varTestCaseName = sh.getCell(0,i)
+                        def TestCaseName = varTestCaseName.getContents()
+
+                                                        
+                                 //Input for Line Item ID                                                             
+                                requestTemplet.content.lineItems[0].lineItemID = sh.getCell(2,i).getContents().toString()
+                                 //Input for hcpcsCode                                  
+                                requestTemplet.content.lineItems[0].hcpcsCode = sh.getCell(3,i).getContents().toString()
+                                //Input for productCategory                                  
+                                requestTemplet.content.lineItems[0].productCategory = sh.getCell(4,i).getContents().toString()
+                                //Input for productSubCategory1                                  
+                                requestTemplet.content.lineItems[0].productSubCategory1 = sh.getCell(5,i).getContents().toString()
+                                //Input for productSubCategory2                                  
+                                requestTemplet.content.lineItems[0].productSubCategory2 = sh.getCell(6,i).getContents().toString()
+                                //Input for productSubCategory3                                  
+                                requestTemplet.content.lineItems[0].productSubCategory3 = sh.getCell(7,i).getContents().toString()
+                                //Input for productSubCategory4                                  
+                                requestTemplet.content.lineItems[0].productSubCategory4 = sh.getCell(8,i).getContents().toString()                                                                                    
+                                //Input for planName                                  
+                                requestTemplet.content.lineItems[0].plans[0].planCode = sh.getCell(9,i).getContents().toString()
+                                //Input for id                                  
+                                requestTemplet.content.lineItems[0].plans[0].id = sh.getCell(10,i).getContents().toString()
+                                //Input for type                                
+                                requestTemplet.content.lineItems[0].plans[0].type = sh.getCell(11,i).getContents().toString()
+
+                                 //Input for Line Item ID1                                                           
+                                requestTemplet.content.lineItems[1].lineItemID = sh.getCell(12,i).getContents().toString()
+                                 //Input for hcpcsCode                                  
+                                requestTemplet.content.lineItems[1].hcpcsCode = sh.getCell(13,i).getContents().toString()
+                                //Input for productCategory                                  
+                                requestTemplet.content.lineItems[1].productCategory = sh.getCell(14,i).getContents().toString()
+                                //Input for productSubCategory1                                  
+                                requestTemplet.content.lineItems[1].productSubCategory1 = sh.getCell(15,i).getContents().toString()
+                                //Input for productSubCategory2                                  
+                                requestTemplet.content.lineItems[1].productSubCategory2 = sh.getCell(16,i).getContents().toString()
+                                //Input for productSubCategory3                                  
+                                requestTemplet.content.lineItems[1].productSubCategory3 = sh.getCell(17,i).getContents().toString()
+                                //Input for productSubCategory4                                  
+                                requestTemplet.content.lineItems[1].productSubCategory4 = sh.getCell(18,i).getContents().toString()                                                                                    
+                                //Input for planName                                  
+                                requestTemplet.content.lineItems[1].plans[0].planCode = sh.getCell(19,i).getContents().toString()
+                                //Input for id                                  
+                                requestTemplet.content.lineItems[1].plans[0].id = sh.getCell(20,i).getContents().toString()
+                                //Input for type                                
+                                requestTemplet.content.lineItems[1].plans[0].type = sh.getCell(21,i).getContents().toString()
+                                                                 
+                              //Assign json request to variable
+                       def jsonReqAsString = requestTemplet.toPrettyString()
+                       def restRequest = testRunner.testCase.getTestStepByName('JSON Request');
+                       restRequest.setPropertyValue('Request',jsonReqAsString);
+
+                                //teststep cloned: Start
+                        def getTestCase = testRunner.testCase;
+                        def testst = testRunner.testCase.getTestStepByName("JSON Request");                 
+                            newTestStep = TestCaseName
+                            cleanUp(newTestStep)
+                            getTestCase.cloneStep(restRequest,newTestStep)
+                             
+                         //teststep cloned: End
+                         //Executing the testcase
+                        testRunner.runTestStepByName(newTestStep)
+ 
+                         //retrive response         
+                       def ResponseMessage = testRunner.testCase.testSteps[newTestStep].testRequest.response.contentAsString
+                    
+                         //new JsonSlurper to parse and get the response in Json format
+                        def slurper1 = new JsonSlurper()
+                        def json = slurper1.parseText(ResponseMessage)
+                    
+                                  
+                         // get lineItemID from response json  
+                        addCell(0,i,json.medPolicyNeeds[0].lineItemID.toString(),sheet1);                                   
+                        // get payerIDeCode from response json                               
+                        addCell(1,i,json.medPolicyNeeds[0].planID.toString(),sheet1);                                   
+                        // get neededForMedPolicy from response json                                   
+                        addCell(2,i,json.medPolicyNeeds[0].neededForMedPolicy.toString(),sheet1);  
+                        // get medPolicyEvalForShipping from response json                                   
+                        addCell(3,i,json.medPolicyNeeds[0].medPolicyEvalForShipping.toString(),sheet1);
+                        // get medPolicyEvalForBilling from response json                                   
+                        addCell(4,i,json.medPolicyNeeds[0].medPolicyEvalForBilling.toString(),sheet1);
+                        // get medPolicyRevMethod from response json                                   
+                        addCell(5,i,json.medPolicyNeeds[0].medPolicyRevMethod.toString(),sheet1);
+                        // get medPolicyLengthOfNeed from response json                                   
+                        addCell(6,i,json.medPolicyNeeds[0].medPolicyLengthOfNeed.toString(),sheet1);
+                        // get neededForMedPolicy from response json                                   
+                        addCell(7,i,json.medPolicyNeeds[0].medicalDocuments[0].medDocType.toString(),sheet1);
+
+                        // get lineItemID from response json  
+                        addCell(8,i,json.medPolicyNeeds[1].lineItemID.toString(),sheet1);                                   
+                        // get payerIDeCode from response json                               
+                        addCell(9,i,json.medPolicyNeeds[1].planID.toString(),sheet1);                                   
+                        // get neededForMedPolicy from response json                                   
+                        addCell(10,i,json.medPolicyNeeds[1].neededForMedPolicy.toString(),sheet1);  
+                        // get medPolicyEvalForShipping from response json                                   
+                        addCell(11,i,json.medPolicyNeeds[1].medPolicyEvalForShipping.toString(),sheet1);
+                        // get medPolicyEvalForBilling from response json                                   
+                        addCell(12,i,json.medPolicyNeeds[1].medPolicyEvalForBilling.toString(),sheet1);
+                        // get medPolicyRevMethod from response json                                   
+                        addCell(13,i,json.medPolicyNeeds[1].medPolicyRevMethod.toString(),sheet1);
+                        // get medPolicyLengthOfNeed from response json                                   
+                        addCell(14,i,json.medPolicyNeeds[1].medPolicyLengthOfNeed.toString(),sheet1);
+                        // get neededForMedPolicy from response json                                   
+                        addCell(15,i,json.medPolicyNeeds[1].medicalDocuments[0].medDocType.toString(),sheet1);
+                                                
+                      //dynamic asserstion :Start
+                   def testStepForAssertion = testRunner.testCase.getTestStepByName(newTestStep);
+                                //ValidHTTPStatusCodes 200 Assertion
+                  addAssertionValidHTTPStatusCodes(testStepForAssertion,"Valid HTTP Status Codes_"+i)
+            
+                             //get the expected values
+                          lineItemID = sh.getCell(22,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,lineItemID,"medPolicyNeeds[0].lineItemID","lineItemID")
+
+                          planID = sh.getCell(23,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,planID,"medPolicyNeeds[0].planID","planID")
+
+                          neededForMedPolicy = sh.getCell(24,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,neededForMedPolicy,"medPolicyNeeds[0].neededForMedPolicy","neededForMedPolicy")
+
+                          medPolicyEvalForShipping = sh.getCell(25,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,medPolicyEvalForShipping,"medPolicyNeeds[0].medPolicyEvalForShipping","medPolicyEvalForShipping")
+
+                         medPolicyEvalForBilling = sh.getCell(26,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,medPolicyEvalForBilling,"medPolicyNeeds[0].medPolicyEvalForBilling","medPolicyEvalForBilling")
+
+                          medPolicyRevMethod = sh.getCell(27,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,medPolicyRevMethod,"medPolicyNeeds[0].medPolicyRevMethod","medPolicyRevMethod")
+
+                        medPolicyLengthOfNeed = sh.getCell(28,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,medPolicyLengthOfNeed,"medPolicyNeeds[0].medPolicyLengthOfNeed","medPolicyLengthOfNeed")
+       
+                        medDocType = sh.getCell(29,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,medDocType,"medPolicyNeeds[0].medicalDocuments[0].medDocType","medDocType")
+
+                       //get the expected values
+                          lineItemID1 = sh.getCell(30,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,lineItemID1,"medPolicyNeeds[1].lineItemID","lineItemID")
+
+                          planID1 = sh.getCell(31,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,planID1,"medPolicyNeeds[1].planID","planID")
+
+                          neededForMedPolicy1 = sh.getCell(32,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,neededForMedPolicy1,"medPolicyNeeds[1].neededForMedPolicy","neededForMedPolicy")
+
+                          medPolicyEvalForShipping1 = sh.getCell(33,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,medPolicyEvalForShipping1,"medPolicyNeeds[1].medPolicyEvalForShipping","medPolicyEvalForShipping")
+
+                         medPolicyEvalForBilling1 = sh.getCell(34,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,medPolicyEvalForBilling1,"medPolicyNeeds[1].medPolicyEvalForBilling","medPolicyEvalForBilling")
+
+                          medPolicyRevMethod1 = sh.getCell(35,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,medPolicyRevMethod1,"medPolicyNeeds[1].medPolicyRevMethod","medPolicyRevMethod")
+
+                        medPolicyLengthOfNeed1 = sh.getCell(36,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,medPolicyLengthOfNeed1,"medPolicyNeeds[1].medPolicyLengthOfNeed","medPolicyLengthOfNeed")
+       
+                        medDocType1 = sh.getCell(37,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,medDocType1,"medPolicyNeeds[1].medicalDocuments[0].medDocType","medDocType")
+     
+                               //dynamic asserstion :End
+                            assertionResult = testStepForAssertion.getAssertionStatus()
+             if(assertionResult.toString().equals("FAILED")){
+
+                                       addCell(16,i,"Fail",sheet1);
+                                   for( assertion in testStepForAssertion.assertionList ){
+                                  for( e in assertion.errors ){
+
+                                                     addCell(17,i,e.message,sheet1);
+
+                                                } 
+
+                                   }
+
+                                }
+
+
+                                else{
+
+                                   addCell(16,i,"PASS",sheet1);
+
+                                }
+
+ 
+       }
+
+      wb1.write();
+            log.info "TestCase Execution Completed successfully"
+
+ 
+
+         }             
+     
+catch(Exception e)
+{
+log.info"test execution failed"
+                 log.info(e)                         
+}
+
+finally
+{
+
+    //close workbook
+     wb.close();
+     wb1.close();     
+
+}
+
+//Method code
+def addAssertionJsonPathMatch(RestTestRequestStep testStepForAssertion,String expectedContent,String xPath,String assertionName) {
+          def assertionType = testStepForAssertion.addAssertion("JsonPath Match")
+                                assertionType.name = assertionName
+                                assertionType.setPath(xPath)
+                                assertionType.setExpectedContent(expectedContent)
+                                assertionType.setAllowWildcards(true) 
+
+}
+
+//Method code
+def addAssertionValidHTTPStatusCodes(RestTestRequestStep testStepForAssertion,String assertionName) {
+
+         def StatusCodeAssertionxpath = testStepForAssertion.addAssertion("Valid HTTP Status Codes")
+             StatusCodeAssertionxpath.name = assertionName
+             StatusCodeAssertionxpath.codes=200
+
+}
+
+//method to delete
+def cleanUp(String requestName){
+
+                //remove the teststep::Start
+                def testCase = testRunner.testCase
+                def testStep = testCase.getTestStepByName(requestName)
+
+                if (testStep!=null){
+
+ 
+                                    testCase.removeTestStep(testStep)
+                }
+
+    
+            //remove the teststep::End
+
+}
+
+ 
+
+//method to add Cell to sheet1
+
+def addCell(int colmNum,int rowNum,String lblName,WritableSheet sheet1 ){
+
+                 Label header = new Label(colmNum,rowNum,lblName);
+                sheet1.addCell(header);               
+
+}</script>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-55292" id="8254d13b-1d2d-4f93-93dd-0541798c5915">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineMedicalPolicyReviewRequired/DetermineMedicalPolicyReviewRequired/WADL" methodName="DetermineMedicalPolicyReviewRequired" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-55292" id="1fe3765e-87bb-4306-8f52-e52ea7b3c0e7" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "DetermineMedicalPolicyReviewRequired/DetermineMedicalPolicyReviewRequired",
+            "correlationID": "string",
+            "from": "PCF",
+            "timestamp": "2014-09-19T04:48:33.000+0530"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "ANY",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA001",
+                    "planCode": "5001",
+                    "type": ""
+                }
+            ],
+            "productCategory": "Diabetes",
+            "productSubCategory1": "Diabetes Testing",
+            "productSubCategory2": "Continuous Glucose Monitors",
+            "productSubCategory3": "ANY",
+            "productSubCategory4": "ANY"
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineMedicalPolicyReviewRequired/DetermineMedicalPolicyReviewRequired/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="23de9687-8a5b-4a6a-b53f-9c253d4b7543" name="Valid HTTP Status Codes_2">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="56458056-5d96-45ac-9b2d-13dba9031089" name="lineItemID">
+          <con:configuration>
+            <path>medPolicyNeeds[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="8b77addb-bbb6-41b0-9d3f-8f7f7193ed76" name="planID">
+          <con:configuration>
+            <path>medPolicyNeeds[0].planID</path>
+            <content>PA001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="7a51a6b0-74f9-4c68-8f82-3c0dee3b0559" name="neededForMedPolicy">
+          <con:configuration>
+            <path>medPolicyNeeds[0].neededForMedPolicy</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="a8dbeb99-4383-4632-be12-6009096d9386" name="medPolicyEvalForShipping">
+          <con:configuration>
+            <path>medPolicyNeeds[0].medPolicyEvalForShipping</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="829ea933-a395-4f90-b9ea-79cef2bbd3ec" name="medPolicyEvalForBilling">
+          <con:configuration>
+            <path>medPolicyNeeds[0].medPolicyEvalForBilling</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="b68834f8-cfc0-4e2f-9c24-22f983853065" name="medPolicyRevMethod">
+          <con:configuration>
+            <path>medPolicyNeeds[0].medPolicyRevMethod</path>
+            <content>Manual</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="ebbe853c-0e4c-4c42-a9c8-7a1b0e89baf3" name="medPolicyLengthOfNeed">
+          <con:configuration>
+            <path>medPolicyNeeds[0].medPolicyLengthOfNeed</path>
+            <content>6</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="d6a132c1-0280-4683-af53-efeef836ea7e" name="medDocType">
+          <con:configuration>
+            <path>medPolicyNeeds[0].medicalDocuments[0].medDocType</path>
+            <content>2</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-55293" id="0d4ff81a-e18a-41c6-ba20-e2cb39e8d122">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineMedicalPolicyReviewRequired/DetermineMedicalPolicyReviewRequired/WADL" methodName="DetermineMedicalPolicyReviewRequired" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-55293" id="1fe3765e-87bb-4306-8f52-e52ea7b3c0e7" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "DetermineMedicalPolicyReviewRequired/DetermineMedicalPolicyReviewRequired",
+            "correlationID": "string",
+            "from": "PCF",
+            "timestamp": "2014-09-19T04:48:33.000+0530"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA001",
+                    "planCode": "6683",
+                    "type": ""
+                }
+            ],
+            "productCategory": "Diabetes",
+            "productSubCategory1": "Diabetes Testing",
+            "productSubCategory2": "Continuous Glucose Monitors",
+            "productSubCategory3": "ANY",
+            "productSubCategory4": "ANY"
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineMedicalPolicyReviewRequired/DetermineMedicalPolicyReviewRequired/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="170296e4-5b11-46f5-bca9-fc60d5606aab" name="Valid HTTP Status Codes_3">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="3315884b-2cd8-4750-b5ee-81cbb7f652bd" name="lineItemID">
+          <con:configuration>
+            <path>medPolicyNeeds[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="85b19690-9c04-47e5-aafb-708c81a68f10" name="planID">
+          <con:configuration>
+            <path>medPolicyNeeds[0].planID</path>
+            <content>PA001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="aa7bd47f-bc33-45ef-92c4-09b5f90d0d61" name="neededForMedPolicy">
+          <con:configuration>
+            <path>medPolicyNeeds[0].neededForMedPolicy</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="83e6d7aa-44cd-4eac-8e05-7f33b47a7d3d" name="medPolicyEvalForShipping">
+          <con:configuration>
+            <path>medPolicyNeeds[0].medPolicyEvalForShipping</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="85b3214f-1438-4a02-942f-2602e0c1c5c5" name="medPolicyEvalForBilling">
+          <con:configuration>
+            <path>medPolicyNeeds[0].medPolicyEvalForBilling</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="db449c0d-2679-4ef9-8aee-5b95272b55b5" name="medPolicyRevMethod">
+          <con:configuration>
+            <path>medPolicyNeeds[0].medPolicyRevMethod</path>
+            <content>Manual</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="0804f123-11e7-4d9c-84e7-62a91523746c" name="medPolicyLengthOfNeed">
+          <con:configuration>
+            <path>medPolicyNeeds[0].medPolicyLengthOfNeed</path>
+            <content>6</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="3ef0cc12-9f37-4296-9d3e-71689cb611b0" name="medDocType">
+          <con:configuration>
+            <path>medPolicyNeeds[0].medicalDocuments[0].medDocType</path>
+            <content>2</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-55294" id="e873e2b5-f9b1-4bb2-8013-6b8858c5c119">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineMedicalPolicyReviewRequired/DetermineMedicalPolicyReviewRequired/WADL" methodName="DetermineMedicalPolicyReviewRequired" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-55294" id="1fe3765e-87bb-4306-8f52-e52ea7b3c0e7" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "DetermineMedicalPolicyReviewRequired/DetermineMedicalPolicyReviewRequired",
+            "correlationID": "string",
+            "from": "PCF",
+            "timestamp": "2014-09-19T04:48:33.000+0530"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "ANY",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA001",
+                    "planCode": "",
+                    "type": ""
+                }
+            ],
+            "productCategory": "Diabetes",
+            "productSubCategory1": "Diabetes Testing",
+            "productSubCategory2": "Continuous Glucose Monitors",
+            "productSubCategory3": "ANY",
+            "productSubCategory4": "ANY"
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineMedicalPolicyReviewRequired/DetermineMedicalPolicyReviewRequired/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="ec93ad6f-4f87-4da1-b634-a4f138a41b91" name="Valid HTTP Status Codes_4">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="d8449179-9c2b-48bf-8b5d-1fe0dab13358" name="lineItemID">
+          <con:configuration>
+            <path>medPolicyNeeds[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="7b06ae28-23ae-4b00-8055-772db9caf318" name="planID">
+          <con:configuration>
+            <path>medPolicyNeeds[0].planID</path>
+            <content>PA001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="1857150f-80c9-4196-99cb-e683dd1670a3" name="neededForMedPolicy">
+          <con:configuration>
+            <path>medPolicyNeeds[0].neededForMedPolicy</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="631531d2-a0df-484e-b193-7c92763df335" name="medPolicyEvalForShipping">
+          <con:configuration>
+            <path>medPolicyNeeds[0].medPolicyEvalForShipping</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="8b8c77ef-eed1-4171-8137-3079e26877c1" name="medPolicyEvalForBilling">
+          <con:configuration>
+            <path>medPolicyNeeds[0].medPolicyEvalForBilling</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="83ab6087-e225-409e-a731-ef8727afb5bb" name="medPolicyRevMethod">
+          <con:configuration>
+            <path>medPolicyNeeds[0].medPolicyRevMethod</path>
+            <content>Manual</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="51c65cca-ed91-49d8-9342-6537e14d8d9a" name="medPolicyLengthOfNeed">
+          <con:configuration>
+            <path>medPolicyNeeds[0].medPolicyLengthOfNeed</path>
+            <content>6</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="36372b78-44ff-40b7-bc40-c3e0e51decb8" name="medDocType">
+          <con:configuration>
+            <path>medPolicyNeeds[0].medicalDocuments[0].medDocType</path>
+            <content>1</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-55295" id="a3ab2403-8279-4b73-80a2-7de3081a96f1">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineMedicalPolicyReviewRequired/DetermineMedicalPolicyReviewRequired/WADL" methodName="DetermineMedicalPolicyReviewRequired" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-55295" id="1fe3765e-87bb-4306-8f52-e52ea7b3c0e7" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "DetermineMedicalPolicyReviewRequired/DetermineMedicalPolicyReviewRequired",
+            "correlationID": "string",
+            "from": "PCF",
+            "timestamp": "2014-09-19T04:48:33.000+0530"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "ANY",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA001",
+                    "planCode": "5001",
+                    "type": ""
+                }
+            ],
+            "productCategory": "Diabetes",
+            "productSubCategory1": "Diabetes Testing",
+            "productSubCategory2": "Continuous Glucose Monitors",
+            "productSubCategory3": "ANY",
+            "productSubCategory4": "ANY"
+        },
+        {
+            "hcpcsCode": "ANY",
+            "lineItemID": "L002",
+            "plans": [
+                {
+                    "id": "PA002",
+                    "planCode": "",
+                    "type": ""
+                }
+            ],
+            "productCategory": "Diabetes",
+            "productSubCategory1": "Diabetes Testing",
+            "productSubCategory2": "Continuous Glucose Monitors",
+            "productSubCategory3": "ANY",
+            "productSubCategory4": "ANY"
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineMedicalPolicyReviewRequired/DetermineMedicalPolicyReviewRequired/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="a4b9f05d-a39f-41fe-acff-ad6491ab8e74" name="Valid HTTP Status Codes_2">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="059565f2-3131-4aab-9e95-3dfbccd15a5c" name="lineItemID">
+          <con:configuration>
+            <path>medPolicyNeeds[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="db8c92fc-500e-49c9-b0d0-ad77efb59ca6" name="planID">
+          <con:configuration>
+            <path>medPolicyNeeds[0].planID</path>
+            <content>PA001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="3ac71f1c-794d-44d5-931d-756b6347035e" name="neededForMedPolicy">
+          <con:configuration>
+            <path>medPolicyNeeds[0].neededForMedPolicy</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="b86e35c3-e114-495c-b792-28ea67d70bf0" name="medPolicyEvalForShipping">
+          <con:configuration>
+            <path>medPolicyNeeds[0].medPolicyEvalForShipping</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="dab421b2-287a-4c90-8433-075733e8ef10" name="medPolicyEvalForBilling">
+          <con:configuration>
+            <path>medPolicyNeeds[0].medPolicyEvalForBilling</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="8a2799ae-d274-4a5b-8220-0790391c96f2" name="medPolicyRevMethod">
+          <con:configuration>
+            <path>medPolicyNeeds[0].medPolicyRevMethod</path>
+            <content>Manual</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="b6796e5d-83fc-4484-a6f7-00494435efe8" name="medPolicyLengthOfNeed">
+          <con:configuration>
+            <path>medPolicyNeeds[0].medPolicyLengthOfNeed</path>
+            <content>6</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="a5551a35-06f8-4fc6-a2ff-dc1b318af1d9" name="medDocType">
+          <con:configuration>
+            <path>medPolicyNeeds[0].medicalDocuments[0].medDocType</path>
+            <content>2</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="19d79224-cc33-41c3-a60a-8ea4b28f4691" name="lineItemID">
+          <con:configuration>
+            <path>medPolicyNeeds[1].lineItemID</path>
+            <content>L002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="bb42f16e-8efa-4319-9854-38e797c22715" name="planID">
+          <con:configuration>
+            <path>medPolicyNeeds[1].planID</path>
+            <content>PA002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="c0235347-143f-4956-b586-c4259fd67d61" name="neededForMedPolicy">
+          <con:configuration>
+            <path>medPolicyNeeds[1].neededForMedPolicy</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="7200fd6d-3c0f-44d1-9699-12147aab472a" name="medPolicyEvalForShipping">
+          <con:configuration>
+            <path>medPolicyNeeds[1].medPolicyEvalForShipping</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="dcdfbf6f-3b36-4f1a-bc95-9341b04de6f6" name="medPolicyEvalForBilling">
+          <con:configuration>
+            <path>medPolicyNeeds[1].medPolicyEvalForBilling</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="db82c4f8-5ca8-4223-a3f8-4d9b59642f1e" name="medPolicyRevMethod">
+          <con:configuration>
+            <path>medPolicyNeeds[1].medPolicyRevMethod</path>
+            <content>Manual</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="4f99d59e-c898-48f4-8e8f-cacda8d3d12f" name="medPolicyLengthOfNeed">
+          <con:configuration>
+            <path>medPolicyNeeds[1].medPolicyLengthOfNeed</path>
+            <content>6</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="2b0ecde6-956f-43b8-9df0-04f8a85c39a5" name="medDocType">
+          <con:configuration>
+            <path>medPolicyNeeds[1].medicalDocuments[0].medDocType</path>
+            <content>1</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-55296" id="cd2c829b-b98c-4eaf-88a0-7fe29045d264">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineMedicalPolicyReviewRequired/DetermineMedicalPolicyReviewRequired/WADL" methodName="DetermineMedicalPolicyReviewRequired" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-55296" id="1fe3765e-87bb-4306-8f52-e52ea7b3c0e7" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "DetermineMedicalPolicyReviewRequired/DetermineMedicalPolicyReviewRequired",
+            "correlationID": "string",
+            "from": "PCF",
+            "timestamp": "2014-09-19T04:48:33.000+0530"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA001",
+                    "planCode": "6683",
+                    "type": ""
+                }
+            ],
+            "productCategory": "Diabetes",
+            "productSubCategory1": "Diabetes Testing",
+            "productSubCategory2": "Continuous Glucose Monitors",
+            "productSubCategory3": "ANY",
+            "productSubCategory4": "ANY"
+        },
+        {
+            "hcpcsCode": "ANY",
+            "lineItemID": "L002",
+            "plans": [
+                {
+                    "id": "PA002",
+                    "planCode": "",
+                    "type": ""
+                }
+            ],
+            "productCategory": "Diabetes",
+            "productSubCategory1": "Diabetes Testing",
+            "productSubCategory2": "Continuous Glucose Monitors",
+            "productSubCategory3": "ANY",
+            "productSubCategory4": "ANY"
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineMedicalPolicyReviewRequired/DetermineMedicalPolicyReviewRequired/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="9fcfca38-5e07-4378-8334-ec66072a139b" name="Valid HTTP Status Codes_3">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="24fac61d-af52-41a8-85d7-3cb35e6c78dd" name="lineItemID">
+          <con:configuration>
+            <path>medPolicyNeeds[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="2f7367e2-dfd9-4901-9f13-594971b8476a" name="planID">
+          <con:configuration>
+            <path>medPolicyNeeds[0].planID</path>
+            <content>PA001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="cd89e867-04c9-4950-b88f-badcbcabfdfc" name="neededForMedPolicy">
+          <con:configuration>
+            <path>medPolicyNeeds[0].neededForMedPolicy</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="f32f4a5e-84f3-464b-a464-d1af3621cc65" name="medPolicyEvalForShipping">
+          <con:configuration>
+            <path>medPolicyNeeds[0].medPolicyEvalForShipping</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="7f90b661-2890-47ff-8720-2b3d09605f6c" name="medPolicyEvalForBilling">
+          <con:configuration>
+            <path>medPolicyNeeds[0].medPolicyEvalForBilling</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="61f32f3d-3fb4-47b2-a59f-23b3bb8acb42" name="medPolicyRevMethod">
+          <con:configuration>
+            <path>medPolicyNeeds[0].medPolicyRevMethod</path>
+            <content>Manual</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="4c910a8f-45a1-49e6-a680-a99ba13e0ef0" name="medPolicyLengthOfNeed">
+          <con:configuration>
+            <path>medPolicyNeeds[0].medPolicyLengthOfNeed</path>
+            <content>6</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="5f59e082-ca5a-47a5-ba6b-cbabf913425c" name="medDocType">
+          <con:configuration>
+            <path>medPolicyNeeds[0].medicalDocuments[0].medDocType</path>
+            <content>2</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="f56153f6-db8d-443e-9c9b-65b6c215515c" name="lineItemID">
+          <con:configuration>
+            <path>medPolicyNeeds[1].lineItemID</path>
+            <content>L002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="7e7ab947-662d-44da-8f8b-374c33aae857" name="planID">
+          <con:configuration>
+            <path>medPolicyNeeds[1].planID</path>
+            <content>PA002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="3100fac0-b739-42bc-951b-c9d58a403709" name="neededForMedPolicy">
+          <con:configuration>
+            <path>medPolicyNeeds[1].neededForMedPolicy</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="98a4df5a-c422-4564-b01c-57d82fb1fb03" name="medPolicyEvalForShipping">
+          <con:configuration>
+            <path>medPolicyNeeds[1].medPolicyEvalForShipping</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="83c0dbc3-9e65-4a47-8ce4-bad8d8f39783" name="medPolicyEvalForBilling">
+          <con:configuration>
+            <path>medPolicyNeeds[1].medPolicyEvalForBilling</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="82c62b0b-403b-473a-85ac-d3b0d4b7bc21" name="medPolicyRevMethod">
+          <con:configuration>
+            <path>medPolicyNeeds[1].medPolicyRevMethod</path>
+            <content>Manual</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="a75136aa-062d-418d-9911-a1b5005dd2af" name="medPolicyLengthOfNeed">
+          <con:configuration>
+            <path>medPolicyNeeds[1].medPolicyLengthOfNeed</path>
+            <content>6</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="241aea05-e292-4cbd-877c-9d0afb04d47c" name="medDocType">
+          <con:configuration>
+            <path>medPolicyNeeds[1].medicalDocuments[0].medDocType</path>
+            <content>1</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:properties/>
+  <con:reportParameters/>
+</con:testCase>

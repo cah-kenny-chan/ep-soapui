@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<con:testSuite id="819965cf-a53e-4c9c-bae7-8da457492eea" name="DetermineReturnReasonsAllowed" xmlns:con="http://eviware.com/soapui/config">
+  <con:settings>
+    <con:setting id="819965cf-a53e-4c9c-bae7-8da457492eeafileName">DetermineReturnReasonsAllowed</con:setting>
+  </con:settings>
+  <con:runType>SEQUENTIAL</con:runType>
+  <con:properties/>
+  <con:reportParameters/>
+</con:testSuite>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<con:testSuite id="dc211f30-8e24-4a76-8de7-a5f6980ac42c" name="DetermineMedicalDocumentationAndVerbalRequired" xmlns:con="http://eviware.com/soapui/config">
+  <con:settings>
+    <con:setting id="dc211f30-8e24-4a76-8de7-a5f6980ac42cfileName">DetermineMedicalDocumentationAndVerbalRequired</con:setting>
+  </con:settings>
+  <con:runType>SEQUENTIAL</con:runType>
+  <con:properties/>
+  <con:reportParameters/>
+</con:testSuite>

@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<con:resource name="DeterminePrimaryWarehouse" path="/DecisionService/rest/v1/DeterminePrimaryWarehouse/DeterminePrimaryWarehouse/WADL" id="30da7501-241b-4680-83be-9017903bb86c" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:con="http://eviware.com/soapui/config">
+  <con:settings>
+    <con:setting id="30da7501-241b-4680-83be-9017903bb86cfileName">DeterminePrimaryWarehouse</con:setting>
+  </con:settings>
+  <con:parameters/>
+  <con:method name="DeterminePrimaryWarehouse" id="4609facc-c560-4710-a1ed-a134a0a14806" method="POST">
+    <con:settings/>
+    <con:parameters/>
+    <con:representation type="RESPONSE">
+      <con:mediaType>application/json; charset=UTF-8</con:mediaType>
+      <con:status>200</con:status>
+      <con:params/>
+      <con:element xmlns:wadl="http://lqec5009c1ods01/DecisionService/rest/v1/DeterminePrimaryWarehouse/DeterminePrimaryWarehouse/WADL">wadl:Response</con:element>
+    </con:representation>
+    <con:representation type="REQUEST">
+      <con:mediaType>application/json</con:mediaType>
+      <con:params/>
+    </con:representation>
+    <con:request name="DeterminePrimaryWarehouse" id="865e51e3-92d4-44ad-a94a-656216ff1d6b" mediaType="application/json" postQueryString="false">
+      <con:settings>
+        <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+      </con:settings>
+      <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+      <con:request>{
+    "__DecisionID__": "Case4_MultiLine",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "dpw",
+            "from": "string",
+            "timestamp": "2008-09-29T07:19:45.000+0530"
+        },
+        "serviceParameters": {
+            "accountId": "string",
+            "agentId": "string",
+            "orderId": "string",
+            "serviceTags": [
+                "string"
+            ]
+        },
+        "serviceState": {
+            "errorCode": "string",
+            "errorText": "string",
+            "errorTrace": "string",
+            "stateCode": "string"
+        }
+    },
+    "order": {
+        "acceptableShipFromWarehouses": null,
+        "lineItems": [
+            {
+                "acceptableShipFromWarehouses": [
+                    {
+                        "priority": "1",
+                        "warehouseLocationCd": "1"
+                    },
+                    {
+                        "priority": "2",
+                        "warehouseLocationCd": "2"
+                    },
+                    {
+                        "priority": "3",
+                        "warehouseLocationCd": "3"
+                    },
+                    {
+                        "priority": "4",
+                        "warehouseLocationCd": "4"
+                    },
+                    {
+                        "priority": "5",
+                        "warehouseLocationCd": "5"
+                    },
+                    {
+                        "priority": "6",
+                        "warehouseLocationCd": "6"
+                    },
+                    {
+                        "priority": "7",
+                        "warehouseLocationCd": "7"
+                    },
+                    {
+                        "priority": "8",
+                        "warehouseLocationCd": "8"
+                    },
+                    {
+                        "priority": "9",
+                        "warehouseLocationCd": "9"
+                    },
+                    {
+                        "priority": "10",
+                        "warehouseLocationCd": "10"
+                    }
+                ],
+                "itemNumber": "MNMMT332A",
+                "lineItemID": "L001",
+                "requiresPharmacyDispensing": "true"
+            },
+            {
+                "acceptableShipFromWarehouses": [
+                    {
+                        "priority": "1",
+                        "warehouseLocationCd": "1"
+                    },
+                    {
+                        "priority": "2",
+                        "warehouseLocationCd": "2"
+                    },
+                    {
+                        "priority": "3",
+                        "warehouseLocationCd": "3"
+                    },
+                    {
+                        "priority": "4",
+                        "warehouseLocationCd": "4"
+                    },
+                    {
+                        "priority": "5",
+                        "warehouseLocationCd": "5"
+                    },
+                    {
+                        "priority": "6",
+                        "warehouseLocationCd": "6"
+                    },
+                    {
+                        "priority": "7",
+                        "warehouseLocationCd": "7"
+                    },
+                    {
+                        "priority": "8",
+                        "warehouseLocationCd": "8"
+                    },
+                    {
+                        "priority": "9",
+                        "warehouseLocationCd": "9"
+                    },
+                    {
+                        "priority": "10",
+                        "warehouseLocationCd": "10"
+                    }
+                ],
+                "itemNumber": "MNMMT378",
+                "lineItemID": "L002",
+                "requiresPharmacyDispensing": "true"
+            },
+            {
+                "acceptableShipFromWarehouses": [
+                    {
+                        "priority": "1",
+                        "warehouseLocationCd": "1"
+                    },
+                    {
+                        "priority": "2",
+                        "warehouseLocationCd": "2"
+                    },
+                    {
+                        "priority": "3",
+                        "warehouseLocationCd": "3"
+                    },
+                    {
+                        "priority": "4",
+                        "warehouseLocationCd": "4"
+                    },
+                    {
+                        "priority": "5",
+                        "warehouseLocationCd": "5"
+                    },
+                    {
+                        "priority": "6",
+                        "warehouseLocationCd": "6"
+                    },
+                    {
+                        "priority": "7",
+                        "warehouseLocationCd": "7"
+                    },
+                    {
+                        "priority": "8",
+                        "warehouseLocationCd": "8"
+                    },
+                    {
+                        "priority": "9",
+                        "warehouseLocationCd": "9"
+                    },
+                    {
+                        "priority": "10",
+                        "warehouseLocationCd": "10"
+                    }
+                ],
+                "itemNumber": "5906908373001I",
+                "lineItemID": "L003",
+                "requiresPharmacyDispensing": "true"
+            }
+        ],
+        "orderId": "1",
+        "recommendedCarrier": "",
+        "recommendedShippingMethod": ""
+    }
+}</con:request>
+      <con:credentials>
+        <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+        <con:authType>No Authorization</con:authType>
+      </con:credentials>
+      <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+      <con:jmsPropertyConfig/>
+      <con:parameters/>
+    </con:request>
+  </con:method>
+</con:resource>

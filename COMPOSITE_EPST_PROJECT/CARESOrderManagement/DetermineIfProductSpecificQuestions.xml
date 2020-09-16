@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<con:resource name="DetermineIfProductSpecificQuestions" path="/DecisionService/rest/v1/DetermineIfProductSpecificQuestionsRequired/DetermineIfProductSpecificQuestionsRequired/WADL" id="ec51dabc-5a81-4c69-9177-28e12a6c890d" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:con="http://eviware.com/soapui/config">
+  <con:settings>
+    <con:setting id="ec51dabc-5a81-4c69-9177-28e12a6c890dfileName">DetermineIfProductSpecificQuestions</con:setting>
+  </con:settings>
+  <con:parameters/>
+  <con:method name="DetermineIfProductSpecificQuestions" id="5839f839-f4dc-427b-a20f-7a694b57793b" method="POST">
+    <con:settings/>
+    <con:parameters/>
+    <con:representation type="FAULT">
+      <con:mediaType>text/html</con:mediaType>
+      <con:status>404</con:status>
+      <con:params/>
+      <con:element>html</con:element>
+    </con:representation>
+    <con:representation type="REQUEST">
+      <con:mediaType>application/json</con:mediaType>
+      <con:params/>
+    </con:representation>
+    <con:representation type="RESPONSE">
+      <con:mediaType xsi:nil="true"/>
+      <con:status>0</con:status>
+      <con:params/>
+      <con:element>data</con:element>
+    </con:representation>
+    <con:representation type="RESPONSE">
+      <con:mediaType>application/json; charset=UTF-8</con:mediaType>
+      <con:status>200</con:status>
+      <con:params/>
+      <con:element xmlns:det="http://ldec5009c1ods02/DetermineIfProductSpecificQuestions">det:Response</con:element>
+    </con:representation>
+    <con:representation type="FAULT">
+      <con:mediaType>application/json</con:mediaType>
+      <con:status>500</con:status>
+      <con:params/>
+      <con:element xmlns:det="http://ldec5009c1ods02/DetermineIfProductSpecificQuestions">det:Fault</con:element>
+    </con:representation>
+    <con:request name="DetermineIfProductSpecificQuestions" id="8b8c1efd-5eaf-4e11-9710-802947736027" mediaType="application/json" postQueryString="false">
+      <con:settings>
+        <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+      </con:settings>
+      <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+      <con:request>{
+
+   "order":{
+
+      "lineItems":[
+
+         {
+
+            "lineItemID":"L0008",
+
+            "diagnosis":[
+
+               {
+
+                  "codeICD10":"E11"
+
+               }
+
+            ],
+
+            "plans":[
+
+               {
+
+                  "id":"09GJKJI56FHGJ787UU9897834",
+
+                  "planCode":"8527",
+
+                  "planForEvaluation":true,
+
+                  "requiresReceiverDeliveryQuestion":true
+
+               }
+
+            ],
+
+            "productCategory":"Diabetes",
+
+            "productSubCategory1":"Insulin Delivery",
+
+            "productSubCategory2":"Insulin Pump Supplies",
+
+            "productSubCategory3":"CGM Sensors",
+
+            "hcpcsCode":"A4253",
+
+            "zeroDollarItem":false
+
+         }
+
+      ]
+
+   },
+
+   "dateLastSeenByPhysician":"2019-01-29T07:19:45.000+0530",
+
+   "e2eMetadata":{
+
+      "serviceAddressing":{
+
+         "from":"string",
+
+         "callingFunction":"string",
+
+         "correlationID":"C1234",
+
+         "timestamp":"2014-09-19T04:48:33.000+0530"
+
+      }
+
+   }
+
+}</con:request>
+      <con:originalUri>http://ldec5009c1ods02/DetermineIfProductSpecificQuestions</con:originalUri>
+      <con:credentials>
+        <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+        <con:authType>No Authorization</con:authType>
+      </con:credentials>
+      <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+      <con:jmsPropertyConfig/>
+      <con:parameters/>
+    </con:request>
+  </con:method>
+</con:resource>

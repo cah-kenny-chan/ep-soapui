@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<con:testSuite id="922fc6ea-2a65-46e3-9161-d86c0705663d" name="ValidateEligibleDiagnosis" xmlns:con="http://eviware.com/soapui/config">
+  <con:settings>
+    <con:setting id="922fc6ea-2a65-46e3-9161-d86c0705663dfileName">ValidateEligibleDiagnosis</con:setting>
+  </con:settings>
+  <con:runType>SEQUENTIAL</con:runType>
+  <con:properties/>
+  <con:reportParameters/>
+</con:testSuite>

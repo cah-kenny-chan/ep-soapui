@@ -1,0 +1,1333 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<con:testCase id="afbccc8a-c5dd-41c0-831f-53c89ead609f" failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="DetermineMultiEntityResponsibility" searchProperties="true" xmlns:con="http://eviware.com/soapui/config">
+  <con:settings>
+    <con:setting id="afbccc8a-c5dd-41c0-831f-53c89ead609ffileName">DetermineMultiEntityResponsibility</con:setting>
+  </con:settings>
+  <con:testStep type="groovy" name="DetermineMultiEntityResponsibility" id="aba39e0b-103f-4f57-95b7-f6279deb1a06">
+    <con:settings/>
+    <con:config>
+      <script>import jxl.*;
+import jxl.write.*
+import java.io.*
+import java.io.file.*
+import java.util.*
+import java.lang.*
+import jxl.read.biff.BiffException;
+import net.sf.*
+import net.sf.json.*
+import net.sf.json.groovy.*
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+import groovy.json.JsonBuilder
+import com.eviware.soapui.model.testsuite.TestStepResult.TestStepStatus
+import com.eviware.soapui.impl.wsdl.teststeps.RestTestRequestStep
+
+def groovyUtils = new com.eviware.soapui.support.GroovyUtils(context)
+def projectDir = groovyUtils.projectPath
+
+def inputfile =  projectDir + "/DetermineMultiEntityResponsibility/DetermineMultiEntityResponsibility_Input.xls"
+def outputfile = projectDir + "/DetermineMultiEntityResponsibility/DetermineMultiEntityResponsibility_Output.xls"
+
+//Creating workbook for reading value from Excel Sheet 
+Workbook wb = Workbook.getWorkbook(new File(inputfile))
+Sheet sh = wb.getSheet("ExpectedResults")
+Sheet jsonInput = wb.getSheet("JSON")
+
+//reading data from input Excel sheet
+rc = sh.getRows();
+cc = sh.getColumns();
+
+Cell jreq = jsonInput.getCell(0,0)
+
+//Creating Workbook for writing value in Excel Sheet
+WritableWorkbook wb1= Workbook.createWorkbook(new File(outputfile));
+WritableSheet sheet1 = wb1.createSheet("ActualResults",0);
+
+//Header declaration for output file 
+addCell(0,0,"Fee Schedule Flag (FEE_SCHEDULE)",sheet1);
+addCell(1,0,"Claim Submission Flag(CLAIM_SUBMISSION)",sheet1);
+addCell(2,0,"Prior Auth Rule(PA_RULE)",sheet1);
+addCell(3,0,"Med Doc Physician Sig.(MED_DOC_PHY_SIGN)",sheet1);
+addCell(4,0,"IV/Benefits(IV_BENEFITS)",sheet1);
+addCell(5,0,"Medical Policy(MED_POLICY)",sheet1);
+addCell(6,0,"Shipping Rules(SHIPPING_RULE)",sheet1);
+addCell(7,0,"Payment Method(PAYMT_METHOD)",sheet1);
+addCell(8,0,"Limits(LIMITS)",sheet1);
+addCell(9,0,"Claims Logi (Modifiers, HL7, Date Span)(AR_HL7)",sheet1);
+addCell(10,0,"PASS/FAIL",sheet1);
+addCell(11,0,"FAILED DUE TO",sheet1);
+
+//new testStepName
+def newTestStep=null
+try {    
+                def req = jreq.getContents()
+              
+                //Assigning request value dynamically
+                //request
+                def slurper = new JsonSlurper().parseText(req);
+                def requestTemplete = new JsonBuilder(slurper);
+                for (i=2;i&lt;rc;i++){
+                	
+						// Input for TestCaseName
+					     Cell varTestCaseName = sh.getCell(1,i)
+					     def TestCaseName = varTestCaseName.getContents()
+                             
+				          //Input for plan
+				          requestTemplete.content.multiEntityPlan =  sh.getCell(2,i).getContents().toString()
+						  
+				          //Input for entity
+				          requestTemplete.content.entity =  sh.getCell(3,i).getContents()
+
+				          //Input for entityType
+				          requestTemplete.content.entityType =  sh.getCell(4,i).getContents()
+
+				          //Input for medGroupAtRisk
+				          requestTemplete.content.medGroupAtRisk =  sh.getCell(5,i).getContents().toString()
+
+				          //Input for planContractStatus
+				          requestTemplete.content.planContractStatus =  sh.getCell(6,i).getContents().toString()
+                             
+				                                  
+                                //Assign json request to variable
+                                def jsonReqAsString = requestTemplete.toPrettyString()
+                                def restRequest = testRunner.testCase.getTestStepByName('JSON Request');
+                                restRequest.setPropertyValue('Request',jsonReqAsString);
+
+                                //teststep cloned: Start
+                                def getTestCase = testRunner.testCase;
+                                def testst = testRunner.testCase.getTestStepByName("JSON Request");                  
+                                newTestStep = TestCaseName
+                                cleanUp(newTestStep)
+                                getTestCase.cloneStep(restRequest,newTestStep)
+                               
+                     		   //teststep cloned: End
+                                //Executing the testcase
+                                testRunner.runTestStepByName(newTestStep)
+ 
+                                //retrive response
+                                //def response = context.expand( '${TestRequest#Response}' ).toString()
+                                def ResponseMessage = testRunner.testCase.testSteps[newTestStep].testRequest.response.contentAsString
+                               
+                                //new JsonSlurper to parse and get the response in Json format
+                                def slurper1 = new JsonSlurper()
+                                def json = slurper1.parseText(ResponseMessage)
+
+                                // extract the value of required elements fron the json response 		
+                      		       // get Fee Schedule Flag(FEE_SCHEDULE) from response json           
+                                addCell(0,i,json.responsibilityMatrix.feeSchedule.toString(),sheet1);    
+								
+							 // get Claim Submission Flag(CLAIM_SUBMISSION) from response json           
+                                addCell(1,i,json.responsibilityMatrix.claimSubmission.toString(),sheet1);    
+                                  // get Prior Auth Rule(PA_RULE) from response json           
+                                addCell(2,i,json.responsibilityMatrix.priorAuthRule.toString(),sheet1);    
+					 // get medDocPhysicianSig from response json           
+                                addCell(3,i,json.responsibilityMatrix.medDocPhysicianSig.toString(),sheet1);  
+                                // get ivBenefits from response json           
+                                addCell(4,i,json.responsibilityMatrix.ivBenefits.toString(),sheet1); 
+                                // get medicalPolicy from response json           
+                                addCell(5,i,json.responsibilityMatrix.medicalPolicy.toString(),sheet1); 
+                                // get shippingRules from response json           
+                                addCell(6,i,json.responsibilityMatrix.shippingRules.toString(),sheet1); 
+                                // get paymentMethod from response json           
+                                addCell(7,i,json.responsibilityMatrix.paymentMethod.toString(),sheet1);
+					      // get limits from response json           
+                                addCell(8,i,json.responsibilityMatrix.limits.toString(),sheet1);
+                                // get claimsLogic from response json           
+                                addCell(9,i,json.responsibilityMatrix.claimsLogic.toString(),sheet1);
+
+
+
+                                
+			                //dynamic asserstion :Start
+                                def testStepForAssertion = testRunner.testCase.getTestStepByName(newTestStep);
+                                //ValidHTTPStatusCodes 200 Assertion
+						  addAssertionValidHTTPStatusCodes(testStepForAssertion,"Valid HTTP Status Codes_"+i)
+							
+								//get the expected values
+						//feeSchedule		
+  						  feeSchedule = sh.getCell(7,i).getContents().toString()
+  						  addAssertionJsonPathMatch(testStepForAssertion,feeSchedule,"responsibilityMatrix.feeSchedule","feeSchedule")
+						//claimSubmission		
+						  claimSubmission = sh.getCell(8,i).getContents().toString()
+                                addAssertionJsonPathMatch(testStepForAssertion,claimSubmission,"responsibilityMatrix.claimSubmission","claimSubmission")
+                             
+                              //priorAuthRule		
+						  priorAuthRule = sh.getCell(9,i).getContents().toString()
+                                addAssertionJsonPathMatch(testStepForAssertion,priorAuthRule,"responsibilityMatrix.priorAuthRule","priorAuthRule")
+
+                             //medDocPhysicianSig		
+						  medDocPhysicianSig = sh.getCell(10,i).getContents().toString()
+                                addAssertionJsonPathMatch(testStepForAssertion,medDocPhysicianSig,"responsibilityMatrix.medDocPhysicianSig","medDocPhysicianSig")
+
+                            //ivBenefits		
+						  ivBenefits = sh.getCell(11,i).getContents().toString()
+                                addAssertionJsonPathMatch(testStepForAssertion,ivBenefits,"responsibilityMatrix.ivBenefits","ivBenefits")
+
+                             //medicalPolicy		
+						  medicalPolicy = sh.getCell(12,i).getContents().toString()
+                                addAssertionJsonPathMatch(testStepForAssertion,medicalPolicy,"responsibilityMatrix.medicalPolicy","medicalPolicy")
+
+                            //shippingRules		
+						  shippingRules = sh.getCell(13,i).getContents().toString()
+                                addAssertionJsonPathMatch(testStepForAssertion,shippingRules,"responsibilityMatrix.shippingRules","shippingRules")
+
+                           //paymentMethod		
+						  paymentMethod = sh.getCell(14,i).getContents().toString()
+                                addAssertionJsonPathMatch(testStepForAssertion,paymentMethod,"responsibilityMatrix.paymentMethod","paymentMethod")
+                           
+                           //limits		
+						  limits = sh.getCell(15,i).getContents().toString()
+                                addAssertionJsonPathMatch(testStepForAssertion,limits,"responsibilityMatrix.limits","limits")
+
+
+                          //claimsLogic		
+						  claimsLogic = sh.getCell(16,i).getContents().toString()
+                                addAssertionJsonPathMatch(testStepForAssertion,claimsLogic,"responsibilityMatrix.claimsLogic","claimsLogic")
+                              
+                                //dynamic asserstion :End
+                                assertionResult = testStepForAssertion.getAssertionStatus()
+                                if(assertionResult.toString().equals("FAILED")){
+                                   addCell(10,i,"Fail",sheet1);
+             				for( assertion in testStepForAssertion.assertionList ){
+                                                for( e in assertion.errors ){
+                                                    addCell(11,i,e.message,sheet1);
+                                                }  
+                                   }
+                                }
+                                else{
+                                  addCell(10,i,"PASS",sheet1); 
+                                }
+								}
+								 wb1.write();
+                log.info "TestCase Execution Completed successfull"
+                }              
+               
+             
+catch(Exception e)
+{
+                log.info(e)                           
+}
+finally
+{
+     //close workbook
+     wb.close();
+     wb1.close();       
+     
+}
+  //Method code 
+def addAssertionJsonPathMatch(RestTestRequestStep testStepForAssertion,String expectedContent,String xPath,String assertionName) { 
+          def assertionType = testStepForAssertion.addAssertion("JsonPath Match")
+                                assertionType.name = assertionName
+                                assertionType.setPath(xPath)
+                                assertionType.setExpectedContent(expectedContent)
+                                assertionType.setAllowWildcards(true)  
+}
+   //Method code 
+def addAssertionValidHTTPStatusCodes(RestTestRequestStep testStepForAssertion,String assertionName) { 
+         def StatusCodeAssertionxpath = testStepForAssertion.addAssertion("Valid HTTP Status Codes")
+                    StatusCodeAssertionxpath.name = assertionName
+                    StatusCodeAssertionxpath.codes=200
+}
+//method to delete
+def cleanUp(String requestName){
+                //remove the teststep::Start
+                def testCase = testRunner.testCase
+                def testStep = testCase.getTestStepByName(requestName)
+                if (testStep!=null){
+                                                testCase.removeTestStep(testStep)
+                }
+                
+                //remove the teststep::End
+}
+//method to add Cell to sheet1
+def addCell(int colmNum,int rowNum,String lblName,WritableSheet sheet1 ){
+                Label header = new Label(colmNum,rowNum,lblName);
+                sheet1.addCell(header);                
+}</script>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="JSON Request" id="e4a180d0-b9f1-4752-b2a0-8e7cc7da9b4d">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineMultiEntityResponsibility/DetermineMultiEntityResponsibility/WADL" methodName="DetermineMultiEntityResponsibility" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="JSON Request" id="89705616-5f22-4d95-a1b9-766b35e346e4" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string ",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "ABC",
+            "correlationID": " IrKi27e1lMYrHGqA5CZRGL6i ",
+            "from": "PCF",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "entity": "ANY",
+    "entityType": "BlueCard",
+    "medGroupAtRisk": "",
+    "multiEntityPlan": "0098",
+    "planContractStatus": "false"
+}</con:request>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-42916" id="38432f80-d3e6-442e-a27e-08e2e8081e4b">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineMultiEntityResponsibility/DetermineMultiEntityResponsibility/WADL" methodName="DetermineMultiEntityResponsibility" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-42916" id="89705616-5f22-4d95-a1b9-766b35e346e4" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string ",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "ABC",
+            "correlationID": " IrKi27e1lMYrHGqA5CZRGL6i ",
+            "from": "PCF",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "entity": "ANY",
+    "entityType": "",
+    "medGroupAtRisk": "",
+    "multiEntityPlan": "ANY",
+    "planContractStatus": ""
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineMultiEntityResponsibility/DetermineMultiEntityResponsibility/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="b4b3ab5a-05a5-4ff0-ba0a-27c09cd47803" name="Valid HTTP Status Codes_2">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="1f08e83a-5b5c-4564-afd9-03e34463db6f" name="feeSchedule">
+          <con:configuration>
+            <path>responsibilityMatrix.feeSchedule</path>
+            <content>Plan</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="776c21bd-8d72-4203-a3ff-a7213e91aab2" name="claimSubmission">
+          <con:configuration>
+            <path>responsibilityMatrix.claimSubmission</path>
+            <content>Plan</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="1bc995b7-cc87-4477-8f0e-4f1ab776f55c" name="priorAuthRule">
+          <con:configuration>
+            <path>responsibilityMatrix.priorAuthRule</path>
+            <content>Plan</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="c2521329-986a-41c8-8200-5297195aeee7" name="medDocPhysicianSig">
+          <con:configuration>
+            <path>responsibilityMatrix.medDocPhysicianSig</path>
+            <content>Plan</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="08d837fe-b704-412f-9f67-2d311f331751" name="ivBenefits">
+          <con:configuration>
+            <path>responsibilityMatrix.ivBenefits</path>
+            <content>Plan</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="664b3c84-d6be-4b97-be65-5fc6eb228a41" name="medicalPolicy">
+          <con:configuration>
+            <path>responsibilityMatrix.medicalPolicy</path>
+            <content>Plan</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="34d2cb4f-6899-481c-9da0-287242173513" name="shippingRules">
+          <con:configuration>
+            <path>responsibilityMatrix.shippingRules</path>
+            <content>Plan</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="c639a457-706c-4ae7-b15b-0ca37c4026b0" name="paymentMethod">
+          <con:configuration>
+            <path>responsibilityMatrix.paymentMethod</path>
+            <content>Plan</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="197137c0-e2d4-400f-b146-202b287e047a" name="limits">
+          <con:configuration>
+            <path>responsibilityMatrix.limits</path>
+            <content>Plan</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="a59f2f92-e4bf-4a9c-b6c3-b99714c25566" name="claimsLogic">
+          <con:configuration>
+            <path>responsibilityMatrix.claimsLogic</path>
+            <content>Plan</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-42917" id="d1699c46-fb28-439e-8bd0-1119df5d26b3">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineMultiEntityResponsibility/DetermineMultiEntityResponsibility/WADL" methodName="DetermineMultiEntityResponsibility" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-42917" id="89705616-5f22-4d95-a1b9-766b35e346e4" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string ",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "ABC",
+            "correlationID": " IrKi27e1lMYrHGqA5CZRGL6i ",
+            "from": "PCF",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "entity": "ANY",
+    "entityType": "BlueCard",
+    "medGroupAtRisk": "",
+    "multiEntityPlan": "ANY",
+    "planContractStatus": "true"
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineMultiEntityResponsibility/DetermineMultiEntityResponsibility/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="336f0a3e-9aa3-461a-9835-d5ce3ba1b8f2" name="Valid HTTP Status Codes_3">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="13069374-5bca-4308-94ec-1deb85fb0de8" name="feeSchedule">
+          <con:configuration>
+            <path>responsibilityMatrix.feeSchedule</path>
+            <content>Entity</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="c41b0119-a8ee-43e0-a107-c5d5b9138ac6" name="claimSubmission">
+          <con:configuration>
+            <path>responsibilityMatrix.claimSubmission</path>
+            <content>Entity</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="6cb03e51-dfa4-4640-bdc8-ca5b7b45e6aa" name="priorAuthRule">
+          <con:configuration>
+            <path>responsibilityMatrix.priorAuthRule</path>
+            <content>Plan</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="e2112ab0-3d87-4317-b376-54afcde388a5" name="medDocPhysicianSig">
+          <con:configuration>
+            <path>responsibilityMatrix.medDocPhysicianSig</path>
+            <content>Plan</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="e7280de4-0f57-46a8-b19a-e96825113c8b" name="ivBenefits">
+          <con:configuration>
+            <path>responsibilityMatrix.ivBenefits</path>
+            <content>Plan</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="bbec07c4-5b60-4ef8-b80c-c631ab6ed702" name="medicalPolicy">
+          <con:configuration>
+            <path>responsibilityMatrix.medicalPolicy</path>
+            <content>Plan</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="07e46132-80c0-44f6-8c33-f7bd57c3167b" name="shippingRules">
+          <con:configuration>
+            <path>responsibilityMatrix.shippingRules</path>
+            <content>Plan</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="ac5cf80a-c26c-4d32-8d43-8aea0b99ce17" name="paymentMethod">
+          <con:configuration>
+            <path>responsibilityMatrix.paymentMethod</path>
+            <content>Plan</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="d3fbd212-caa2-4ae7-85ad-08e1ba9b9c8b" name="limits">
+          <con:configuration>
+            <path>responsibilityMatrix.limits</path>
+            <content>Plan</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="0d01523e-87c2-4377-9ac2-6bbec1a32253" name="claimsLogic">
+          <con:configuration>
+            <path>responsibilityMatrix.claimsLogic</path>
+            <content>Plan</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-42918" id="11c55579-fa9e-4b1a-a283-660ac08c9d50">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineMultiEntityResponsibility/DetermineMultiEntityResponsibility/WADL" methodName="DetermineMultiEntityResponsibility" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-42918" id="89705616-5f22-4d95-a1b9-766b35e346e4" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string ",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "ABC",
+            "correlationID": " IrKi27e1lMYrHGqA5CZRGL6i ",
+            "from": "PCF",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "entity": "ANY",
+    "entityType": "Medical Group",
+    "medGroupAtRisk": "true",
+    "multiEntityPlan": "ANY",
+    "planContractStatus": ""
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineMultiEntityResponsibility/DetermineMultiEntityResponsibility/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="3c9a8932-753d-4e2a-82e6-f0de6b69741e" name="Valid HTTP Status Codes_4">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="be6d09b0-0445-44f0-8edf-c1be66c2eec1" name="feeSchedule">
+          <con:configuration>
+            <path>responsibilityMatrix.feeSchedule</path>
+            <content>Entity</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="95b40c3d-7997-407f-a0d5-b5051fba4223" name="claimSubmission">
+          <con:configuration>
+            <path>responsibilityMatrix.claimSubmission</path>
+            <content>Entity</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="977a1a14-9a73-4a31-9a54-ade41f1cf0f6" name="priorAuthRule">
+          <con:configuration>
+            <path>responsibilityMatrix.priorAuthRule</path>
+            <content>Entity</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="2e81a73c-fde6-4970-9dc5-e3e370dc255d" name="medDocPhysicianSig">
+          <con:configuration>
+            <path>responsibilityMatrix.medDocPhysicianSig</path>
+            <content>Entity</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="0ae107a9-68ff-436a-aa3f-a4266b8b3807" name="ivBenefits">
+          <con:configuration>
+            <path>responsibilityMatrix.ivBenefits</path>
+            <content>Plan</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="855acab0-43a9-40dc-a34a-d9e77c18e76d" name="medicalPolicy">
+          <con:configuration>
+            <path>responsibilityMatrix.medicalPolicy</path>
+            <content>Plan</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="3c24f0e9-245d-40ad-904f-4d1bbcb7d489" name="shippingRules">
+          <con:configuration>
+            <path>responsibilityMatrix.shippingRules</path>
+            <content>Plan</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="6dacf654-548c-4121-bcfd-2b51c1e51bb0" name="paymentMethod">
+          <con:configuration>
+            <path>responsibilityMatrix.paymentMethod</path>
+            <content>Entity</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="2d886c6a-e6f5-4d76-ae35-a615a30d4554" name="limits">
+          <con:configuration>
+            <path>responsibilityMatrix.limits</path>
+            <content>Entity</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="239c0514-65f8-491a-9938-8ad5e5e412e5" name="claimsLogic">
+          <con:configuration>
+            <path>responsibilityMatrix.claimsLogic</path>
+            <content>Entity</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-42919" id="c2ae08d4-c28f-4b9c-9ea9-c7dbd7c2804c">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineMultiEntityResponsibility/DetermineMultiEntityResponsibility/WADL" methodName="DetermineMultiEntityResponsibility" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-42919" id="89705616-5f22-4d95-a1b9-766b35e346e4" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string ",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "ABC",
+            "correlationID": " IrKi27e1lMYrHGqA5CZRGL6i ",
+            "from": "PCF",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "entity": "ANY",
+    "entityType": "Medical Group",
+    "medGroupAtRisk": "false",
+    "multiEntityPlan": "ANY",
+    "planContractStatus": ""
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineMultiEntityResponsibility/DetermineMultiEntityResponsibility/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="6fe16a70-6652-4210-a5be-ae885d4b3113" name="Valid HTTP Status Codes_5">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="ea0f4693-6a95-487c-b5ab-2ae21dee9ab5" name="feeSchedule">
+          <con:configuration>
+            <path>responsibilityMatrix.feeSchedule</path>
+            <content>Plan</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="6173d24b-6559-4961-9e7e-8dc72e637c74" name="claimSubmission">
+          <con:configuration>
+            <path>responsibilityMatrix.claimSubmission</path>
+            <content>Plan</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="43b2e004-2782-4ad5-b106-8ccd8051cd87" name="priorAuthRule">
+          <con:configuration>
+            <path>responsibilityMatrix.priorAuthRule</path>
+            <content>Entity</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="04b69dc9-7060-44cf-81d6-20eb0b50da94" name="medDocPhysicianSig">
+          <con:configuration>
+            <path>responsibilityMatrix.medDocPhysicianSig</path>
+            <content>Plan</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="92a559c1-7962-40e1-9b5e-2926c471455a" name="ivBenefits">
+          <con:configuration>
+            <path>responsibilityMatrix.ivBenefits</path>
+            <content>Plan</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="043abcad-6985-4400-b533-63fd8d12f00b" name="medicalPolicy">
+          <con:configuration>
+            <path>responsibilityMatrix.medicalPolicy</path>
+            <content>Plan</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="1f521014-a9e4-4b22-81e9-68fd43406108" name="shippingRules">
+          <con:configuration>
+            <path>responsibilityMatrix.shippingRules</path>
+            <content>Plan</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="facdf3eb-16d2-4abb-9614-6fadf1743d69" name="paymentMethod">
+          <con:configuration>
+            <path>responsibilityMatrix.paymentMethod</path>
+            <content>Plan</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="7d2d02bb-da96-48c9-87f2-f00fa2dceabc" name="limits">
+          <con:configuration>
+            <path>responsibilityMatrix.limits</path>
+            <content>Plan</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="5ed3d257-6892-4333-bd1d-f51cc47eab6b" name="claimsLogic">
+          <con:configuration>
+            <path>responsibilityMatrix.claimsLogic</path>
+            <content>Plan</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-42920" id="127fa83b-73b8-4da4-8782-e83b3de8458a">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineMultiEntityResponsibility/DetermineMultiEntityResponsibility/WADL" methodName="DetermineMultiEntityResponsibility" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-42920" id="89705616-5f22-4d95-a1b9-766b35e346e4" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string ",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "ABC",
+            "correlationID": " IrKi27e1lMYrHGqA5CZRGL6i ",
+            "from": "PCF",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "entity": "ANY",
+    "entityType": "TPA",
+    "medGroupAtRisk": "",
+    "multiEntityPlan": "ANY",
+    "planContractStatus": ""
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineMultiEntityResponsibility/DetermineMultiEntityResponsibility/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="1b35cbde-d4af-4b70-a0e7-fcfdd686eae2" name="Valid HTTP Status Codes_6">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="e38e6f9f-e9cf-4eb3-97b0-f4be89bb98e2" name="feeSchedule">
+          <con:configuration>
+            <path>responsibilityMatrix.feeSchedule</path>
+            <content>Entity</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="8e106891-23e9-4d99-9d1c-738024551226" name="claimSubmission">
+          <con:configuration>
+            <path>responsibilityMatrix.claimSubmission</path>
+            <content>Plan</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="44e058b5-e908-4140-9ba0-8e8eecfe3056" name="priorAuthRule">
+          <con:configuration>
+            <path>responsibilityMatrix.priorAuthRule</path>
+            <content>Plan</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="bd735d1b-2cef-489b-88bc-c677bcde7982" name="medDocPhysicianSig">
+          <con:configuration>
+            <path>responsibilityMatrix.medDocPhysicianSig</path>
+            <content>Plan</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="9d0536cc-c81f-428d-ad7e-e5c5d4f78ce7" name="ivBenefits">
+          <con:configuration>
+            <path>responsibilityMatrix.ivBenefits</path>
+            <content>Plan</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="2d97f3a4-afe1-454d-9977-7cb2c89ab87f" name="medicalPolicy">
+          <con:configuration>
+            <path>responsibilityMatrix.medicalPolicy</path>
+            <content>Plan</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="56eb1394-fc9f-4e68-9860-31acf3f7aac5" name="shippingRules">
+          <con:configuration>
+            <path>responsibilityMatrix.shippingRules</path>
+            <content>Plan</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="f87e65d9-d103-46b7-93a0-3f5fe8c54f26" name="paymentMethod">
+          <con:configuration>
+            <path>responsibilityMatrix.paymentMethod</path>
+            <content>Plan</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="58a86ccc-7a88-4a5c-a2c6-a63297ec6b1e" name="limits">
+          <con:configuration>
+            <path>responsibilityMatrix.limits</path>
+            <content>Plan</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="d30afa77-5103-41c4-bc89-090bc1d6e50a" name="claimsLogic">
+          <con:configuration>
+            <path>responsibilityMatrix.claimsLogic</path>
+            <content>Plan</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-42921" id="c749ba65-ab4b-4303-8e6b-b90e68096a6f">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineMultiEntityResponsibility/DetermineMultiEntityResponsibility/WADL" methodName="DetermineMultiEntityResponsibility" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-42921" id="89705616-5f22-4d95-a1b9-766b35e346e4" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string ",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "ABC",
+            "correlationID": " IrKi27e1lMYrHGqA5CZRGL6i ",
+            "from": "PCF",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "entity": "ANY",
+    "entityType": "Network",
+    "medGroupAtRisk": "",
+    "multiEntityPlan": "ANY",
+    "planContractStatus": ""
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineMultiEntityResponsibility/DetermineMultiEntityResponsibility/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="90ec1036-510f-4cfd-97b2-26404629e55b" name="Valid HTTP Status Codes_7">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="37c9a2f4-d65b-4c49-af35-e7d1b668a2d3" name="feeSchedule">
+          <con:configuration>
+            <path>responsibilityMatrix.feeSchedule</path>
+            <content>Entity</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="960cb565-6e2b-47cd-9552-b0c609e33925" name="claimSubmission">
+          <con:configuration>
+            <path>responsibilityMatrix.claimSubmission</path>
+            <content>Plan</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="d5eacd55-e330-40b2-a93f-7b260155340a" name="priorAuthRule">
+          <con:configuration>
+            <path>responsibilityMatrix.priorAuthRule</path>
+            <content>Plan</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="3e6902f5-3cfc-46f9-b790-fa111e38bb3b" name="medDocPhysicianSig">
+          <con:configuration>
+            <path>responsibilityMatrix.medDocPhysicianSig</path>
+            <content>Plan</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="7c79783f-c226-41d6-abc4-2c799b316753" name="ivBenefits">
+          <con:configuration>
+            <path>responsibilityMatrix.ivBenefits</path>
+            <content>Plan</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="2b682591-4e98-482d-af61-d40e678fb7ce" name="medicalPolicy">
+          <con:configuration>
+            <path>responsibilityMatrix.medicalPolicy</path>
+            <content>Plan</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="7f027561-b6f8-4cc2-8b38-46c47b4a9a47" name="shippingRules">
+          <con:configuration>
+            <path>responsibilityMatrix.shippingRules</path>
+            <content>Plan</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="132612cc-a7c7-4967-8c64-1a1c14d31c03" name="paymentMethod">
+          <con:configuration>
+            <path>responsibilityMatrix.paymentMethod</path>
+            <content>Plan</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="efa07517-ff30-42eb-bc95-d3b7e85cb600" name="limits">
+          <con:configuration>
+            <path>responsibilityMatrix.limits</path>
+            <content>Plan</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="6017653a-8b37-4cf3-8163-ba869e0f25bc" name="claimsLogic">
+          <con:configuration>
+            <path>responsibilityMatrix.claimsLogic</path>
+            <content>Plan</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-42922" id="7ccee039-d99b-430b-aa32-45acd29443b9">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineMultiEntityResponsibility/DetermineMultiEntityResponsibility/WADL" methodName="DetermineMultiEntityResponsibility" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-42922" id="89705616-5f22-4d95-a1b9-766b35e346e4" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string ",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "ABC",
+            "correlationID": " IrKi27e1lMYrHGqA5CZRGL6i ",
+            "from": "PCF",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "entity": "9997",
+    "entityType": "Health Insurance",
+    "medGroupAtRisk": "",
+    "multiEntityPlan": "ANY",
+    "planContractStatus": ""
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineMultiEntityResponsibility/DetermineMultiEntityResponsibility/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="f4977976-5e14-4a48-84a3-d1c4f330fe46" name="Valid HTTP Status Codes_8">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="63b1c1af-d991-41cf-9d82-5ee132a8787f" name="feeSchedule">
+          <con:configuration>
+            <path>responsibilityMatrix.feeSchedule</path>
+            <content>Entity</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="500d6c6a-7f17-4cb3-98f6-6c2bd2bba66a" name="claimSubmission">
+          <con:configuration>
+            <path>responsibilityMatrix.claimSubmission</path>
+            <content>Entity</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="13c5e177-8e25-4bd5-a59e-5e0eebd5c839" name="priorAuthRule">
+          <con:configuration>
+            <path>responsibilityMatrix.priorAuthRule</path>
+            <content>Entity</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="ba97fd2a-f392-4aa5-a30e-67fde108557f" name="medDocPhysicianSig">
+          <con:configuration>
+            <path>responsibilityMatrix.medDocPhysicianSig</path>
+            <content>Plan</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="06cb96c6-7a34-4332-acc5-59f1d56d08a3" name="ivBenefits">
+          <con:configuration>
+            <path>responsibilityMatrix.ivBenefits</path>
+            <content>Plan</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="a291167f-20ac-4479-afdf-ec4a3e178aff" name="medicalPolicy">
+          <con:configuration>
+            <path>responsibilityMatrix.medicalPolicy</path>
+            <content>Plan</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="6029fb80-f08d-4005-86c3-dcf883569cc6" name="shippingRules">
+          <con:configuration>
+            <path>responsibilityMatrix.shippingRules</path>
+            <content>Plan</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="339fa296-5049-4993-b004-2bcaeadb43de" name="paymentMethod">
+          <con:configuration>
+            <path>responsibilityMatrix.paymentMethod</path>
+            <content>Entity</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="38076f81-0f3f-4552-aa41-bd25d16316a2" name="limits">
+          <con:configuration>
+            <path>responsibilityMatrix.limits</path>
+            <content>Plan</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="bc4fa011-9275-4e9b-a84a-e3692aff80e6" name="claimsLogic">
+          <con:configuration>
+            <path>responsibilityMatrix.claimsLogic</path>
+            <content>Entity</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-42923" id="b6490af0-dd6a-46e0-b844-62232c8fbfc5">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/DetermineMultiEntityResponsibility/DetermineMultiEntityResponsibility/WADL" methodName="DetermineMultiEntityResponsibility" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-42923" id="89705616-5f22-4d95-a1b9-766b35e346e4" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string ",
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "ABC",
+            "correlationID": " IrKi27e1lMYrHGqA5CZRGL6i ",
+            "from": "PCF",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "entity": "ANY",
+    "entityType": "BlueCard",
+    "medGroupAtRisk": "",
+    "multiEntityPlan": "0098",
+    "planContractStatus": "false"
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods01/DecisionService/rest/v1/DetermineMultiEntityResponsibility/DetermineMultiEntityResponsibility/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="d759e6b5-76e9-4f1d-9bcc-ba85f95ebe16" name="Valid HTTP Status Codes_9">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="78c6aecb-bc38-46fd-88d4-9fbb61524a3e" name="feeSchedule">
+          <con:configuration>
+            <path>responsibilityMatrix.feeSchedule</path>
+            <content>Entity</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="cb2ad75b-c158-46a0-a5e2-6f1ab096479c" name="claimSubmission">
+          <con:configuration>
+            <path>responsibilityMatrix.claimSubmission</path>
+            <content>Entity</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="85d03e26-812f-436a-82ef-895013c651ce" name="priorAuthRule">
+          <con:configuration>
+            <path>responsibilityMatrix.priorAuthRule</path>
+            <content>Entity</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="9d18b8e7-ddd8-4411-a3df-c3700c1b3be6" name="medDocPhysicianSig">
+          <con:configuration>
+            <path>responsibilityMatrix.medDocPhysicianSig</path>
+            <content>Entity</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="0cf091bc-5c81-4389-8f3d-2e2012fe6bd6" name="ivBenefits">
+          <con:configuration>
+            <path>responsibilityMatrix.ivBenefits</path>
+            <content>Plan</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="38ab9cbb-aa79-46f0-a129-aa65ca18c2f5" name="medicalPolicy">
+          <con:configuration>
+            <path>responsibilityMatrix.medicalPolicy</path>
+            <content>Plan</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="f0cf7f66-e206-4535-825a-35ee63577dd8" name="shippingRules">
+          <con:configuration>
+            <path>responsibilityMatrix.shippingRules</path>
+            <content>Entity</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="8ff07393-87b3-4d0a-beda-f5317d8513ea" name="paymentMethod">
+          <con:configuration>
+            <path>responsibilityMatrix.paymentMethod</path>
+            <content>Entity</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="aca08931-cc6a-4601-a436-67c391f83f3d" name="limits">
+          <con:configuration>
+            <path>responsibilityMatrix.limits</path>
+            <content>Entity</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="1ff58d2f-91a2-44ea-9405-62f1eda70073" name="claimsLogic">
+          <con:configuration>
+            <path>responsibilityMatrix.claimsLogic</path>
+            <content>Entity</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:properties/>
+  <con:reportParameters/>
+</con:testCase>
