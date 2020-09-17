@@ -6,7 +6,7 @@
   <con:testStep type="groovy" name="ValidateEligibleDiagnosis_SingleLineItem" id="0ca2d20f-7846-43b6-babd-6828c3f64c50">
     <con:settings/>
     <con:config>
-      <script><![CDATA[import jxl.*; //test
+      <script><![CDATA[import jxl.*; //test2
 import jxl.write.*
 import java.io.*
 import java.io.file.*
