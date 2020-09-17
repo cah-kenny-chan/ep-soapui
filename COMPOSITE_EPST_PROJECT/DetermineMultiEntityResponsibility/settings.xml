@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<con:testSuite id="816480cf-cb64-427a-90a1-aff6705ffa74" name="DetermineMultiEntityResponsibility" xmlns:con="http://eviware.com/soapui/config">
-  <con:settings>
-    <con:setting id="816480cf-cb64-427a-90a1-aff6705ffa74fileName">DetermineMultiEntityResponsibility</con:setting>
-  </con:settings>
-  <con:runType>SEQUENTIAL</con:runType>
-  <con:properties/>
-  <con:reportParameters/>
-</con:testSuite>

@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<con:testSuite id="70c2b993-1dd9-4f35-b42d-0096cd798861" name="DeterminePrimaryWarehouse" xmlns:con="http://eviware.com/soapui/config">
-  <con:settings>
-    <con:setting id="70c2b993-1dd9-4f35-b42d-0096cd798861fileName">DeterminePrimaryWarehouse</con:setting>
-  </con:settings>
-  <con:runType>SEQUENTIAL</con:runType>
-  <con:properties/>
-  <con:reportParameters/>
-</con:testSuite>

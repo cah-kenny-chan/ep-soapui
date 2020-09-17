@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<con:testSuite id="bc6c3edb-6431-4d11-94b9-5af163f7371b" name="DetermineGracePeriodForLimits" xmlns:con="http://eviware.com/soapui/config">
-  <con:settings>
-    <con:setting id="bc6c3edb-6431-4d11-94b9-5af163f7371bfileName">DetermineGracePeriodForLimits</con:setting>
-  </con:settings>
-  <con:runType>SEQUENTIAL</con:runType>
-  <con:properties/>
-  <con:reportParameters/>
-</con:testSuite>

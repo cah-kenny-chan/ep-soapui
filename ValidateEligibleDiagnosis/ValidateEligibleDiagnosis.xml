@@ -1,0 +1,2868 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<con:testCase id="628e96c1-0816-47a7-b9e3-d0ed73739b32" failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="ValidateEligibleDiagnosis" searchProperties="true" xmlns:con="http://eviware.com/soapui/config">
+  <con:settings>
+    <con:setting id="628e96c1-0816-47a7-b9e3-d0ed73739b32fileName">ValidateEligibleDiagnosis</con:setting>
+  </con:settings>
+  <con:testStep type="groovy" name="ValidateEligibleDiagnosis_SingleLineItem" id="0ca2d20f-7846-43b6-babd-6828c3f64c50">
+    <con:settings/>
+    <con:config>
+      <script><![CDATA[import jxl.*; //test
+import jxl.write.*
+import java.io.*
+import java.io.file.*
+import java.util.*
+import java.lang.*
+import jxl.read.biff.BiffException;
+import net.sf.*
+import net.sf.json.*
+import net.sf.json.groovy.*
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+import groovy.json.JsonBuilder
+import com.eviware.soapui.model.testsuite.TestStepResult.TestStepStatus
+import com.eviware.soapui.impl.wsdl.teststeps.RestTestRequestStep
+
+def groovyUtils = new com.eviware.soapui.support.GroovyUtils(context)
+def projectDir = groovyUtils.projectPath
+
+def inputfile =  projectDir + "/ValidateEligibleDiagnosis/ValidateEligibleDiagnosis_Input.xls"
+def outputfile = projectDir + "/ValidateEligibleDiagnosis/ValidateEligibleDiagnosis_SingleLineItem_Output.xls"
+
+
+//Creating workbook for reading value from Excel Sheet
+
+Workbook wb = Workbook.getWorkbook(new File(inputfile))
+Sheet sh = wb.getSheet("SingleLineItem")
+Sheet jsonInput = wb.getSheet("JSON-SingleLineItem")
+
+//reading data from input Excel sheet
+rc = sh.getRows();
+cc = sh.getColumns();
+Cell jreq = jsonInput.getCell(0,0)
+
+//Creating Workbook for writing value in Excel Sheet
+WritableWorkbook wb1= Workbook.createWorkbook(new File(outputfile));
+WritableSheet sheet1 = wb1.createSheet("ActualResults",0);
+
+//Header declaration for output file
+addCell(0,0,"lineItemID",sheet1);
+addCell(1,0,"DiagnosisCode 1",sheet1);
+addCell(2,0,"DiagnosisCode 2",sheet1);
+addCell(3,0,"DiagnosisCode 3",sheet1);
+addCell(4,0,"diagnosisEligible",sheet1);
+addCell(5,0,"PASS/FAIL",sheet1);
+addCell(6,0,"FAILED DUE TO",sheet1);
+ 
+//new testStepName
+def newTestStep=null
+
+try {
+
+   
+               def req = jreq.getContents()
+               //Assigning request value dynamically
+               //request
+               def slurper = new JsonSlurper().parseText(req);
+               def requestTemplet = new JsonBuilder(slurper);
+
+         
+               for (i=3;i<rc;i++){
+
+                           // Input for TestCaseName
+                         Cell varTestCaseName = sh.getCell(0,i)
+                        def TestCaseName = varTestCaseName.getContents()
+
+                                                        
+                                 //Input for Line Item ID                                                                                        
+                                requestTemplet.content.lineItems[0].lineItemID = sh.getCell(1,i).getContents().toString()
+                                 //Input for hcpcsCode                                   
+                                requestTemplet.content.lineItems[0].hcpcsCode = sh.getCell(2,i).getContents().toString()
+                                //Input for id                                  
+                                requestTemplet.content.lineItems[0].plans[0].id = sh.getCell(3,i).getContents().toString()
+                                //Input for planName                                  
+                                requestTemplet.content.lineItems[0].plans[0].planCode = sh.getCell(4,i).getContents().toString() 
+                                //Input for diagnosis  						
+                                requestTemplet.content.diagnosis[0].codeICD10 = sh.getCell(5,i).getContents().toString()
+                                requestTemplet.content.diagnosis[1].codeICD10 = sh.getCell(6,i).getContents().toString()                                                                                                         
+                                requestTemplet.content.diagnosis[2].codeICD10 = sh.getCell(7,i).getContents().toString()                                                  
+                                 
+                              //Assign json request to variable
+                       def jsonReqAsString = requestTemplet.toPrettyString()
+                       def restRequest = testRunner.testCase.getTestStepByName('JSON Request');
+                       restRequest.setPropertyValue('Request',jsonReqAsString);
+
+                                //teststep cloned: Start
+                        def getTestCase = testRunner.testCase;
+                        def testst = testRunner.testCase.getTestStepByName("JSON Request");                 
+                            newTestStep = TestCaseName
+                            cleanUp(newTestStep)
+                            getTestCase.cloneStep(restRequest,newTestStep)
+                             
+                         //teststep cloned: End
+                         //Executing the testcase
+                        testRunner.runTestStepByName(newTestStep)
+ 
+                         //retrive response         
+                       def ResponseMessage = testRunner.testCase.testSteps[newTestStep].testRequest.response.contentAsString
+                    
+                         //new JsonSlurper to parse and get the response in Json format
+                        def slurper1 = new JsonSlurper()
+                        def json = slurper1.parseText(ResponseMessage)
+                    
+                             
+                        // get lineItemID from response json  
+                        addCell(0,i,json.lineItems[0].lineItemID.toString(),sheet1); 
+                        
+                        
+                        // get diagnosis from response json                        
+                         int cel=1;
+                        for(int arrDiag=0; arrDiag<json.lineItems[0].diagnosis.size(); arrDiag++)
+                        {
+                        		addCell(cel,i,json.lineItems[0].diagnosis[arrDiag].codeICD10.toString(),sheet1); 
+                        		cel=cel+1;
+                        }
+
+                        //get diagnosisEligible from response json                               
+                        addCell(4,i,json.lineItems[0].diagnosisEligible.toString(),sheet1);                                               
+                                                           
+                      //dynamic asserstion :Start
+                   def testStepForAssertion = testRunner.testCase.getTestStepByName(newTestStep);
+                                //ValidHTTPStatusCodes 200 Assertion
+                  addAssertionValidHTTPStatusCodes(testStepForAssertion,"Valid HTTP Status Codes_"+i)
+            
+                             //get the expected values
+                       
+                       lineItemID = sh.getCell(8,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,lineItemID,"lineItems[0].lineItemID","lineItemID")
+
+					if(json.lineItems[0].diagnosis[0] && json.lineItems[0].diagnosis[0].codeICD10){
+                       codeICD10 = sh.getCell(9,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,codeICD10,"lineItems[0].diagnosis[0].codeICD10","codeICD10")
+					}
+					if(json.lineItems[0].diagnosis[1] && json.lineItems[0].diagnosis[1].codeICD10){
+                       codeICD10 = sh.getCell(10,i).getContents().toString()
+                      addAssertionJsonPathMatch(testStepForAssertion,codeICD10,"lineItems[0].diagnosis[1].codeICD10","codeICD10")
+					}
+					if(json.lineItems[0].diagnosis[2] && json.lineItems[0].diagnosis[2].codeICD10){
+                    codeICD10 = sh.getCell(11,i).getContents().toString()
+                   addAssertionJsonPathMatch(testStepForAssertion,codeICD10,"lineItems[0].diagnosis[2].codeICD10","codeICD10")
+					}
+                       diagnosisEligible = sh.getCell(12,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,diagnosisEligible,"lineItems[0].diagnosisEligible","diagnosisEligible")
+
+                       
+                               //dynamic asserstion :End
+                            assertionResult = testStepForAssertion.getAssertionStatus()
+             if(assertionResult.toString().equals("FAILED")){
+
+                                       addCell(5,i,"Fail",sheet1);
+                                   for( assertion in testStepForAssertion.assertionList ){
+                                  for( e in assertion.errors ){
+
+                                                     addCell(6,i,e.message,sheet1);
+
+                                                } 
+
+                                   }
+
+                                }
+
+
+                                else{
+
+                                   addCell(5,i,"PASS",sheet1);
+
+                                }
+
+ 
+       }
+
+      wb1.write();
+            log.info "TestCase Execution Completed successfull"
+
+ 
+
+      }             
+     
+catch(Exception e)
+{
+
+            log.info(e)                         
+}
+
+finally
+
+{
+    //close workbook
+     wb.close();
+     wb1.close();     
+
+}
+
+//Method code
+def addAssertionJsonPathMatch(RestTestRequestStep testStepForAssertion,String expectedContent,String xPath,String assertionName) {
+          def assertionType = testStepForAssertion.addAssertion("JsonPath Match")
+                                assertionType.name = assertionName
+                                assertionType.setPath(xPath)
+                                assertionType.setExpectedContent(expectedContent)
+                                assertionType.setAllowWildcards(true) 
+
+}
+
+//Method code
+def addAssertionValidHTTPStatusCodes(RestTestRequestStep testStepForAssertion,String assertionName) {
+
+         def StatusCodeAssertionxpath = testStepForAssertion.addAssertion("Valid HTTP Status Codes")
+             StatusCodeAssertionxpath.name = assertionName
+             StatusCodeAssertionxpath.codes=200
+
+}
+
+//method to delete
+def cleanUp(String requestName){
+
+                //remove the teststep::Start
+                def testCase = testRunner.testCase
+                def testStep = testCase.getTestStepByName(requestName)
+
+                if (testStep!=null){
+
+ 
+                                    testCase.removeTestStep(testStep)
+                }
+
+    
+            //remove the teststep::End
+
+}
+
+ 
+
+//method to add Cell to sheet1
+
+def addCell(int colmNum,int rowNum,String lblName,WritableSheet sheet1 ){
+
+                 Label header = new Label(colmNum,rowNum,lblName);
+                sheet1.addCell(header);               
+
+}]]></script>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="groovy" name="ValidateEligibleDiagnosis_MultiLineItem" id="81f498ee-d2a3-4822-a68f-9e74c28b4b48">
+    <con:settings/>
+    <con:config>
+      <script><![CDATA[import jxl.*;
+import jxl.write.*
+import java.io.*
+import java.io.file.*
+import java.util.*
+import java.lang.*
+import jxl.read.biff.BiffException;
+import net.sf.*
+import net.sf.json.*
+import net.sf.json.groovy.*
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+import groovy.json.JsonBuilder
+import com.eviware.soapui.model.testsuite.TestStepResult.TestStepStatus
+import com.eviware.soapui.impl.wsdl.teststeps.RestTestRequestStep
+
+def groovyUtils = new com.eviware.soapui.support.GroovyUtils(context)
+def projectDir = groovyUtils.projectPath
+
+def inputfile =  projectDir + "/ValidateEligibleDiagnosis/ValidateEligibleDiagnosis_Input.xls"
+def outputfile = projectDir + "/ValidateEligibleDiagnosis/ValidateEligibleDiagnosis_MultiLineItem_Output.xls"
+
+
+//Creating workbook for reading value from Excel Sheet
+
+Workbook wb = Workbook.getWorkbook(new File(inputfile))
+Sheet sh = wb.getSheet("MultiLineItem")
+Sheet jsonInput = wb.getSheet("JSON-MultiLineItem")
+
+//reading data from input Excel sheet
+rc = sh.getRows();
+cc = sh.getColumns();
+Cell jreq = jsonInput.getCell(0,0)
+
+//Creating Workbook for writing value in Excel Sheet
+WritableWorkbook wb1= Workbook.createWorkbook(new File(outputfile));
+WritableSheet sheet1 = wb1.createSheet("ActualResults",0);
+
+//Header declaration for output file
+addCell(0,0,"lineItemID",sheet1);
+addCell(1,0,"DiagnosisCode 1",sheet1);
+addCell(2,0,"DiagnosisCode 2",sheet1);
+addCell(3,0,"DiagnosisCode 3",sheet1);
+addCell(4,0,"diagnosisEligible",sheet1);
+
+
+addCell(5,0,"lineItemID",sheet1);
+addCell(6,0,"DiagnosisCode 1",sheet1);
+addCell(7,0,"DiagnosisCode 2",sheet1);
+addCell(8,0,"DiagnosisCode 3",sheet1);
+addCell(9,0,"diagnosisEligible",sheet1);
+
+addCell(10,0,"PASS/FAIL",sheet1);
+addCell(11,0,"FAILED DUE TO",sheet1);
+ 
+//new testStepName
+def newTestStep=null
+
+//try {
+
+   
+               def req = jreq.getContents()
+               //Assigning request value dynamically
+               //request
+               def slurper = new JsonSlurper().parseText(req);
+               def requestTemplet = new JsonBuilder(slurper);
+
+         
+               for (i=3;i<rc;i++){
+
+                           // Input for TestCaseName
+                         Cell varTestCaseName = sh.getCell(0,i)
+                        def TestCaseName = varTestCaseName.getContents()
+
+                                                        
+                                 //Input for Line Item ID 1                                                                                     
+                                requestTemplet.content.lineItems[0].lineItemID = sh.getCell(1,i).getContents().toString()
+                                 //Input for hcpcsCode                                   
+                                requestTemplet.content.lineItems[0].hcpcsCode = sh.getCell(2,i).getContents().toString()
+                                //Input for id                                  
+                                requestTemplet.content.lineItems[0].plans[0].id = sh.getCell(3,i).getContents().toString()
+                                //Input for planName                                  
+                                requestTemplet.content.lineItems[0].plans[0].planCode = sh.getCell(4,i).getContents().toString()                                                                                                                                  
+                                                                         
+
+                                //Input for Line Item ID 2                                                                                     
+                                requestTemplet.content.lineItems[1].lineItemID = sh.getCell(5,i).getContents().toString()
+                                 //Input for hcpcsCode                                   
+                                requestTemplet.content.lineItems[1].hcpcsCode = sh.getCell(6,i).getContents().toString()
+                                //Input for id                                  
+                                requestTemplet.content.lineItems[1].plans[0].id = sh.getCell(7,i).getContents().toString()
+                                //Input for planName                                  
+                                requestTemplet.content.lineItems[1].plans[0].planCode = sh.getCell(8,i).getContents().toString() 
+
+                                 //Input for diagnosis  						
+                                requestTemplet.content.diagnosis[0].codeICD10 = sh.getCell(9,i).getContents().toString()
+                                requestTemplet.content.diagnosis[1].codeICD10 = sh.getCell(10,i).getContents().toString()  
+                                
+                              //Assign json request to variable
+                       def jsonReqAsString = requestTemplet.toPrettyString()
+                       def restRequest = testRunner.testCase.getTestStepByName('JSON Request');
+                       restRequest.setPropertyValue('Request',jsonReqAsString);
+
+                                //teststep cloned: Start
+                        def getTestCase = testRunner.testCase;
+                        def testst = testRunner.testCase.getTestStepByName("JSON Request");                 
+                            newTestStep = TestCaseName
+                            cleanUp(newTestStep)
+                            getTestCase.cloneStep(restRequest,newTestStep)
+                             
+                         //teststep cloned: End
+                         //Executing the testcase
+                        testRunner.runTestStepByName(newTestStep)
+ 
+                         //retrive response         
+                       def ResponseMessage = testRunner.testCase.testSteps[newTestStep].testRequest.response.contentAsString
+                    
+                         //new JsonSlurper to parse and get the response in Json format
+                        def slurper1 = new JsonSlurper()
+                        def json = slurper1.parseText(ResponseMessage)
+                    
+                                  
+                             
+                        // get lineItemID from response json  
+                        addCell(0,i,json.lineItems[0].lineItemID.toString(),sheet1); 
+                        
+					  // get diagnosis from response json    
+                       	int cel=1;
+                        for(int arrDiag=0; arrDiag<json.lineItems[0].diagnosis.size(); arrDiag++)
+                        {
+                        		addCell(cel,i,json.lineItems[0].diagnosis[arrDiag].codeICD10.toString(),sheet1); 
+                        		cel=cel+1;
+                        }
+                        //get diagnosisEligible from response json                               
+                        addCell(4,i,json.lineItems[0].diagnosisEligible.toString(),sheet1);  
+
+                        
+                        // get lineItemID from response json  
+                        addCell(5,i,json.lineItems[1].lineItemID.toString(),sheet1); 
+                        
+
+                          // get diagnosis from response json                         
+                          int cel1=6;
+                        for(int arrDiag=0; arrDiag<json.lineItems[1].diagnosis.size(); arrDiag++)
+                        {
+                        		addCell(cel1,i,json.lineItems[1].diagnosis[arrDiag].codeICD10.toString(),sheet1); 
+                        		cel1=cel1+1;
+                        }
+                        //get diagnosisEligible from response json                               
+                        addCell(9,i,json.lineItems[1].diagnosisEligible.toString(),sheet1);                                               
+                                                           
+                      //dynamic asserstion :Start
+                   def testStepForAssertion = testRunner.testCase.getTestStepByName(newTestStep);
+                                //ValidHTTPStatusCodes 200 Assertion
+                  addAssertionValidHTTPStatusCodes(testStepForAssertion,"Valid HTTP Status Codes_"+i)
+            
+                             //get the expected values for Line item 1
+                       
+                       lineItemID = sh.getCell(11,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,lineItemID,"lineItems[0].lineItemID","lineItemID")
+					
+					if(json.lineItems[0].diagnosis[0] && json.lineItems[0].diagnosis[0].codeICD10){
+                       codeICD10 = sh.getCell(12,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,codeICD10,"lineItems[0].diagnosis[0].codeICD10","codeICD10")
+					}
+					
+					if(json.lineItems[0].diagnosis[1] && json.lineItems[0].diagnosis[1].codeICD10){
+                       codeICD10 = sh.getCell(13,i).getContents().toString()
+                      addAssertionJsonPathMatch(testStepForAssertion,codeICD10,"lineItems[0].diagnosis[1].codeICD10","codeICD10")
+					}
+					
+                       diagnosisEligible = sh.getCell(14,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,diagnosisEligible,"lineItems[0].diagnosisEligible","diagnosisEligible")
+
+
+                        //get the expected values for ine item 2
+                      
+                       lineItemID = sh.getCell(15,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,lineItemID,"lineItems[1].lineItemID","lineItemID")
+					
+					if(json.containsKey("diagnosis[0]")){
+                       codeICD10 = sh.getCell(16,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,codeICD10,"lineItems[1].diagnosis[1].codeICD10","codeICD10")
+					}
+					
+					if(json.containsKey("diagnosis[1]")){
+                       codeICD10 = sh.getCell(17,i).getContents().toString()
+                      addAssertionJsonPathMatch(testStepForAssertion,codeICD10,"lineItems[1].diagnosis[1].codeICD10","codeICD10")
+					}
+					
+                       diagnosisEligible = sh.getCell(18,i).getContents().toString()
+                       addAssertionJsonPathMatch(testStepForAssertion,diagnosisEligible,"lineItems[1].diagnosisEligible","diagnosisEligible")
+                       
+                               //dynamic asserstion :End
+                            assertionResult = testStepForAssertion.getAssertionStatus()
+             if(assertionResult.toString().equals("FAILED")){
+
+                                       addCell(10,i,"Fail",sheet1);
+                                   for( assertion in testStepForAssertion.assertionList ){
+                                  for( e in assertion.errors ){
+
+                                                     addCell(11,i,e.message,sheet1);
+
+                                                } 
+
+                                   }
+
+                                }
+
+
+                                else{
+
+                                   addCell(10,i,"PASS",sheet1);
+
+                                }
+
+ 
+       }
+
+      wb1.write();
+            log.info "TestCase Execution Completed successfull"
+
+ 
+
+ //        }             
+     
+//catch(Exception e)
+//{
+
+       //    log.info(e)                         
+//}
+
+//finally
+
+//{
+    //close workbook
+     wb.close();
+     wb1.close();     
+
+//}
+
+//Method code
+def addAssertionJsonPathMatch(RestTestRequestStep testStepForAssertion,String expectedContent,String xPath,String assertionName) {
+          def assertionType = testStepForAssertion.addAssertion("JsonPath Match")
+                                assertionType.name = assertionName
+                                assertionType.setPath(xPath)
+                                assertionType.setExpectedContent(expectedContent)
+                                assertionType.setAllowWildcards(true) 
+
+}
+
+//Method code
+def addAssertionValidHTTPStatusCodes(RestTestRequestStep testStepForAssertion,String assertionName) {
+
+         def StatusCodeAssertionxpath = testStepForAssertion.addAssertion("Valid HTTP Status Codes")
+             StatusCodeAssertionxpath.name = assertionName
+             StatusCodeAssertionxpath.codes=200
+
+}
+
+//method to delete
+def cleanUp(String requestName){
+
+                //remove the teststep::Start
+                def testCase = testRunner.testCase
+                def testStep = testCase.getTestStepByName(requestName)
+
+                if (testStep!=null){
+
+ 
+                                    testCase.removeTestStep(testStep)
+                }
+
+    
+            //remove the teststep::End
+
+}
+
+ 
+
+//method to add Cell to sheet1
+
+def addCell(int colmNum,int rowNum,String lblName,WritableSheet sheet1 ){
+
+                 Label header = new Label(colmNum,rowNum,lblName);
+                sheet1.addCell(header);               
+
+}]]></script>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="JSON Request" id="a32e2e69-2660-4556-90d3-513161e691a7">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/ValidateEligibleDiagnosis/ValidateEligibleDiagnosis/WADL" methodName="ValidateEligibleDiagnosis" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="JSON Request" id="a4cdb487-d867-45be-a4ee-a5df8055ccb9" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "diagnosis": [
+        {
+            "codeICD10": "E1.11"
+        },
+        {
+            "codeICD10": "E11.3"
+        }
+    ],
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "C1234",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "J1610",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA001",
+                    "planCode": ""
+                }
+            ]
+        },
+        {
+            "hcpcsCode": "A4212",
+            "lineItemID": "L002",
+            "plans": [
+                {
+                    "id": "PA002",
+                    "planCode": ""
+                }
+            ]
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods02/DecisionService/rest/v1/ValidateEligibleDiagnosis/ValidateEligibleDiagnosis/WADL</con:originalUri>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-63902" id="dc5f83fd-a51f-4370-bf37-19f384143192">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/ValidateEligibleDiagnosis/ValidateEligibleDiagnosis/WADL" methodName="ValidateEligibleDiagnosis" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-63902" id="a4cdb487-d867-45be-a4ee-a5df8055ccb9" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "diagnosis": [
+        {
+            "codeICD10": "E10.8"
+        },
+        {
+            "codeICD10": "Z96.41"
+        },
+        {
+            "codeICD10": ""
+        }
+    ],
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "C1234",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "K0554",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA001",
+                    "planCode": "0011"
+                }
+            ]
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods02/DecisionService/rest/v1/ValidateEligibleDiagnosis/ValidateEligibleDiagnosis/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="79400069-a3ed-4ffd-b51c-16fff1e394d6" name="Valid HTTP Status Codes_3">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="47f4e411-32e5-467b-bf7e-0531f3d06de0" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="6a12b921-ce16-49f3-93bb-a0a00f3fd256" name="codeICD10">
+          <con:configuration>
+            <path>lineItems[0].diagnosis[0].codeICD10</path>
+            <content>E10.8</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="60d6e811-b334-4689-b53a-8a374de89b28" name="codeICD10">
+          <con:configuration>
+            <path>lineItems[0].diagnosis[1].codeICD10</path>
+            <content>Z96.41</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="e9525f52-f83d-4efa-abe8-bde47a234d6d" name="diagnosisEligible">
+          <con:configuration>
+            <path>lineItems[0].diagnosisEligible</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-63903" id="1011b020-a716-4574-84cd-2012451dea77">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/ValidateEligibleDiagnosis/ValidateEligibleDiagnosis/WADL" methodName="ValidateEligibleDiagnosis" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-63903" id="a4cdb487-d867-45be-a4ee-a5df8055ccb9" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "diagnosis": [
+        {
+            "codeICD10": "E1.8"
+        },
+        {
+            "codeICD10": "Z96.41"
+        },
+        {
+            "codeICD10": ""
+        }
+    ],
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "C1234",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "K0554",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA001",
+                    "planCode": "0011"
+                }
+            ]
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods02/DecisionService/rest/v1/ValidateEligibleDiagnosis/ValidateEligibleDiagnosis/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="8e5a370e-2434-4bf3-8df2-22c02b6903d2" name="Valid HTTP Status Codes_4">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="375bacae-de7c-4693-9af8-0318fa0ad59d" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="792fc94d-6bbd-4d65-a09e-c426ed24d162" name="diagnosisEligible">
+          <con:configuration>
+            <path>lineItems[0].diagnosisEligible</path>
+            <content>false</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-63905" id="58db29e1-8170-490f-b01e-65dc43e1f15c">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/ValidateEligibleDiagnosis/ValidateEligibleDiagnosis/WADL" methodName="ValidateEligibleDiagnosis" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-63905" id="a4cdb487-d867-45be-a4ee-a5df8055ccb9" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "diagnosis": [
+        {
+            "codeICD10": "O24.421"
+        },
+        {
+            "codeICD10": ""
+        },
+        {
+            "codeICD10": ""
+        }
+    ],
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "C1234",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "A9276",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA001",
+                    "planCode": "0011"
+                }
+            ]
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods02/DecisionService/rest/v1/ValidateEligibleDiagnosis/ValidateEligibleDiagnosis/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="49710d3e-534b-46fe-ad1d-bbddb4ae0ede" name="Valid HTTP Status Codes_5">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="9c83eb29-1fff-4da7-a8d5-450b40e40373" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="5d4bdbb1-cd46-4669-a4df-e247d0d83a9e" name="codeICD10">
+          <con:configuration>
+            <path>lineItems[0].diagnosis[0].codeICD10</path>
+            <content>O24.421</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="50ad29f4-73f7-4c82-adb7-8c433439acdc" name="diagnosisEligible">
+          <con:configuration>
+            <path>lineItems[0].diagnosisEligible</path>
+            <content>false</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-63906" id="cbf14eb3-83a3-44c7-b010-a97b35ba8110">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/ValidateEligibleDiagnosis/ValidateEligibleDiagnosis/WADL" methodName="ValidateEligibleDiagnosis" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-63906" id="a4cdb487-d867-45be-a4ee-a5df8055ccb9" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "diagnosis": [
+        {
+            "codeICD10": "Z90.41"
+        },
+        {
+            "codeICD10": ""
+        },
+        {
+            "codeICD10": ""
+        }
+    ],
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "C1234",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "K0553",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA001",
+                    "planCode": "0011"
+                }
+            ]
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods02/DecisionService/rest/v1/ValidateEligibleDiagnosis/ValidateEligibleDiagnosis/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="5fa09876-bbbb-4c66-9d1b-a8213eb31425" name="Valid HTTP Status Codes_6">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="f0398e3f-eebd-47dd-8dba-3f301ad0ec14" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="c6b1c335-621b-4758-8e3e-501b083ca063" name="diagnosisEligible">
+          <con:configuration>
+            <path>lineItems[0].diagnosisEligible</path>
+            <content>false</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-63907" id="47e6d0fc-65b0-4ec4-9d3c-6f3bbc1b8923">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/ValidateEligibleDiagnosis/ValidateEligibleDiagnosis/WADL" methodName="ValidateEligibleDiagnosis" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-63907" id="a4cdb487-d867-45be-a4ee-a5df8055ccb9" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "diagnosis": [
+        {
+            "codeICD10": "O24.421"
+        },
+        {
+            "codeICD10": ""
+        },
+        {
+            "codeICD10": ""
+        }
+    ],
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "C1234",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "K0003",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA001",
+                    "planCode": "0011"
+                }
+            ]
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods02/DecisionService/rest/v1/ValidateEligibleDiagnosis/ValidateEligibleDiagnosis/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="054b015d-49b9-4260-969b-332eb410258a" name="Valid HTTP Status Codes_7">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="da83d2a0-bbee-4e7a-998f-65e78e7e10dc" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="d469feff-df74-4de1-b41d-5674b87cd84c" name="diagnosisEligible">
+          <con:configuration>
+            <path>lineItems[0].diagnosisEligible</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-63908" id="3d073d2e-8ed1-415f-a8ef-a3b2c48c53ce">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/ValidateEligibleDiagnosis/ValidateEligibleDiagnosis/WADL" methodName="ValidateEligibleDiagnosis" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-63908" id="a4cdb487-d867-45be-a4ee-a5df8055ccb9" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "diagnosis": [
+        {
+            "codeICD10": "E10.8"
+        },
+        {
+            "codeICD10": ""
+        },
+        {
+            "codeICD10": ""
+        }
+    ],
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "C1234",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA001",
+                    "planCode": "0011"
+                }
+            ]
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods02/DecisionService/rest/v1/ValidateEligibleDiagnosis/ValidateEligibleDiagnosis/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="9ea7fa7f-a2f4-4faf-988e-5a66b0b65475" name="Valid HTTP Status Codes_8">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="bf956a34-8ada-42cf-b7d3-e840242750d6" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="1f4d6854-746e-4d81-a5c2-953e6a061f97" name="diagnosisEligible">
+          <con:configuration>
+            <path>lineItems[0].diagnosisEligible</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-63909" id="65d616d1-8dc0-4df1-8ba5-6e01695015b6">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/ValidateEligibleDiagnosis/ValidateEligibleDiagnosis/WADL" methodName="ValidateEligibleDiagnosis" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-63909" id="a4cdb487-d867-45be-a4ee-a5df8055ccb9" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "diagnosis": [
+        {
+            "codeICD10": "E10.9"
+        },
+        {
+            "codeICD10": "Z96.41"
+        },
+        {
+            "codeICD10": ""
+        }
+    ],
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "C1234",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "A9276",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA001",
+                    "planCode": "9296"
+                }
+            ]
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods02/DecisionService/rest/v1/ValidateEligibleDiagnosis/ValidateEligibleDiagnosis/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="fae7f140-d0e1-4b6d-882f-5ee7a8235dc2" name="Valid HTTP Status Codes_9">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="7655c233-385d-4c15-8640-236ee05a74a4" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="fdd24b1a-81ed-446a-ab68-a1fe7364c43d" name="codeICD10">
+          <con:configuration>
+            <path>lineItems[0].diagnosis[0].codeICD10</path>
+            <content>E10.9</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="a73ee288-d04e-458a-966c-3fd3e87fd5c8" name="diagnosisEligible">
+          <con:configuration>
+            <path>lineItems[0].diagnosisEligible</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-63910" id="ce474f0e-d663-46c5-91d4-7e2b66f8d5dd">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/ValidateEligibleDiagnosis/ValidateEligibleDiagnosis/WADL" methodName="ValidateEligibleDiagnosis" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-63910" id="a4cdb487-d867-45be-a4ee-a5df8055ccb9" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "diagnosis": [
+        {
+            "codeICD10": "Z90.41"
+        },
+        {
+            "codeICD10": "Z96.41"
+        },
+        {
+            "codeICD10": ""
+        }
+    ],
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "C1234",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "K0553",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA001",
+                    "planCode": "0011"
+                }
+            ]
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods02/DecisionService/rest/v1/ValidateEligibleDiagnosis/ValidateEligibleDiagnosis/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="708b3166-f2aa-4ea0-8af4-8da0c6123931" name="Valid HTTP Status Codes_10">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="d08c6c5b-fc83-4e3f-969d-604f6d4387ed" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="520ee1b7-2952-4b3b-b040-aba6f5d80793" name="diagnosisEligible">
+          <con:configuration>
+            <path>lineItems[0].diagnosisEligible</path>
+            <content>false</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-63911" id="0512c0e7-671e-46b0-a551-84ea14db229f">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/ValidateEligibleDiagnosis/ValidateEligibleDiagnosis/WADL" methodName="ValidateEligibleDiagnosis" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-63911" id="a4cdb487-d867-45be-a4ee-a5df8055ccb9" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "diagnosis": [
+        {
+            "codeICD10": "E10.8"
+        },
+        {
+            "codeICD10": "E1.8"
+        },
+        {
+            "codeICD10": ""
+        }
+    ],
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "C1234",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "A9278",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA001",
+                    "planCode": "0011"
+                }
+            ]
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods02/DecisionService/rest/v1/ValidateEligibleDiagnosis/ValidateEligibleDiagnosis/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="36561053-4f66-465c-ba80-32e7b6128d42" name="Valid HTTP Status Codes_11">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="2bee26d2-fc5f-4f70-aa75-cb828875a16b" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="38102ede-2dae-4cd8-8ed4-20c1293721ef" name="codeICD10">
+          <con:configuration>
+            <path>lineItems[0].diagnosis[0].codeICD10</path>
+            <content>E10.8</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="cc47a5db-37a2-4c28-a572-887b6afe7729" name="diagnosisEligible">
+          <con:configuration>
+            <path>lineItems[0].diagnosisEligible</path>
+            <content>false</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-63912" id="68b1eb3d-f567-4e43-9cbe-404f51bd810e">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/ValidateEligibleDiagnosis/ValidateEligibleDiagnosis/WADL" methodName="ValidateEligibleDiagnosis" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-63912" id="a4cdb487-d867-45be-a4ee-a5df8055ccb9" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "diagnosis": [
+        {
+            "codeICD10": "E08"
+        },
+        {
+            "codeICD10": "E08.2"
+        },
+        {
+            "codeICD10": "E08.9999"
+        }
+    ],
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "C1234",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "J1610",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA001",
+                    "planCode": ""
+                }
+            ]
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods02/DecisionService/rest/v1/ValidateEligibleDiagnosis/ValidateEligibleDiagnosis/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="c90b3683-3a21-4fe9-93f4-3e33f962ef67" name="Valid HTTP Status Codes_12">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="8f7abc1c-0dd4-4a03-8544-1edc18d146c3" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="eadc35d6-1c9e-4005-96c7-027cf453905b" name="codeICD10">
+          <con:configuration>
+            <path>lineItems[0].diagnosis[0].codeICD10</path>
+            <content>E08</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="64d3e35a-3d83-47d5-be7c-0c426f190a3f" name="codeICD10">
+          <con:configuration>
+            <path>lineItems[0].diagnosis[1].codeICD10</path>
+            <content>E08.2</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="240afd74-f7de-48ed-a73a-d5460b0c33b2" name="codeICD10">
+          <con:configuration>
+            <path>lineItems[0].diagnosis[2].codeICD10</path>
+            <content>E08.9999</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="ca6ed946-bd9f-464b-9e0c-b75aa4e783de" name="diagnosisEligible">
+          <con:configuration>
+            <path>lineItems[0].diagnosisEligible</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-63913" id="7e5309f2-757e-42ef-86af-78cf5325309c">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/ValidateEligibleDiagnosis/ValidateEligibleDiagnosis/WADL" methodName="ValidateEligibleDiagnosis" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-63913" id="a4cdb487-d867-45be-a4ee-a5df8055ccb9" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "diagnosis": [
+        {
+            "codeICD10": "E11.5"
+        },
+        {
+            "codeICD10": "E1.8"
+        },
+        {
+            "codeICD10": ""
+        }
+    ],
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "C1234",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "A4212",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA001",
+                    "planCode": ""
+                }
+            ]
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods02/DecisionService/rest/v1/ValidateEligibleDiagnosis/ValidateEligibleDiagnosis/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="9dd4e40e-709c-4d62-9e59-69c24eea776d" name="Valid HTTP Status Codes_13">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="d308ee30-5481-481a-af4e-b4f7a6fe2b8b" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="491d37af-c8e5-4105-baf6-44adf637ab4d" name="codeICD10">
+          <con:configuration>
+            <path>lineItems[0].diagnosis[0].codeICD10</path>
+            <content>E11.5</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="e5496296-9d3f-40c9-adbc-a17d52dcb5b2" name="diagnosisEligible">
+          <con:configuration>
+            <path>lineItems[0].diagnosisEligible</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-63914" id="f468a8ca-85bc-4048-92fd-8f0fb9b9596e">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/ValidateEligibleDiagnosis/ValidateEligibleDiagnosis/WADL" methodName="ValidateEligibleDiagnosis" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-63914" id="a4cdb487-d867-45be-a4ee-a5df8055ccb9" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "diagnosis": [
+        {
+            "codeICD10": "E13.99999"
+        },
+        {
+            "codeICD10": ""
+        },
+        {
+            "codeICD10": ""
+        }
+    ],
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "C1234",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "A4208",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA001",
+                    "planCode": ""
+                }
+            ]
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods02/DecisionService/rest/v1/ValidateEligibleDiagnosis/ValidateEligibleDiagnosis/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="646352e8-a5c2-4c70-9f8c-57ebba5c2b4c" name="Valid HTTP Status Codes_14">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="5b74f6d2-8bc9-4298-995c-bd24240eb76c" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="b4e05da8-90aa-4723-aa1d-c030e9b40610" name="diagnosisEligible">
+          <con:configuration>
+            <path>lineItems[0].diagnosisEligible</path>
+            <content>false</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-63915" id="62a07d30-7524-43d5-9635-32cc5e076bda">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/ValidateEligibleDiagnosis/ValidateEligibleDiagnosis/WADL" methodName="ValidateEligibleDiagnosis" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-63915" id="a4cdb487-d867-45be-a4ee-a5df8055ccb9" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "diagnosis": [
+        {
+            "codeICD10": "Z39.1"
+        },
+        {
+            "codeICD10": ""
+        },
+        {
+            "codeICD10": ""
+        }
+    ],
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "C1234",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "A4284",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA001",
+                    "planCode": ""
+                }
+            ]
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods02/DecisionService/rest/v1/ValidateEligibleDiagnosis/ValidateEligibleDiagnosis/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="264576ee-872c-4bb0-a0dd-b64f54b6b5b5" name="Valid HTTP Status Codes_15">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="a0a2a84f-b9d9-4bf5-b646-0a851992aacc" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="69e1c1ff-8e72-4582-b0eb-5520197ca949" name="codeICD10">
+          <con:configuration>
+            <path>lineItems[0].diagnosis[0].codeICD10</path>
+            <content>Z39.1</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="db54545d-8a10-46e7-a634-a4bc46fe9221" name="diagnosisEligible">
+          <con:configuration>
+            <path>lineItems[0].diagnosisEligible</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-63916" id="41f5bd6e-946b-48fc-8302-3d82b99b1cd7">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/ValidateEligibleDiagnosis/ValidateEligibleDiagnosis/WADL" methodName="ValidateEligibleDiagnosis" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-63916" id="a4cdb487-d867-45be-a4ee-a5df8055ccb9" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "diagnosis": [
+        {
+            "codeICD10": "O24.9999"
+        },
+        {
+            "codeICD10": ""
+        },
+        {
+            "codeICD10": ""
+        }
+    ],
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "C1234",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "A4245",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA001",
+                    "planCode": ""
+                }
+            ]
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods02/DecisionService/rest/v1/ValidateEligibleDiagnosis/ValidateEligibleDiagnosis/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="213e30dd-1ba0-4643-a90b-7ee5f8e3adfd" name="Valid HTTP Status Codes_16">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="43ad45a6-5bc4-4b02-aa64-0d992af2b1f9" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="7e4e9ac2-6f0f-4b68-9be2-1ea4d431e4ac" name="codeICD10">
+          <con:configuration>
+            <path>lineItems[0].diagnosis[0].codeICD10</path>
+            <content>O24.9999</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="70212f86-c108-4a84-a225-1932a4967d6d" name="diagnosisEligible">
+          <con:configuration>
+            <path>lineItems[0].diagnosisEligible</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-63917" id="82bbb91f-edc1-4b80-a782-daaf3df2f404">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/ValidateEligibleDiagnosis/ValidateEligibleDiagnosis/WADL" methodName="ValidateEligibleDiagnosis" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-63917" id="a4cdb487-d867-45be-a4ee-a5df8055ccb9" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "diagnosis": [
+        {
+            "codeICD10": ""
+        },
+        {
+            "codeICD10": ""
+        },
+        {
+            "codeICD10": ""
+        }
+    ],
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "C1234",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA001",
+                    "planCode": ""
+                }
+            ]
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods02/DecisionService/rest/v1/ValidateEligibleDiagnosis/ValidateEligibleDiagnosis/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="cc469628-ff35-452a-8a63-91a09a4b280e" name="Valid HTTP Status Codes_17">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="2f74ed07-0b4b-4711-9baf-2746bbd4666a" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="e5ee7432-1d67-4fab-a95f-2d7dc783bcb5" name="diagnosisEligible">
+          <con:configuration>
+            <path>lineItems[0].diagnosisEligible</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-63918" id="aa04ae6f-42be-48bb-b0a4-6c2b23c91da3">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/ValidateEligibleDiagnosis/ValidateEligibleDiagnosis/WADL" methodName="ValidateEligibleDiagnosis" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-63918" id="a4cdb487-d867-45be-a4ee-a5df8055ccb9" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "diagnosis": [
+        {
+            "codeICD10": "O24.1"
+        },
+        {
+            "codeICD10": "E08.4"
+        },
+        {
+            "codeICD10": ""
+        }
+    ],
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "C1234",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA001",
+                    "planCode": ""
+                }
+            ]
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods02/DecisionService/rest/v1/ValidateEligibleDiagnosis/ValidateEligibleDiagnosis/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="32cfcc9d-d066-4b27-ae5a-b3d3c039f5cd" name="Valid HTTP Status Codes_18">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="d4afc0f1-70ab-433a-8868-7b601649ceee" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="b9ea3ad5-3556-4704-95c0-831c681f2335" name="diagnosisEligible">
+          <con:configuration>
+            <path>lineItems[0].diagnosisEligible</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-63919" id="f85d2767-87fc-4ddc-a822-f828f538690a">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/ValidateEligibleDiagnosis/ValidateEligibleDiagnosis/WADL" methodName="ValidateEligibleDiagnosis" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-63919" id="a4cdb487-d867-45be-a4ee-a5df8055ccb9" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "diagnosis": [
+        {
+            "codeICD10": ""
+        },
+        {
+            "codeICD10": "E23"
+        },
+        {
+            "codeICD10": ""
+        }
+    ],
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "C1234",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "J1610",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA001",
+                    "planCode": ""
+                }
+            ]
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods02/DecisionService/rest/v1/ValidateEligibleDiagnosis/ValidateEligibleDiagnosis/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="e7363a51-ecce-44bd-b950-a043dc598abb" name="Valid HTTP Status Codes_19">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="3702f174-80eb-4fdc-9d54-dac71a0706e8" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="a8ab0ade-c5b0-441a-8c5e-6f9372f7923a" name="diagnosisEligible">
+          <con:configuration>
+            <path>lineItems[0].diagnosisEligible</path>
+            <content>false</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-64091" id="6e463a60-e5c6-4f40-b0ec-4eb122872ee8">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/ValidateEligibleDiagnosis/ValidateEligibleDiagnosis/WADL" methodName="ValidateEligibleDiagnosis" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-64091" id="a4cdb487-d867-45be-a4ee-a5df8055ccb9" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "diagnosis": [
+        {
+            "codeICD10": ""
+        },
+        {
+            "codeICD10": ""
+        },
+        {
+            "codeICD10": ""
+        }
+    ],
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "C1234",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "K0554",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA001",
+                    "planCode": "0011"
+                }
+            ]
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods02/DecisionService/rest/v1/ValidateEligibleDiagnosis/ValidateEligibleDiagnosis/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="8aa4facb-7de7-46e3-b36d-e94e01b0988e" name="Valid HTTP Status Codes_20">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="3dae489e-2815-444a-8768-b5e273f2f234" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="1ea3d71b-2c0f-448a-8b90-a8dcdf31b35e" name="diagnosisEligible">
+          <con:configuration>
+            <path>lineItems[0].diagnosisEligible</path>
+            <content>false</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-63920" id="7c46bcaf-4fb9-4613-84c5-c59470838863">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/ValidateEligibleDiagnosis/ValidateEligibleDiagnosis/WADL" methodName="ValidateEligibleDiagnosis" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-63920" id="a4cdb487-d867-45be-a4ee-a5df8055ccb9" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "diagnosis": [
+        {
+            "codeICD10": "E10.8"
+        },
+        {
+            "codeICD10": "Z96.41"
+        }
+    ],
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "C1234",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "A9278",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA001",
+                    "planCode": "0011"
+                }
+            ]
+        },
+        {
+            "hcpcsCode": "K0553",
+            "lineItemID": "L002",
+            "plans": [
+                {
+                    "id": "PA002",
+                    "planCode": "0011"
+                }
+            ]
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods02/DecisionService/rest/v1/ValidateEligibleDiagnosis/ValidateEligibleDiagnosis/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="4b4e26e2-5dc0-4323-a268-a6f1a3588e69" name="Valid HTTP Status Codes_3">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="b5545724-4e79-4af7-a9e8-38f27ac85aa5" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="566b53b6-e342-4a75-b469-aa8114842b0e" name="codeICD10">
+          <con:configuration>
+            <path>lineItems[0].diagnosis[0].codeICD10</path>
+            <content>E10.8</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="d9612a2e-8636-4230-855b-4d401b1fbdf4" name="codeICD10">
+          <con:configuration>
+            <path>lineItems[0].diagnosis[1].codeICD10</path>
+            <content>Z96.41</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="4d05327c-47b9-4ab1-8e15-12c77da8b2b5" name="diagnosisEligible">
+          <con:configuration>
+            <path>lineItems[0].diagnosisEligible</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="4151433e-98da-4f81-a99e-e374739d237f" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[1].lineItemID</path>
+            <content>L002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="3ba235ca-3ecc-472e-9767-5d77d1674e33" name="diagnosisEligible">
+          <con:configuration>
+            <path>lineItems[1].diagnosisEligible</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-63921" id="97415f04-8af2-4407-9dc2-7673b1aedd64">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/ValidateEligibleDiagnosis/ValidateEligibleDiagnosis/WADL" methodName="ValidateEligibleDiagnosis" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-63921" id="a4cdb487-d867-45be-a4ee-a5df8055ccb9" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "diagnosis": [
+        {
+            "codeICD10": "O24.421"
+        },
+        {
+            "codeICD10": "Z96.41"
+        }
+    ],
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "C1234",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "K0554",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA001",
+                    "planCode": "9223"
+                }
+            ]
+        },
+        {
+            "hcpcsCode": "A9276",
+            "lineItemID": "L002",
+            "plans": [
+                {
+                    "id": "PA002",
+                    "planCode": "874643875"
+                }
+            ]
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods02/DecisionService/rest/v1/ValidateEligibleDiagnosis/ValidateEligibleDiagnosis/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="cc3e1a45-ba97-4b68-88f2-22816b24e597" name="Valid HTTP Status Codes_4">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="1c2b2fd0-9c61-4b1e-a36e-a92b5da9a8ae" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="b91e3002-70ad-4f31-a171-d3cc70a6444d" name="codeICD10">
+          <con:configuration>
+            <path>lineItems[0].diagnosis[0].codeICD10</path>
+            <content>O24.421</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="ce950719-8d14-41a3-b21f-a41c9e379463" name="diagnosisEligible">
+          <con:configuration>
+            <path>lineItems[0].diagnosisEligible</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="e6aaf6b8-6733-4aae-b9cc-f6668fa6518c" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[1].lineItemID</path>
+            <content>L002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="1c332bc8-4b45-45e8-b97b-454cfb61c4d1" name="diagnosisEligible">
+          <con:configuration>
+            <path>lineItems[1].diagnosisEligible</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-63922" id="4502aa9b-dcca-4373-ab8b-f6054707d7db">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/ValidateEligibleDiagnosis/ValidateEligibleDiagnosis/WADL" methodName="ValidateEligibleDiagnosis" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-63922" id="a4cdb487-d867-45be-a4ee-a5df8055ccb9" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "diagnosis": [
+        {
+            "codeICD10": "E1.11"
+        },
+        {
+            "codeICD10": "Z96.41"
+        }
+    ],
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "C1234",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "A9276",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA001",
+                    "planCode": "0011"
+                }
+            ]
+        },
+        {
+            "hcpcsCode": "K0554",
+            "lineItemID": "L002",
+            "plans": [
+                {
+                    "id": "PA002",
+                    "planCode": "0011"
+                }
+            ]
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods02/DecisionService/rest/v1/ValidateEligibleDiagnosis/ValidateEligibleDiagnosis/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="fc22d2bb-1c9d-4240-96f8-fd50d18418ad" name="Valid HTTP Status Codes_5">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="4aa202c4-8018-461c-ac37-f7ad0d57cbb8" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="38feefc9-9227-471c-a280-bbc199b95497" name="diagnosisEligible">
+          <con:configuration>
+            <path>lineItems[0].diagnosisEligible</path>
+            <content>false</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="afa2e9da-fac7-48a3-b8c3-229872cc57db" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[1].lineItemID</path>
+            <content>L002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="6bdafab0-613d-4bd6-8235-46af640cebf8" name="diagnosisEligible">
+          <con:configuration>
+            <path>lineItems[1].diagnosisEligible</path>
+            <content>false</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-63923" id="76d586ee-8b41-49a3-8b14-b96c29018910">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/ValidateEligibleDiagnosis/ValidateEligibleDiagnosis/WADL" methodName="ValidateEligibleDiagnosis" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-63923" id="a4cdb487-d867-45be-a4ee-a5df8055ccb9" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "diagnosis": [
+        {
+            "codeICD10": "O24.422"
+        },
+        {
+            "codeICD10": "E1.11111"
+        }
+    ],
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "C1234",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "K0553",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA001",
+                    "planCode": "0011"
+                }
+            ]
+        },
+        {
+            "hcpcsCode": "A9278",
+            "lineItemID": "L002",
+            "plans": [
+                {
+                    "id": "PA002",
+                    "planCode": "0011"
+                }
+            ]
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods02/DecisionService/rest/v1/ValidateEligibleDiagnosis/ValidateEligibleDiagnosis/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="7ebe437a-47f6-4d15-ac9f-bb65a29fe3e8" name="Valid HTTP Status Codes_6">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="8553e76e-17e3-46d1-a069-1bc45a814ac2" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="e43a64c6-8cba-4faa-ac00-09feae120f62" name="codeICD10">
+          <con:configuration>
+            <path>lineItems[0].diagnosis[0].codeICD10</path>
+            <content>O24.422</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="d0b1c79a-13ea-410a-8d04-13f42fd6fc29" name="diagnosisEligible">
+          <con:configuration>
+            <path>lineItems[0].diagnosisEligible</path>
+            <content>false</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="a5d7ce95-9e08-4d5c-a365-fe8fbfe74845" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[1].lineItemID</path>
+            <content>L002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="86c4c4de-b587-472f-918a-8099e2fb2fa0" name="diagnosisEligible">
+          <con:configuration>
+            <path>lineItems[1].diagnosisEligible</path>
+            <content>false</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-63924" id="26124dfc-95b0-4440-a1dc-cbaa76542b9b">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/ValidateEligibleDiagnosis/ValidateEligibleDiagnosis/WADL" methodName="ValidateEligibleDiagnosis" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-63924" id="a4cdb487-d867-45be-a4ee-a5df8055ccb9" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "diagnosis": [
+        {
+            "codeICD10": "E08.2"
+        },
+        {
+            "codeICD10": "E11.5"
+        }
+    ],
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "C1234",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "A4208",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA001",
+                    "planCode": ""
+                }
+            ]
+        },
+        {
+            "hcpcsCode": "A4245",
+            "lineItemID": "L002",
+            "plans": [
+                {
+                    "id": "PA002",
+                    "planCode": ""
+                }
+            ]
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods02/DecisionService/rest/v1/ValidateEligibleDiagnosis/ValidateEligibleDiagnosis/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="08a33475-7137-4732-914c-7e8fd4b0c349" name="Valid HTTP Status Codes_7">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="2c184459-404c-4022-b5b9-27c3eb6699ea" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="6f57a1e9-b327-4a4c-a62c-a79504c23a7f" name="codeICD10">
+          <con:configuration>
+            <path>lineItems[0].diagnosis[0].codeICD10</path>
+            <content>E08.2</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="01011973-2561-4902-9951-88eb97868ca9" name="codeICD10">
+          <con:configuration>
+            <path>lineItems[0].diagnosis[1].codeICD10</path>
+            <content>E11.5</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="d4c690eb-50a3-4341-a2e0-2278453ee0ff" name="diagnosisEligible">
+          <con:configuration>
+            <path>lineItems[0].diagnosisEligible</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="470526fc-bd9f-486a-acfc-39922c080232" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[1].lineItemID</path>
+            <content>L002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="a56287e6-90ef-4a6e-82fa-9ded53e5c91e" name="diagnosisEligible">
+          <con:configuration>
+            <path>lineItems[1].diagnosisEligible</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-63925" id="fb23c354-92d2-4805-8763-eb9fd72df335">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/ValidateEligibleDiagnosis/ValidateEligibleDiagnosis/WADL" methodName="ValidateEligibleDiagnosis" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-63925" id="a4cdb487-d867-45be-a4ee-a5df8055ccb9" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "diagnosis": [
+        {
+            "codeICD10": "E11111"
+        },
+        {
+            "codeICD10": "E11112"
+        }
+    ],
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "C1234",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "A6257",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA001",
+                    "planCode": ""
+                }
+            ]
+        },
+        {
+            "hcpcsCode": "A4208",
+            "lineItemID": "L002",
+            "plans": [
+                {
+                    "id": "PA002",
+                    "planCode": ""
+                }
+            ]
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods02/DecisionService/rest/v1/ValidateEligibleDiagnosis/ValidateEligibleDiagnosis/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="b256e967-5ca1-4dd2-8a9b-202be69aa3be" name="Valid HTTP Status Codes_8">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="6ce1463a-f578-4a39-97c5-8ddc0fade890" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="34d1dfe7-62d3-4316-81c9-297cf09220c4" name="diagnosisEligible">
+          <con:configuration>
+            <path>lineItems[0].diagnosisEligible</path>
+            <content>false</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="b2528915-7538-4307-995c-e108709e98b4" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[1].lineItemID</path>
+            <content>L002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="9c76ad8c-6170-4e24-a200-96f2c61d418c" name="diagnosisEligible">
+          <con:configuration>
+            <path>lineItems[1].diagnosisEligible</path>
+            <content>false</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:testStep type="restrequest" name="EPST-63926" id="74556b6e-b53f-4c0d-8458-181a2869a9c2">
+    <con:settings/>
+    <con:config service="CARESOrderManagement" resourcePath="/DecisionService/rest/v1/ValidateEligibleDiagnosis/ValidateEligibleDiagnosis/WADL" methodName="ValidateEligibleDiagnosis" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <con:restRequest name="EPST-63926" id="a4cdb487-d867-45be-a4ee-a5df8055ccb9" mediaType="application/json" postQueryString="false">
+        <con:settings>
+          <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+        </con:settings>
+        <con:endpoint>http://lqec5009c1ods01:9080</con:endpoint>
+        <con:request>{
+    "__DecisionID__": "string",
+    "diagnosis": [
+        {
+            "codeICD10": "E1.11"
+        },
+        {
+            "codeICD10": "E11.3"
+        }
+    ],
+    "e2eMetadata": {
+        "serviceAddressing": {
+            "callingFunction": "string",
+            "correlationID": "C1234",
+            "from": "string",
+            "timestamp": "2019-08-26T00:00:00.000+0000"
+        }
+    },
+    "lineItems": [
+        {
+            "hcpcsCode": "J1610",
+            "lineItemID": "L001",
+            "plans": [
+                {
+                    "id": "PA001",
+                    "planCode": ""
+                }
+            ]
+        },
+        {
+            "hcpcsCode": "A4212",
+            "lineItemID": "L002",
+            "plans": [
+                {
+                    "id": "PA002",
+                    "planCode": ""
+                }
+            ]
+        }
+    ]
+}</con:request>
+        <con:originalUri>http://lqec5009c1ods02/DecisionService/rest/v1/ValidateEligibleDiagnosis/ValidateEligibleDiagnosis/WADL</con:originalUri>
+        <con:assertion type="Valid HTTP Status Codes" id="8e1d7e07-6824-45e1-ba25-e66da9876ee1" name="Valid HTTP Status Codes_9">
+          <con:settings/>
+          <con:configuration>
+            <codes>200</codes>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="223ec88e-6882-449e-aab7-b9240755fd60" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[0].lineItemID</path>
+            <content>L001</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="875dd496-703c-45bd-8f9f-64b98ade52bb" name="codeICD10">
+          <con:configuration>
+            <path>lineItems[0].diagnosis[0].codeICD10</path>
+            <content>E11.3</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="0bf90014-6734-49a3-9517-053787f3e982" name="diagnosisEligible">
+          <con:configuration>
+            <path>lineItems[0].diagnosisEligible</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="ddd5bcf1-5339-4fc9-9f5e-67809089ce81" name="lineItemID">
+          <con:configuration>
+            <path>lineItems[1].lineItemID</path>
+            <content>L002</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:assertion type="JsonPath Match" id="5dbda4e0-048c-400c-8425-9aa3f16574f4" name="diagnosisEligible">
+          <con:configuration>
+            <path>lineItems[1].diagnosisEligible</path>
+            <content>true</content>
+            <allowWildcards>false</allowWildcards>
+            <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
+            <ignoreComments>false</ignoreComments>
+          </con:configuration>
+        </con:assertion>
+        <con:credentials>
+          <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+          <con:authType>No Authorization</con:authType>
+        </con:credentials>
+        <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+        <con:jmsPropertyConfig/>
+        <con:parameters/>
+      </con:restRequest>
+    </con:config>
+  </con:testStep>
+  <con:properties/>
+  <con:reportParameters/>
+</con:testCase>

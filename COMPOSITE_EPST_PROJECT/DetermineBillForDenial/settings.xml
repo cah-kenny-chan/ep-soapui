@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<con:testSuite id="ba3a65e7-7c82-422e-8348-f5c2e2758e3c" name="DetermineBillForDenial" xmlns:con="http://eviware.com/soapui/config">
-  <con:settings>
-    <con:setting id="ba3a65e7-7c82-422e-8348-f5c2e2758e3cfileName">DetermineBillForDenial</con:setting>
-  </con:settings>
-  <con:runType>SEQUENTIAL</con:runType>
-  <con:properties/>
-  <con:reportParameters/>
-</con:testSuite>

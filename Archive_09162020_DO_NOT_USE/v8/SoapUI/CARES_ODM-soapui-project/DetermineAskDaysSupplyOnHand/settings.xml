@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<con:testSuite id="af7a852d-77a4-47db-81fc-4645e58b3337" name="DetermineAskDaysSupplyOnHand" xmlns:con="http://eviware.com/soapui/config">
-  <con:settings>
-    <con:setting id="af7a852d-77a4-47db-81fc-4645e58b3337fileName">DetermineAskDaysSupplyOnHand</con:setting>
-  </con:settings>
-  <con:runType>SEQUENTIAL</con:runType>
-  <con:properties/>
-  <con:reportParameters/>
-</con:testSuite>

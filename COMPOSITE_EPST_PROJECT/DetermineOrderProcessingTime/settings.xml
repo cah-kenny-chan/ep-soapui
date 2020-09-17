@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<con:testSuite id="875df5d5-e267-4116-bba6-f0f3698029ae" name="DetermineOrderProcessingTime" xmlns:con="http://eviware.com/soapui/config">
-  <con:settings>
-    <con:setting id="875df5d5-e267-4116-bba6-f0f3698029aefileName">DetermineOrderProcessingTime</con:setting>
-  </con:settings>
-  <con:runType>SEQUENTIAL</con:runType>
-  <con:properties/>
-  <con:reportParameters/>
-</con:testSuite>

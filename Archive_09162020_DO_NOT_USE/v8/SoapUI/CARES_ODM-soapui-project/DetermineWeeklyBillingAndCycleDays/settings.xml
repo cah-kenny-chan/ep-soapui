@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<con:testSuite id="8c056244-dd6f-4a3c-b806-b7ba91b0a175" name="DetermineWeeklyBillingAndCycleDays" xmlns:con="http://eviware.com/soapui/config">
-  <con:settings>
-    <con:setting id="8c056244-dd6f-4a3c-b806-b7ba91b0a175fileName">DetermineWeeklyBillingAndCycleDays</con:setting>
-  </con:settings>
-  <con:runType>SEQUENTIAL</con:runType>
-  <con:properties/>
-  <con:reportParameters/>
-</con:testSuite>

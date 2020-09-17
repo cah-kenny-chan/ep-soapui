@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<con:testSuite id="d4d2c89d-571f-44da-9577-1f626f18e61e" name="DetermineBillingIndicator" xmlns:con="http://eviware.com/soapui/config">
-  <con:settings>
-    <con:setting id="d4d2c89d-571f-44da-9577-1f626f18e61efileName">DetermineBillingIndicator</con:setting>
-  </con:settings>
-  <con:runType>SEQUENTIAL</con:runType>
-  <con:properties/>
-  <con:reportParameters/>
-</con:testSuite>

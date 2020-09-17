@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<con:testSuite id="17d32177-3712-4ee8-98ce-9fc6c3d3963c" name="DetermineServiceCode" xmlns:con="http://eviware.com/soapui/config">
-  <con:settings>
-    <con:setting id="17d32177-3712-4ee8-98ce-9fc6c3d3963cfileName">DetermineServiceCode</con:setting>
-  </con:settings>
-  <con:runType>SEQUENTIAL</con:runType>
-  <con:properties/>
-  <con:reportParameters/>
-</con:testSuite>

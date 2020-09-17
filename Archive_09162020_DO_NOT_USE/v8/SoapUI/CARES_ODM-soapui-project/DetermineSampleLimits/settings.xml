@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<con:testSuite id="9cd31023-2d9f-4cab-a728-0e37e7d5b2c1" name="DetermineSampleLimits" xmlns:con="http://eviware.com/soapui/config">
-  <con:settings>
-    <con:setting id="9cd31023-2d9f-4cab-a728-0e37e7d5b2c1fileName">DetermineSampleLimits</con:setting>
-  </con:settings>
-  <con:runType>SEQUENTIAL</con:runType>
-  <con:properties/>
-  <con:reportParameters/>
-</con:testSuite>

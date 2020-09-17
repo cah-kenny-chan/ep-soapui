@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<con:testSuite id="be6dbdd8-b93f-47f8-a632-dce0de6d3ec6" name="DetermineEligiblePaymentOptions" xmlns:con="http://eviware.com/soapui/config">
-  <con:settings>
-    <con:setting id="be6dbdd8-b93f-47f8-a632-dce0de6d3ec6fileName">DetermineEligiblePaymentOptions</con:setting>
-  </con:settings>
-  <con:runType>SEQUENTIAL</con:runType>
-  <con:properties/>
-  <con:reportParameters/>
-</con:testSuite>

@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<con:testSuite id="083299db-a747-4ea6-9b6e-7ddce639d6d6" name="DetermineShippingLabelEligibility" xmlns:con="http://eviware.com/soapui/config">
-  <con:settings>
-    <con:setting id="083299db-a747-4ea6-9b6e-7ddce639d6d6fileName">DetermineShippingLabelEligibility</con:setting>
-  </con:settings>
-  <con:runType>SEQUENTIAL</con:runType>
-  <con:properties/>
-  <con:reportParameters/>
-</con:testSuite>

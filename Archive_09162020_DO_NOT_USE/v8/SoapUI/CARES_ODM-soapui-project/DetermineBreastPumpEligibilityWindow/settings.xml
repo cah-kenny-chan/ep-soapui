@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<con:testSuite id="bcca10b9-3ef9-429c-ae71-5806f17c7dcd" name="DetermineBreastPumpEligibilityWindow" xmlns:con="http://eviware.com/soapui/config">
-  <con:settings>
-    <con:setting id="bcca10b9-3ef9-429c-ae71-5806f17c7dcdfileName">DetermineBreastPumpEligibilityWindow</con:setting>
-  </con:settings>
-  <con:runType>SEQUENTIAL</con:runType>
-  <con:properties/>
-  <con:reportParameters/>
-</con:testSuite>

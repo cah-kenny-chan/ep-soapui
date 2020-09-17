@@ -1,8 +1,0 @@
-# These owners will be able to review pull requests.
-* kenny.chan@cardinalhealth.com daniel.adams@cardinalhealth.com thomas.halter@cardinalhealth.com thomas.holdren@cardinalhealth.com sai.madaupu@cardinalhealth.com steven.jackson04@cardinalhealth.com timothy.dobransky@cardinalhealth.com venkatisuryasasikala.peri@cardinalhealth.com michelle.sinkovich@cardinalhealth.com brian.zupanc@cardinalhealth.com
-  
-# These owners will be able to review pull requests for build/jenkins files.
-
-Jenkinsfile	kenneth.kulaks@cardinalhealth.com brian.zupanc@cardinalhealth.com
-build.xml	kenneth.kulaks@cardinalhealth.com brian.zupanc@cardinalhealth.com
-build.gradle	kenneth.kulaks@cardinalhealth.com brian.zupanc@cardinalhealth.com

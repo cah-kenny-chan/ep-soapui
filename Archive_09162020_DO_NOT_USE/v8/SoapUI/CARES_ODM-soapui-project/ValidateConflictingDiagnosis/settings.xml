@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<con:testSuite id="0a7526f1-2852-4de3-a9b3-bacdd3bb582d" name="ValidateConflictingDiagnosis" xmlns:con="http://eviware.com/soapui/config">
-  <con:settings>
-    <con:setting id="0a7526f1-2852-4de3-a9b3-bacdd3bb582dfileName">ValidateConflictingDiagnosis</con:setting>
-  </con:settings>
-  <con:runType>SEQUENTIAL</con:runType>
-  <con:properties/>
-  <con:reportParameters/>
-</con:testSuite>

@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<con:testSuite id="8ddf61e2-671f-4e44-818c-80e658b58f78" name="DeterminePhysicianSpecialtyAndPrimaryCareRequired" xmlns:con="http://eviware.com/soapui/config">
-  <con:settings>
-    <con:setting id="8ddf61e2-671f-4e44-818c-80e658b58f78fileName">DeterminePhysicianSpecialtyAndPrimaryCareRequired</con:setting>
-  </con:settings>
-  <con:runType>SEQUENTIAL</con:runType>
-  <con:properties/>
-  <con:reportParameters/>
-</con:testSuite>

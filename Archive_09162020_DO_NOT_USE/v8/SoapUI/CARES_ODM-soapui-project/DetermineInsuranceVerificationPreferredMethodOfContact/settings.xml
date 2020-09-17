@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<con:testSuite id="03ed1147-75b1-4c8f-a72f-2327739ac7cf" name="DetermineInsuranceVerificationPreferredMethodOfContact" xmlns:con="http://eviware.com/soapui/config">
-  <con:settings>
-    <con:setting id="03ed1147-75b1-4c8f-a72f-2327739ac7cffileName">DetermineInsuranceVerificationPreferredMethodOfContact</con:setting>
-  </con:settings>
-  <con:runType>SEQUENTIAL</con:runType>
-  <con:properties/>
-  <con:reportParameters/>
-</con:testSuite>

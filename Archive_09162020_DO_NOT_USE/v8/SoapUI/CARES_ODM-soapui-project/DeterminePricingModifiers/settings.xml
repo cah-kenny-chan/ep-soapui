@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<con:testSuite id="ebc9df25-1b32-4558-b6f4-47fcde24b63c" name="DeterminePricingModifiers" xmlns:con="http://eviware.com/soapui/config">
-  <con:settings>
-    <con:setting id="ebc9df25-1b32-4558-b6f4-47fcde24b63cfileName">DeterminePricingModifiers</con:setting>
-  </con:settings>
-  <con:runType>SEQUENTIAL</con:runType>
-  <con:properties/>
-  <con:reportParameters/>
-</con:testSuite>

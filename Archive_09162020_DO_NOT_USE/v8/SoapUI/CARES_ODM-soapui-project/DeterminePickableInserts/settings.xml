@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<con:testSuite id="77f97bf2-11fe-4fb6-8de1-a6bbe8751a0f" name="DeterminePickableInserts" xmlns:con="http://eviware.com/soapui/config">
-  <con:settings>
-    <con:setting id="77f97bf2-11fe-4fb6-8de1-a6bbe8751a0ffileName">DeterminePickableInserts</con:setting>
-  </con:settings>
-  <con:runType>SEQUENTIAL</con:runType>
-  <con:properties/>
-  <con:reportParameters/>
-</con:testSuite>

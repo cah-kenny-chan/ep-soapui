@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<con:testSuite id="b6306f6f-c0d4-4777-9f05-8100f1f962e9" name="DetermineIfProductSpecificQuestions" xmlns:con="http://eviware.com/soapui/config">
-  <con:settings>
-    <con:setting id="b6306f6f-c0d4-4777-9f05-8100f1f962e9fileName">DetermineIfProductSpecificQuestions</con:setting>
-  </con:settings>
-  <con:runType>SEQUENTIAL</con:runType>
-  <con:properties/>
-  <con:reportParameters/>
-</con:testSuite>

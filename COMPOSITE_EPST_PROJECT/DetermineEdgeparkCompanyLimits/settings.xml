@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<con:testSuite id="a3e8007f-b33a-4b0a-9b00-f05e29f337d7" name="DetermineEdgeparkCompanyLimits" xmlns:con="http://eviware.com/soapui/config">
-  <con:settings>
-    <con:setting id="a3e8007f-b33a-4b0a-9b00-f05e29f337d7fileName">DetermineEdgeparkCompanyLimits</con:setting>
-  </con:settings>
-  <con:runType>SEQUENTIAL</con:runType>
-  <con:properties/>
-  <con:reportParameters/>
-</con:testSuite>
