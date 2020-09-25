@@ -7,7 +7,7 @@
     <con:settings/>
     <con:config>
       <script><![CDATA[import jxl.*; //test6
-import jxl.write.*
+import jxl.write.* //Kenny Comment
 import java.io.*
 import java.io.file.*
 import java.util.*
